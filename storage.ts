@@ -1,0 +1,1030 @@
+import { MOCK_BLOG_POSTS, MOCK_EVENTS, MOCK_CONTENT, MOCK_CONTACTS, MOCK_USER_HISTORY, HERO_CONFIG, BLOG_CONFIG_DEFAULT, MOCK_MEDIA, MOCK_EMAIL_LOGS, MOCK_EMAIL_METRICS, DEFAULT_HOME_CONFIG, PUBLIC_NAV_STRUCTURE } from './constants';
+import { BlogPost, CalendarEvent, ContentItem, Contact, ContactList, UserActivity, HeroConfig, BlogConfig, User, UserRole, MediaAsset, EmailLog, EmailMetrics, ChangeLog, HomeConfig, CustomPage, MegaMenuItem, FooterConfig, SMTPConfig, Campaign, AutomationRule, AutomationExecution, AutomationNode, SendEmailNode, WaitNode, ConditionNode, UpdateTagNode, MoveToListNode } from './types';
+
+// STORAGE KEYS
+const KEYS = {
+    BLOG: 'cafh_blog_v1',
+    BLOG_CONFIG: 'cafh_blog_config_v1',
+    EVENTS: 'cafh_events_v1',
+    CONTENT: 'cafh_content_v1',
+    CONTACTS: 'cafh_contacts_v1',
+    HISTORY: 'cafh_user_history_v1',
+    HERO: 'cafh_hero_config_v1',
+    USER_PREFS: 'cafh_user_prefs_v1',
+    SESSION: 'cafh_user_session_v1',
+    MEDIA: 'cafh_media_v1',
+    EMAIL_LOGS: 'cafh_email_logs_v1',
+    EMAIL_METRICS: 'cafh_email_metrics_v1',
+    HOME_CONFIG: 'cafh_home_config_v1',
+    CUSTOM_PAGES: 'cafh_pages_v1',
+    MEGA_MENU: 'cafh_menu_v1',
+    CHANGE_LOG: 'cafh_changelog_v1',
+    SMTP_CONFIG: 'cafh_smtp_config_v1',
+    CRM_LISTS: 'cafh_crm_lists_v1',
+    CAMPAIGNS: 'cafh_campaigns_v1',
+    AUTOMATIONS: 'cafh_automations_v1',
+    AUTOMATION_EXECUTIONS: 'cafh_automation_executions_v1',
+};
+
+// MOCK USERS FOR AUTHENTICATION
+const MOCK_USERS: User[] = [
+    {
+        id: 'u_admin',
+        name: 'Administrador Principal',
+        email: 'admin@cafh.cl',
+        role: UserRole.SUPER_ADMIN,
+        avatarUrl: '',
+        tenantId: 't_santiago_01',
+        interests: [],
+        joinedDate: '2023-01-01'
+    },
+    {
+        id: 'u_member',
+        name: 'Miembro Cafh',
+        email: 'miembro@cafh.cl',
+        role: UserRole.MEMBER,
+        avatarUrl: '',
+        tenantId: 't_santiago_01',
+        interests: ['Meditación', 'Bienestar'],
+        joinedDate: '2023-10-15'
+    }
+];
+
+// HELPER TO INIT DATA IF EMPTY
+const initStorage = <T>(key: string, initialData: T): T => {
+    try {
+        const stored = localStorage.getItem(key);
+        if (!stored) {
+            localStorage.setItem(key, JSON.stringify(initialData));
+            return initialData;
+        }
+        return JSON.parse(stored);
+    } catch (e) {
+        console.error(`Error accessing storage for ${key}`, e);
+        return initialData;
+    }
+};
+
+// DATABASE API
+export const db = {
+    // Initializer (Run on App mount)
+    init: () => {
+        initStorage(KEYS.BLOG, MOCK_BLOG_POSTS);
+        initStorage(KEYS.BLOG_CONFIG, BLOG_CONFIG_DEFAULT);
+        initStorage(KEYS.EVENTS, MOCK_EVENTS);
+        initStorage(KEYS.CONTENT, MOCK_CONTENT);
+        initStorage(KEYS.CONTACTS, MOCK_CONTACTS);
+        initStorage(KEYS.HISTORY, MOCK_USER_HISTORY);
+        initStorage(KEYS.HERO, HERO_CONFIG);
+        initStorage(KEYS.USER_PREFS, { theme: 'light', notifications: true });
+        initStorage(KEYS.MEDIA, MOCK_MEDIA);
+        initStorage(KEYS.EMAIL_LOGS, MOCK_EMAIL_LOGS);
+        initStorage(KEYS.EMAIL_METRICS, MOCK_EMAIL_METRICS);
+
+        // New CMS Initializers
+        initStorage(KEYS.HOME_CONFIG, DEFAULT_HOME_CONFIG);
+        const existingPages = initStorage(KEYS.CUSTOM_PAGES, []);
+        if (existingPages.length === 0) {
+            const defaultPages = [
+                {
+                    id: 'p_historia_01',
+                    title: 'Quiénes Somos',
+                    slug: 'quienes-somos',
+                    status: 'Published',
+                    sections: [
+                        {
+                            id: 's_hero_about',
+                            type: 'Hero',
+                            order: 0,
+                            content: {
+                                title: 'Quiénes Somos',
+                                subtitle: 'Una comunidad global dedicada al desenvolvimiento espiritual y al servicio de la humanidad.',
+                                imageUrl: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2000&auto=format&fit=crop',
+                                ctaText: 'Ver Sedes',
+                                ctaLink: '/about/locations'
+                            }
+                        },
+                        {
+                            id: 's_text_about_1',
+                            type: 'Text',
+                            order: 1,
+                            content: {
+                                text: '## Un legado de sabiduría viva\n\nFundada hace más de 80 años, Cafh nació como una respuesta a la necesidad humana de encontrar un sentido trascendente. A lo largo de las décadas, hemos evolucionado manteniendo intacta nuestra esencia: el método de vida.'
+                            }
+                        },
+                        { id: 's_stats_about', type: 'Stats', order: 2, content: { items: [{ label: 'Año de Fundación', value: '1937', icon: 'Calendar' }, { label: 'Países con presencia', value: '20+', icon: 'Globe' }] } },
+                        { id: 's_timeline_about', type: 'Timeline', order: 3, content: {} },
+                        {
+                            id: 's_cta_mission',
+                            type: 'CTA',
+                            order: 3,
+                            content: {
+                                title: 'Nuestra Misión',
+                                text: '"Fomentar el desenvolvimiento espiritual de sus miembros para que, a través de su propio trabajo interior, contribuyan al bien de la sociedad y del mundo entero."',
+                                buttonText: 'Saber más',
+                                buttonLink: '/about'
+                            }
+                        }
+                    ],
+                    seo: { title: 'Quiénes Somos | Cafh', description: 'Conoce la historia y misión de Cafh.', keywords: ['historia', 'misión', 'cafh'] }
+                },
+                {
+                    id: 'p_metodo_01',
+                    title: 'El Método',
+                    slug: 'el-metodo',
+                    status: 'Published',
+                    sections: [
+                        {
+                            id: 's_hero_method',
+                            type: 'Hero',
+                            order: 0,
+                            content: {
+                                title: 'El Método',
+                                subtitle: 'Un camino práctico para integrar la espiritualidad en la vida cotidiana.',
+                                imageUrl: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=2000&auto=format&fit=crop',
+                                ctaText: 'Empezar ahora',
+                                ctaLink: '/login'
+                            }
+                        },
+                        { id: 's_pillars_method', type: 'MethodPillars', order: 1, content: {} },
+                        {
+                            id: 's_cta_meditation',
+                            type: 'CTA',
+                            order: 2,
+                            content: {
+                                title: 'Meditación Discursiva',
+                                text: 'Nuestro método principal de meditación. No solo busca calmar la mente, sino transformar la conducta a través de la reflexión profunda.',
+                                buttonText: 'Aprender a Meditar',
+                                buttonLink: '/resources'
+                            }
+                        }
+                    ],
+                    seo: { title: 'El Método | Cafh', description: 'Descubre el método de vida de Cafh.', keywords: ['meditación', 'espiritualidad', 'método'] }
+                },
+                {
+                    id: 'p_recursos_01',
+                    title: 'Biblioteca de Recursos',
+                    slug: 'biblioteca-recursos',
+                    status: 'Published',
+                    sections: [
+                        {
+                            id: 's_hero_resources',
+                            type: 'Hero',
+                            order: 0,
+                            content: {
+                                title: 'Biblioteca de Recursos',
+                                subtitle: 'Explora documentos, videos y audios para nutrir tu camino.',
+                                imageUrl: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=2000&auto=format&fit=crop',
+                                ctaText: 'Ver Todo',
+                                ctaLink: '/resources'
+                            }
+                        },
+                        { id: 's_text_resources', type: 'Text', order: 1, content: { text: '### Contenido para tu crecimiento\n\nEn esta sección encontrarás una selección de materiales diseñados para acompañar tu proceso de desenvolvimiento espiritual.' } },
+                        { id: 's_grid_resources', type: 'ResourcesGrid', order: 2, content: {} }
+                    ],
+                    seo: { title: 'Recursos | Cafh', description: 'Biblioteca de recursos espirituales.', keywords: ['libros', 'videos', 'meditaciones'] }
+                },
+                {
+                    id: 'p_actividades_01',
+                    title: 'Actividades y Retiros',
+                    slug: 'actividades-retiros',
+                    status: 'Published',
+                    sections: [
+                        {
+                            id: 's_hero_activities',
+                            type: 'Hero',
+                            order: 0,
+                            content: {
+                                title: 'Actividades y Retiros',
+                                subtitle: 'Participa de nuestros encuentros. Espacios diseñados para el aprendizaje y la vivencia espiritual.',
+                                imageUrl: 'https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?q=80&w=2000&auto=format&fit=crop',
+                                ctaText: 'Ver Calendario',
+                                ctaLink: '/activities'
+                            }
+                        },
+                        { id: 's_cta_retreats', type: 'CTA', order: 1, content: { title: '¿Buscas un retiro?', text: 'Desconecta del ruido y reconecta contigo mismo en nuestros centros de retiro.', buttonText: 'Ver opciones', buttonLink: '/activities' } },
+                        { id: 's_calendar', type: 'EventsCalendar', order: 2, content: {} }
+                    ],
+                    seo: { title: 'Actividades | Cafh', description: 'Calendario de actividades y retiros.', keywords: ['retiros', 'eventos', 'cafh'] }
+                },
+                {
+                    id: 'p_historia_sub',
+                    title: 'Nuestra Historia',
+                    slug: 'nuestra-historia',
+                    status: 'Published',
+                    sections: [
+                        {
+                            id: 's_hero_hist',
+                            type: 'Hero',
+                            order: 0,
+                            content: {
+                                title: 'Nuestra Historia',
+                                subtitle: 'Un recorrido por los hitos que marcaron nuestro camino.',
+                                imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=2000&auto=format&fit=crop'
+                            }
+                        }
+                    ],
+                    seo: { title: 'Historia | Cafh', description: 'Historia de Cafh.', keywords: ['historia', 'cafh'] }
+                },
+                {
+                    id: 'p_mision_sub',
+                    title: 'Misión y Visión',
+                    slug: 'mision-y-vision',
+                    status: 'Published',
+                    sections: [
+                        {
+                            id: 's_hero_mision',
+                            type: 'Hero',
+                            order: 0,
+                            content: {
+                                title: 'Misión y Visión',
+                                subtitle: 'El propósito que nos impulsa y el futuro que construimos.',
+                                imageUrl: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2000&auto=format&fit=crop'
+                            }
+                        }
+                    ],
+                    seo: { title: 'Misión | Cafh', description: 'Misión y visión de Cafh.', keywords: ['misión', 'visión'] }
+                }
+            ];
+            localStorage.setItem(KEYS.CUSTOM_PAGES, JSON.stringify(defaultPages));
+        }
+        initStorage(KEYS.MEGA_MENU, PUBLIC_NAV_STRUCTURE);
+        initStorage(KEYS.CHANGE_LOG, []);
+
+        console.log("Cafh Local Memory System: Initialized (Simulated 200MB Persistence)");
+    },
+
+    // AUTHENTICATION MODULE
+    auth: {
+        login: (email: string, pass: string): User | null => {
+            // Simulated password check (In real app, hash check)
+            // Hardcoded Logic for Prototype:
+            // admin@cafh.cl / admin123
+            // miembro@cafh.cl / miembro123
+
+            let user = null;
+            if (email === 'admin@cafh.cl' && pass === 'admin123') {
+                user = MOCK_USERS[0];
+            } else if (email === 'miembro@cafh.cl' && pass === 'miembro123') {
+                user = MOCK_USERS[1];
+            }
+
+            if (user) {
+                localStorage.setItem(KEYS.SESSION, JSON.stringify(user));
+                return user;
+            }
+            return null;
+        },
+        logout: () => {
+            localStorage.removeItem(KEYS.SESSION);
+        },
+        getCurrentUser: (): User | null => {
+            try {
+                const session = localStorage.getItem(KEYS.SESSION);
+                return session ? JSON.parse(session) : null;
+            } catch {
+                return null;
+            }
+        }
+    },
+
+    // MANAGEABLE HERO CONFIG
+    hero: {
+        get: (): HeroConfig => {
+            const stored = localStorage.getItem(KEYS.HERO);
+            return stored ? JSON.parse(stored) : HERO_CONFIG;
+        },
+        update: (newConfig: HeroConfig) => {
+            localStorage.setItem(KEYS.HERO, JSON.stringify(newConfig));
+            return newConfig;
+        }
+    },
+
+    // Generic Getters
+    blog: {
+        getAll: (): BlogPost[] => JSON.parse(localStorage.getItem(KEYS.BLOG) || '[]'),
+        getConfig: (): BlogConfig => {
+            const stored = localStorage.getItem(KEYS.BLOG_CONFIG);
+            return stored ? JSON.parse(stored) : BLOG_CONFIG_DEFAULT;
+        },
+        updateConfig: (config: BlogConfig) => {
+            localStorage.setItem(KEYS.BLOG_CONFIG, JSON.stringify(config));
+            return config;
+        },
+        add: (post: BlogPost) => {
+            const current = db.blog.getAll();
+            const updated = [post, ...current];
+            localStorage.setItem(KEYS.BLOG, JSON.stringify(updated));
+            return updated;
+        }
+    },
+    events: {
+        getAll: (): CalendarEvent[] => JSON.parse(localStorage.getItem(KEYS.EVENTS) || '[]'),
+        add: (event: CalendarEvent) => {
+            const current = db.events.getAll();
+            const updated = [...current, event];
+            localStorage.setItem(KEYS.EVENTS, JSON.stringify(updated));
+            return updated;
+        }
+    },
+    content: {
+        getAll: (): ContentItem[] => JSON.parse(localStorage.getItem(KEYS.CONTENT) || '[]'),
+        // Simulates search/filter
+        search: (query: string, type?: string) => {
+            let items: ContentItem[] = JSON.parse(localStorage.getItem(KEYS.CONTENT) || '[]');
+            if (type) items = items.filter(i => i.type === type);
+            if (query) items = items.filter(i => i.title.toLowerCase().includes(query.toLowerCase()) || i.tags.some(t => t.toLowerCase().includes(query.toLowerCase())));
+            return items;
+        }
+    },
+    media: {
+        getAll: (): MediaAsset[] => JSON.parse(localStorage.getItem(KEYS.MEDIA) || '[]'),
+        add: (asset: Omit<MediaAsset, 'id' | 'uploadedAt'>) => {
+            const current = db.media.getAll();
+            const newAsset: MediaAsset = {
+                ...asset,
+                id: Math.random().toString(36).substr(2, 9),
+                uploadedAt: new Date().toISOString().split('T')[0]
+            };
+            const updated = [newAsset, ...current];
+            localStorage.setItem(KEYS.MEDIA, JSON.stringify(updated));
+            return updated;
+        },
+        delete: (id: string) => {
+            const current = db.media.getAll();
+            const updated = current.filter(m => m.id !== id);
+            localStorage.setItem(KEYS.MEDIA, JSON.stringify(updated));
+            return updated;
+        },
+        search: (query: string, type?: string) => {
+            let items = db.media.getAll();
+            if (type && type !== 'all') items = items.filter(i => i.type === type);
+            if (query) items = items.filter(i => i.name.toLowerCase().includes(query.toLowerCase()) || i.tags.some(t => t.toLowerCase().includes(query.toLowerCase())));
+            return items;
+        }
+    },
+    // CMS & PAGE BUILDER MODULES
+    cms: {
+        // Change Log System
+        logChange: (section: string, action: ChangeLog['action'], details: string, previousState?: any) => {
+            const user = db.auth.getCurrentUser();
+            const logs: ChangeLog[] = JSON.parse(localStorage.getItem(KEYS.CHANGE_LOG) || '[]');
+            const newLog: ChangeLog = {
+                id: Math.random().toString(36).substr(2, 9),
+                userId: user?.id || 'system',
+                userName: user?.name || 'Sistema',
+                section,
+                action,
+                timestamp: new Date().toISOString(),
+                details,
+                previousState: previousState ? JSON.stringify(previousState) : undefined
+            };
+            logs.unshift(newLog);
+            localStorage.setItem(KEYS.CHANGE_LOG, JSON.stringify(logs.slice(0, 100))); // Keep last 100
+            return newLog;
+        },
+        getChangeLogs: (): ChangeLog[] => {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(KEYS.CHANGE_LOG) || '[]');
+                return Array.isArray(parsed) ? parsed : [];
+            } catch { return []; }
+        },
+
+        // Home Management
+        getHomeConfig: (): HomeConfig => {
+            const stored = localStorage.getItem(KEYS.HOME_CONFIG);
+            if (!stored) return DEFAULT_HOME_CONFIG;
+            try {
+                const parsed = JSON.parse(stored) || {};
+
+                return {
+                    ...DEFAULT_HOME_CONFIG,
+                    ...parsed,
+                    sectionOrder: Array.isArray(parsed.sectionOrder) ? parsed.sectionOrder : DEFAULT_HOME_CONFIG.sectionOrder,
+                    searchItems: Array.isArray(parsed.searchItems) ? parsed.searchItems : DEFAULT_HOME_CONFIG.searchItems,
+                    searchSubtitle: parsed.searchSubtitle || DEFAULT_HOME_CONFIG.searchSubtitle,
+                    threeColumns: Array.isArray(parsed.threeColumns) ? parsed.threeColumns : DEFAULT_HOME_CONFIG.threeColumns,
+                    hero: {
+                        ...DEFAULT_HOME_CONFIG.hero,
+                        ...(parsed.hero || {}),
+                        backgrounds: Array.isArray(parsed.hero?.backgrounds) ? parsed.hero.backgrounds : DEFAULT_HOME_CONFIG.hero.backgrounds
+                    },
+                    blogSection: { ...DEFAULT_HOME_CONFIG.blogSection, ...(parsed.blogSection || {}) },
+                    activitiesSection: { ...DEFAULT_HOME_CONFIG.activitiesSection, ...(parsed.activitiesSection || {}) },
+                    footer: {
+                        ...DEFAULT_HOME_CONFIG.footer,
+                        ...(parsed.footer || {}),
+                        columns: Array.isArray(parsed.footer?.columns) ? parsed.footer.columns : DEFAULT_HOME_CONFIG.footer.columns,
+                        socialLinks: Array.isArray(parsed.footer?.socialLinks) ? parsed.footer.socialLinks : DEFAULT_HOME_CONFIG.footer.socialLinks
+                    }
+                };
+            } catch {
+                return DEFAULT_HOME_CONFIG;
+            }
+        },
+        getFooterConfig: (): FooterConfig => {
+            return db.cms.getHomeConfig().footer;
+        },
+        updateHomeConfig: (config: HomeConfig) => {
+            const prev = db.cms.getHomeConfig();
+            localStorage.setItem(KEYS.HOME_CONFIG, JSON.stringify(config));
+            db.cms.logChange('Home', 'Update', 'Actualización de configuración de Home', prev);
+            return config;
+        },
+
+        // Custom Pages (WYSIWYG)
+        getPages: (): CustomPage[] => {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(KEYS.CUSTOM_PAGES) || '[]');
+                return Array.isArray(parsed) ? parsed : [];
+            } catch { return []; }
+        },
+        getPageBySlug: (slug: string): CustomPage | undefined => db.cms.getPages().find(p => p.slug === slug),
+        savePage: (page: CustomPage) => {
+            const pages = db.cms.getPages();
+            const index = pages.findIndex(p => p.id === page.id);
+            const prev = index !== -1 ? pages[index] : null;
+
+            if (index !== -1) pages[index] = page;
+            else pages.push(page);
+
+            localStorage.setItem(KEYS.CUSTOM_PAGES, JSON.stringify(pages));
+            db.cms.logChange(`Página: ${page.title}`, prev ? 'Update' : 'Create', `Guardado de página ${page.slug}`, prev);
+            return pages;
+        },
+        deletePage: (id: string) => {
+            const pages = db.cms.getPages();
+            const page = pages.find(p => p.id === id);
+            const updated = pages.filter(p => p.id !== id);
+            localStorage.setItem(KEYS.CUSTOM_PAGES, JSON.stringify(updated));
+            db.cms.logChange(`Página: ${page?.title}`, 'Delete', `Eliminación de página ${page?.slug}`, page);
+            return updated;
+        },
+
+        // Mega Menu
+        getMenu: (): MegaMenuItem[] => {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(KEYS.MEGA_MENU) || '[]');
+                return Array.isArray(parsed) ? parsed : [];
+            } catch { return PUBLIC_NAV_STRUCTURE; }
+        },
+        updateMenu: (menu: MegaMenuItem[]) => {
+            const prev = db.cms.getMenu();
+            localStorage.setItem(KEYS.MEGA_MENU, JSON.stringify(menu));
+            db.cms.logChange('Mega Menú', 'Update', 'Actualización de estructura de navegación', prev);
+            return menu;
+        },
+        getAllAvailableRoutes: (): { label: string; path: string; isDynamic?: boolean }[] => {
+            const staticRoutes = [
+                { label: 'Inicio', path: '/' },
+                { label: 'Quiénes Somos', path: '/about' },
+                { label: 'Nuestra Historia', path: '/about/history' },
+                { label: 'Misión y Visión', path: '/about/mission' },
+                { label: 'Sedes en el Mundo', path: '/about/locations' },
+                { label: 'Comunidad', path: '/about/community' },
+                { label: 'El Método', path: '/method' },
+                { label: 'Vida Interior', path: '/method/inner-life' },
+                { label: 'Mística del Corazón', path: '/method/mystic' },
+                { label: 'Meditación', path: '/method/meditation' },
+                { label: 'Estudio', path: '/method/study' },
+                { label: 'Recursos', path: '/resources' },
+                { label: 'Biblioteca Digital', path: '/resources/library' },
+                { label: 'Videos y Charlas', path: '/resources/videos' },
+                { label: 'Blog', path: '/resources/blog' },
+                { label: 'Podcast', path: '/resources/podcast' },
+                { label: 'Actividades', path: '/activities' },
+                { label: 'Calendario', path: '/activities/calendar' },
+                { label: 'Retiros', path: '/activities/retreats' },
+                { label: 'Reuniones', path: '/activities/meetings' },
+                { label: 'Login / Miembros', path: '/login' },
+                { label: 'Contacto', path: '/contact' },
+            ];
+
+            const dynamicPages = db.cms.getPages().map(p => ({
+                label: `[Página] ${p.title}`,
+                path: `/p/${p.slug}`,
+                isDynamic: true
+            }));
+
+            return [...staticRoutes, ...dynamicPages];
+        }
+    },
+
+    // User Context
+    user: {
+        getHistory: (): UserActivity[] => JSON.parse(localStorage.getItem(KEYS.HISTORY) || '[]'),
+        addHistory: (activity: UserActivity) => {
+            const current = db.user.getHistory();
+            const updated = [activity, ...current];
+            localStorage.setItem(KEYS.HISTORY, JSON.stringify(updated));
+        },
+        getPreferences: () => JSON.parse(localStorage.getItem(KEYS.USER_PREFS) || '{}')
+    },
+    // CRM & EMAIL MODULES
+    crm: {
+        getAll: (): Contact[] => JSON.parse(localStorage.getItem(KEYS.CONTACTS) || '[]'),
+        getById: (id: string): Contact | undefined => db.crm.getAll().find(c => c.id === id),
+        update: (contact: Contact) => {
+            const all = db.crm.getAll();
+            const index = all.findIndex(c => c.id === contact.id);
+            if (index !== -1) {
+                all[index] = contact;
+                localStorage.setItem(KEYS.CONTACTS, JSON.stringify(all));
+            }
+            return all;
+        },
+        add: (contact: Omit<Contact, 'id'>) => {
+            const all = db.crm.getAll();
+            const newContact = { ...contact, id: Math.random().toString(36).substr(2, 9) } as Contact;
+            all.push(newContact);
+            localStorage.setItem(KEYS.CONTACTS, JSON.stringify(all));
+            return newContact;
+        },
+        addLead: async (lead: { email: string; source: string; date: string; status: string }) => {
+            const contacts = db.crm.getAll();
+            const newContact: Contact = {
+                id: Math.random().toString(36).substr(2, 9),
+                name: lead.email.split('@')[0],
+                email: lead.email,
+                phone: '',
+                role: 'Lead',
+                status: lead.status as any,
+                lastContact: lead.date,
+                tags: [lead.source],
+                notes: `Suscrito desde el footer. Origen: ${lead.source}`
+            };
+            contacts.push(newContact);
+            localStorage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
+            return newContact;
+        },
+        addMultiple: (newContacts: Omit<Contact, 'id'>[]) => {
+            const all = db.crm.getAll();
+            const hydratedContacts = newContacts.map(c => ({
+                ...c,
+                id: Math.random().toString(36).substr(2, 9)
+            }));
+            const updated = [...all, ...hydratedContacts];
+
+            // Limit on frontend memory to avoid catastrophic crash, normally handled by DB pagination.
+            if (updated.length > 5000) {
+                console.warn("CRM Storage limit warning. Optimizing array.");
+            }
+
+            localStorage.setItem(KEYS.CONTACTS, JSON.stringify(updated));
+            return hydratedContacts;
+        },
+        getLists: (): ContactList[] => {
+            try {
+                return JSON.parse(localStorage.getItem(KEYS.CRM_LISTS) || '[]');
+            } catch { return []; }
+        },
+        addList: (listData: Omit<ContactList, 'id' | 'createdAt'>) => {
+            const all = db.crm.getLists();
+            const newList: ContactList = {
+                ...listData,
+                id: Math.random().toString(36).substr(2, 9),
+                createdAt: new Date().toISOString(),
+                contactCount: 0
+            };
+            all.push(newList);
+            localStorage.setItem(KEYS.CRM_LISTS, JSON.stringify(all));
+            return newList;
+        },
+        updateList: (list: ContactList) => {
+            const all = db.crm.getLists();
+            const idx = all.findIndex(l => l.id === list.id);
+            if (idx !== -1) {
+                all[idx] = list;
+                localStorage.setItem(KEYS.CRM_LISTS, JSON.stringify(all));
+            }
+            return all;
+        },
+        deleteList: (listId: string) => {
+            const all = db.crm.getLists().filter(l => l.id !== listId);
+            localStorage.setItem(KEYS.CRM_LISTS, JSON.stringify(all));
+
+            // Remove listId from all contacts
+            const contacts = db.crm.getAll();
+            let changed = false;
+            for (const c of contacts) {
+                if (c.listIds && c.listIds.includes(listId)) {
+                    c.listIds = c.listIds.filter(id => id !== listId);
+                    changed = true;
+                }
+            }
+            if (changed) {
+                localStorage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
+            }
+            return all;
+        }
+    },
+    emails: {
+        getLogs: (contactId?: string): EmailLog[] => {
+            const all: EmailLog[] = JSON.parse(localStorage.getItem(KEYS.EMAIL_LOGS) || '[]');
+            return contactId ? all.filter(l => l.contactId === contactId) : all;
+        },
+        getMetrics: (): EmailMetrics => JSON.parse(localStorage.getItem(KEYS.EMAIL_METRICS) || JSON.stringify(MOCK_EMAIL_METRICS)),
+        getSMTPConfig: (): SMTPConfig => {
+            const defaultSMTP: SMTPConfig = {
+                host: 'mail.cafh.cl', port: '465', secure: true, user: 'no-reply@cafh.cl', pass: '', fromEmail: 'no-reply@cafh.cl', fromName: 'Cafh'
+            };
+            return JSON.parse(localStorage.getItem(KEYS.SMTP_CONFIG) || JSON.stringify(defaultSMTP));
+        },
+        updateSMTPConfig: (config: SMTPConfig) => {
+            localStorage.setItem(KEYS.SMTP_CONFIG, JSON.stringify(config));
+            return config;
+        },
+        getQueueStatus: async () => {
+            try {
+                const response = await fetch('/api/email/status');
+                return await response.json();
+            } catch (e) {
+                console.error("Error fetching queue status", e);
+                return { pending: 0, sent: 0, failed: 0, sentCountThisHour: 0, limit: 80 };
+            }
+        },
+        send: async (contactId: string, subject: string, content: string) => {
+            const contact = db.crm.getById(contactId);
+            if (!contact) return null;
+
+            console.log(`[Backend API] Queueing email to contact ${contact.email}: ${subject}`);
+
+            // Mock local insertion so UI works even without backend
+            const logs = db.emails.getLogs();
+            const newLog: EmailLog = {
+                id: Math.random().toString(36).substr(2, 9),
+                contactId,
+                subject,
+                sentAt: new Date().toISOString().replace('T', ' ').substr(0, 16),
+                status: 'Queued',
+                campaignName: 'Direct Message' // Identificador de envío unitario
+            };
+            logs.unshift(newLog);
+            localStorage.setItem(KEYS.EMAIL_LOGS, JSON.stringify(logs));
+
+            try {
+                await fetch('/api/email/queue', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        recipients: [contact.email],
+                        subject,
+                        content
+                    })
+                });
+            } catch (e) {
+                console.warn("Backend missing, but logged locally for CRM UI.", e);
+            }
+            return newLog;
+        },
+        sendMass: async (recipients: string[], subject: string, content: string) => {
+            // Mock local insertion
+            const logs = db.emails.getLogs();
+            recipients.forEach(email => {
+                const contact = db.crm.getAll().find(c => c.email === email);
+                if (contact) {
+                    logs.unshift({
+                        id: Math.random().toString(36).substr(2, 9),
+                        contactId: contact.id,
+                        subject,
+                        sentAt: new Date().toISOString().replace('T', ' ').substr(0, 16),
+                        status: 'Queued',
+                        campaignName: 'Mass Campaign' // Identificador de envío masivo
+                    });
+                }
+            });
+            localStorage.setItem(KEYS.EMAIL_LOGS, JSON.stringify(logs));
+
+            try {
+                await fetch('/api/email/queue', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        recipients,
+                        subject,
+                        content
+                    })
+                });
+                return { success: true };
+            } catch (e) {
+                console.warn("Backend missing for mass update, logged locally for CRM UI.", e);
+                return { success: true };
+            }
+        }
+    },
+    mailrelay: {
+        syncContact: async (contact: Contact) => {
+            console.log(`[Mailrelay API] Syncing contact ${contact.email}...`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const updatedContact = { ...contact, mailrelayId: `mr_${Math.random().toString(36).substr(2, 5)}` };
+            db.crm.update(updatedContact);
+            return updatedContact;
+        }
+    },
+
+    // --- CAMPAIGNS MODULE ---
+    campaigns: {
+        getAll: (): Campaign[] => {
+            try { return JSON.parse(localStorage.getItem(KEYS.CAMPAIGNS) || '[]'); }
+            catch { return []; }
+        },
+        getById: (id: string): Campaign | undefined => db.campaigns.getAll().find(c => c.id === id),
+        save: (campaign: Campaign): Campaign => {
+            const all = db.campaigns.getAll();
+            const idx = all.findIndex(c => c.id === campaign.id);
+            if (idx !== -1) all[idx] = campaign;
+            else all.unshift(campaign);
+            localStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(all));
+            return campaign;
+        },
+        create: (data: Omit<Campaign, 'id' | 'createdAt' | 'metrics'>): Campaign => {
+            const campaign: Campaign = {
+                ...data,
+                id: Math.random().toString(36).substr(2, 9),
+                createdAt: new Date().toISOString(),
+                metrics: { sent: 0, opened: 0, clicked: 0, bounced: 0 }
+            };
+            return db.campaigns.save(campaign);
+        },
+        delete: (id: string) => {
+            const updated = db.campaigns.getAll().filter(c => c.id !== id);
+            localStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(updated));
+        },
+        sendTest: async (campaignId: string, testEmail: string): Promise<void> => {
+            const campaign = db.campaigns.getById(campaignId);
+            if (!campaign) return;
+            // Log mock test send
+            console.log(`[Campaign Test] Sending test of "${campaign.subject}" to ${testEmail}`);
+            // Try real API
+            try {
+                await fetch('/api/email/queue', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ recipients: [testEmail], subject: `[TEST] ${campaign.subject}`, content: campaign.content })
+                });
+            } catch { console.warn('[Campaign Test] Backend not available, test logged locally.'); }
+            // Update campaign record
+            db.campaigns.save({ ...campaign, status: 'Testing', testEmail });
+        },
+        launch: async (campaignId: string): Promise<{ recipientCount: number }> => {
+            const campaign = db.campaigns.getById(campaignId);
+            if (!campaign) return { recipientCount: 0 };
+
+            const allContacts = db.crm.getAll();
+            let recipients: Contact[] = [];
+            if (campaign.recipientType === 'all') recipients = allContacts;
+            else if (campaign.recipientType === 'subscribed') recipients = allContacts.filter(c => c.status === 'Subscribed');
+            else if (campaign.recipientType === 'list' && campaign.listId) {
+                recipients = allContacts.filter(c => c.listIds?.includes(campaign.listId!));
+            }
+
+            const recipientEmails = recipients.map(c => c.email);
+
+            // Log in email_logs for each recipient
+            const logs = db.emails.getLogs();
+            recipients.forEach(contact => {
+                logs.unshift({
+                    id: Math.random().toString(36).substr(2, 9),
+                    contactId: contact.id,
+                    subject: campaign.subject,
+                    sentAt: new Date().toISOString().replace('T', ' ').substr(0, 16),
+                    status: 'Queued',
+                    campaignName: campaign.name
+                });
+            });
+            localStorage.setItem(KEYS.EMAIL_LOGS, JSON.stringify(logs));
+
+            // Try backend
+            try {
+                await fetch('/api/email/queue', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ recipients: recipientEmails, subject: campaign.subject, content: campaign.content })
+                });
+            } catch { console.warn('[Campaign Launch] Backend not available, campaign logged locally.'); }
+
+            // Update campaign record
+            db.campaigns.save({
+                ...campaign,
+                status: 'Sent',
+                sentAt: new Date().toISOString(),
+                recipientCount: recipients.length,
+                metrics: { sent: recipients.length, opened: 0, clicked: 0, bounced: 0 }
+            });
+
+            return { recipientCount: recipients.length };
+        }
+    },
+
+    // ============================================================
+    // AUTOMATION ENGINE
+    // ============================================================
+    automations: {
+        getAll: (): AutomationRule[] => {
+            try { return JSON.parse(localStorage.getItem(KEYS.AUTOMATIONS) || '[]'); } catch { return []; }
+        },
+        getById: (id: string): AutomationRule | null => {
+            return db.automations.getAll().find(a => a.id === id) || null;
+        },
+        save: (rule: AutomationRule): AutomationRule => {
+            const all = db.automations.getAll().filter(a => a.id !== rule.id);
+            all.unshift({ ...rule, updatedAt: new Date().toISOString() });
+            localStorage.setItem(KEYS.AUTOMATIONS, JSON.stringify(all));
+            return rule;
+        },
+        create: (data: Omit<AutomationRule, 'id' | 'createdAt' | 'updatedAt' | 'stats'>): AutomationRule => {
+            const rule: AutomationRule = {
+                ...data,
+                id: `aut_${Date.now()}`,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                stats: { totalExecutions: 0, completed: 0, emailsSent: 0, tagsApplied: 0 }
+            };
+            const all = db.automations.getAll();
+            all.unshift(rule);
+            localStorage.setItem(KEYS.AUTOMATIONS, JSON.stringify(all));
+            return rule;
+        },
+        delete: (id: string): void => {
+            const all = db.automations.getAll().filter(a => a.id !== id);
+            localStorage.setItem(KEYS.AUTOMATIONS, JSON.stringify(all));
+        },
+        // ── EXECUTIONS ──────────────────────────────────────────
+        getExecutions: (): AutomationExecution[] => {
+            try { return JSON.parse(localStorage.getItem(KEYS.AUTOMATION_EXECUTIONS) || '[]'); } catch { return []; }
+        },
+        saveExecution: (exec: AutomationExecution): void => {
+            const all = db.automations.getExecutions().filter(e => e.id !== exec.id);
+            all.unshift(exec);
+            // Keep max 500 executions
+            localStorage.setItem(KEYS.AUTOMATION_EXECUTIONS, JSON.stringify(all.slice(0, 500)));
+        },
+        // ── ENGINE: evaluate nodes for a single contact ─────────
+        _evaluateNodes: async (
+            nodes: AutomationNode[],
+            contact: Contact,
+            execLog: string[],
+            automationId: string
+        ): Promise<{ emailsSent: number; tagsApplied: number }> => {
+            let emailsSent = 0;
+            let tagsApplied = 0;
+
+            for (const node of nodes) {
+                if (node.type === 'send_email') {
+                    const n = node as SendEmailNode;
+                    // Log the email send to email_logs
+                    const logs: EmailLog[] = JSON.parse(localStorage.getItem(KEYS.EMAIL_LOGS) || '[]');
+                    logs.unshift({
+                        id: `log_aut_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+                        contactId: contact.id,
+                        subject: n.subject,
+                        status: 'Delivered' as const,
+                        sentAt: new Date().toISOString(),
+                        campaignName: `[Auto] ${automationId}`,
+                    });
+                    localStorage.setItem(KEYS.EMAIL_LOGS, JSON.stringify(logs));
+                    execLog.push(`📧 Email enviado: "${n.subject}" → ${contact.email}`);
+                    emailsSent++;
+
+                    // Try backend if available
+                    try {
+                        await fetch('/api/email/send', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ to: contact.email, subject: n.subject, html: n.content })
+                        });
+                    } catch { /* backend may not be available */ }
+
+                } else if (node.type === 'wait') {
+                    const n = node as WaitNode;
+                    const unitLabel = n.unit === 'minutes' ? 'min' : n.unit === 'hours' ? 'h' : 'días';
+                    execLog.push(`⏳ Espera simulada: ${n.amount} ${unitLabel}`);
+                    // In a real system this would schedule a job. Here we simulate instantly.
+
+                } else if (node.type === 'condition') {
+                    const n = node as ConditionNode;
+                    let conditionMet = false;
+
+                    if (n.check === 'has_tag') {
+                        conditionMet = (contact.tags || []).includes(n.value || '');
+                    } else if (n.check === 'in_list') {
+                        conditionMet = (contact.listIds || []).includes(n.value || '');
+                    } else if (n.check === 'email_opened' || n.check === 'email_clicked') {
+                        const logs: EmailLog[] = JSON.parse(localStorage.getItem(KEYS.EMAIL_LOGS) || '[]');
+                        const recent = logs.filter(l =>
+                            l.contactId === contact.id &&
+                            (l.status === 'Opened' || l.status === 'Clicked') &&
+                            new Date(l.sentAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+                        );
+                        conditionMet = recent.length > 0;
+                    }
+
+                    execLog.push(`🔀 Condición (${n.check}): ${conditionMet ? '✅ Rama VERDADERO' : '❌ Rama FALSO'}`);
+                    const branch = conditionMet ? n.branchTrue : n.branchFalse;
+                    if (branch && branch.length > 0) {
+                        const sub = await db.automations._evaluateNodes(branch, contact, execLog, automationId);
+                        emailsSent += sub.emailsSent;
+                        tagsApplied += sub.tagsApplied;
+                    }
+
+                } else if (node.type === 'update_tag') {
+                    const n = node as UpdateTagNode;
+                    const contacts: Contact[] = JSON.parse(localStorage.getItem(KEYS.CONTACTS) || '[]');
+                    const idx = contacts.findIndex(c => c.id === contact.id);
+                    if (idx !== -1) {
+                        const tags = contacts[idx].tags || [];
+                        if (n.action === 'add' && !tags.includes(n.tag)) {
+                            contacts[idx].tags = [...tags, n.tag];
+                        } else if (n.action === 'remove') {
+                            contacts[idx].tags = tags.filter(t => t !== n.tag);
+                        }
+                        localStorage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
+                        contact.tags = contacts[idx].tags;
+                    }
+                    execLog.push(`🏷️ Tag ${n.action === 'add' ? 'añadido' : 'removido'}: "${n.tag}" → ${contact.email}`);
+                    tagsApplied++;
+
+                } else if (node.type === 'move_to_list') {
+                    const n = node as MoveToListNode;
+                    const contacts: Contact[] = JSON.parse(localStorage.getItem(KEYS.CONTACTS) || '[]');
+                    const idx = contacts.findIndex(c => c.id === contact.id);
+                    if (idx !== -1) {
+                        const listIds = contacts[idx].listIds || [];
+                        if (!listIds.includes(n.listId)) {
+                            contacts[idx].listIds = [...listIds, n.listId];
+                            localStorage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
+                        }
+                    }
+                    execLog.push(`📋 Movido a lista "${n.listId}" → ${contact.email}`);
+
+                } else if (node.type === 'end') {
+                    execLog.push(`🏁 Fin del flujo`);
+                    break;
+                }
+            }
+            return { emailsSent, tagsApplied };
+        },
+        // ── ENGINE: run automation for a single contact ─────────
+        runForContact: async (automationId: string, contact: Contact): Promise<AutomationExecution> => {
+            const rule = db.automations.getById(automationId);
+            if (!rule) throw new Error(`Automation ${automationId} not found`);
+
+            const exec: AutomationExecution = {
+                id: `exec_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+                automationId,
+                contactId: contact.id,
+                contactEmail: contact.email,
+                startedAt: new Date().toISOString(),
+                currentStep: 0,
+                status: 'running',
+                log: [`▶ Inicio automatización "${rule.name}" para ${contact.name}`]
+            };
+
+            try {
+                const result = await db.automations._evaluateNodes(rule.nodes, contact, exec.log, automationId);
+                exec.status = 'completed';
+                exec.completedAt = new Date().toISOString();
+                exec.log.push(`✅ Completado | Emails: ${result.emailsSent} | Tags: ${result.tagsApplied}`);
+
+                // Update automation stats
+                const updated = { ...rule };
+                updated.stats.totalExecutions += 1;
+                updated.stats.completed += 1;
+                updated.stats.emailsSent += result.emailsSent;
+                updated.stats.tagsApplied += result.tagsApplied;
+                db.automations.save(updated);
+
+            } catch (err) {
+                exec.status = 'failed';
+                exec.log.push(`❌ Error: ${err}`);
+            }
+
+            db.automations.saveExecution(exec);
+            return exec;
+        },
+        // ── ENGINE: run automation for a segment of contacts ────
+        runForSegment: async (
+            automationId: string,
+            targetType: 'all' | 'subscribed' | 'list' | 'tag',
+            targetValue?: string
+        ): Promise<{ count: number; executions: AutomationExecution[] }> => {
+            const allContacts: Contact[] = JSON.parse(localStorage.getItem(KEYS.CONTACTS) || '[]');
+            let targets: Contact[] = [];
+
+            if (targetType === 'all') targets = allContacts;
+            else if (targetType === 'subscribed') targets = allContacts.filter(c => c.status === 'Subscribed');
+            else if (targetType === 'list' && targetValue) targets = allContacts.filter(c => (c.listIds || []).includes(targetValue));
+            else if (targetType === 'tag' && targetValue) targets = allContacts.filter(c => (c.tags || []).includes(targetValue));
+
+            const executions: AutomationExecution[] = [];
+            for (const contact of targets) {
+                const exec = await db.automations.runForContact(automationId, contact);
+                executions.push(exec);
+            }
+            return { count: targets.length, executions };
+        }
+    }
+};
+
+// Immediately initialize to ensure data exists before any UI renders
+db.init();
