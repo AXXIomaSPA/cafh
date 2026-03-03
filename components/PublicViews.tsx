@@ -1224,7 +1224,15 @@ export const HomeView: React.FC = () => {
 
                             <div className="flex flex-col w-full sm:w-auto sm:flex-row gap-5 animate-fade-in-up">
                                 <button
-                                    onClick={() => navigate(homeConfig.hero.ctaLink)}
+                                    onClick={() => {
+                                        const link = homeConfig.hero.ctaLink;
+                                        // Open wizard modal for journey-related routes
+                                        if (link === '/metodo' || link === '#wizard' || link === '/wizard') {
+                                            setIsWizardOpen(true);
+                                        } else {
+                                            navigate(link);
+                                        }
+                                    }}
                                     className="bg-cafh-cyan text-cafh-indigo px-8 md:px-10 py-4 md:py-5 rounded-full font-bold text-base md:text-lg hover:bg-white hover:scale-105 transition-all shadow-[0_0_30px_rgba(111,207,235,0.4)] flex items-center justify-center gap-3 w-full sm:w-auto group"
                                 >
                                     <span>{homeConfig.hero.ctaText}</span>
