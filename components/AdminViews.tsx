@@ -15,16 +15,20 @@ import {
     Grid, List, Film, Music, Image as ImageIcon, File, Instagram, Youtube,
     Layout, Type, Image, Layers, Video, Sparkles, Edit, ArrowLeft,
     GripVertical, ArrowUp, ArrowDown, Compass, BookOpen, TrendingUp,
-    Hash, Activity, Play, MousePointer, ChevronDown, ChevronUp, Database, UploadCloud, Settings, Eye, Target, Percent, Zap, Pause
+    Hash, Activity, Play, MousePointer, ChevronDown, ChevronUp, Database, UploadCloud, Settings, Eye, Target, Percent, Zap, Pause,
+    Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter
 } from 'lucide-react';
 import { db } from '../storage';
 import { AutomationFlowBuilder } from './AutomationFlowBuilder';
+export { JourneyView, SettingsView } from './JourneyAndSettings';
 
 import {
     Contact, ContactList, EmailLog, EmailMetrics, MediaAsset,
     HomeConfig, ChangeLog, MegaMenuItem, CustomPage, PageSection, SMTPConfig, Campaign,
     AutomationRule, AutomationExecution, AutomationNode, AutomationNodeType,
-    SendEmailNode, WaitNode, ConditionNode, UpdateTagNode, MoveToListNode
+    SendEmailNode, WaitNode, ConditionNode, UpdateTagNode, MoveToListNode,
+    WizardQuestion, WizardOptionEditable, ProfileType, ProfileKitItem,
+    WizardConfig, UserWizardProfile, ContentCatalogItem, SiteSettings, AdminUser, UserRole
 } from '../types';
 
 // --- DASHBOARD ---

@@ -1,19 +1,19 @@
 
 import { Tenant, Contact, AutomationWorkflow, ContentItem, HeroConfig, BlogConfig, WizardStep, UserActivity, BlogPost, CalendarEvent, MediaAsset, EmailLog, EmailMetrics } from './types';
-import { 
-  LayoutDashboard, Users, FileText, Settings, BookOpen, MessageCircle, BarChart3,
-  Heart, Sun, Cloud, Anchor, Feather, Compass, Map, Coffee, Book, Video, Calendar, Sparkles,
-  Image as ImageIcon, File, Music, Film, Mail, Send, AlertTriangle, CheckCircle, BarChart, Zap
+import {
+    LayoutDashboard, Users, FileText, Settings, BookOpen, MessageCircle, BarChart3,
+    Heart, Sun, Cloud, Anchor, Feather, Compass, Map, Coffee, Book, Video, Calendar, Sparkles,
+    Image as ImageIcon, File, Music, Film, Mail, Send, AlertTriangle, CheckCircle, BarChart, Zap
 } from 'lucide-react';
 
 export const CURRENT_TENANT: Tenant = {
-  id: 't_santiago_01',
-  name: 'Cafh Chile - Sede Central',
-  domain: 'cafh.cl',
-  theme: {
-    primaryColor: '#1A428A',
-    logoUrl: '', 
-  }
+    id: 't_santiago_01',
+    name: 'Cafh Chile - Sede Central',
+    domain: 'cafh.cl',
+    theme: {
+        primaryColor: '#1A428A',
+        logoUrl: '',
+    }
 };
 
 // DYNAMIC HERO CONFIG (Manageable by Admin)
@@ -26,7 +26,7 @@ export const HERO_CONFIG: HeroConfig = {
             id: 'bg1',
             type: 'video',
             // Deep Universe / Nebula loop
-            url: "https://cdn.pixabay.com/video/2020/12/03/58142-490367352_large.mp4" 
+            url: "https://cdn.pixabay.com/video/2020/12/03/58142-490367352_large.mp4"
         },
         {
             id: 'bg2',
@@ -265,269 +265,269 @@ export const MOCK_USER_HISTORY: UserActivity[] = [
 
 // Rich Navigation Structure for Mega Menu
 export const PUBLIC_NAV_STRUCTURE = [
-  { 
-    label: 'Quiénes Somos', 
-    path: '/about',
-    description: 'Nuestra identidad y propósito.',
-    columns: [
-        {
-            title: 'Identidad',
-            items: [
-                { label: 'Nuestra Historia', path: '/about/history', icon: Compass, desc: 'Orígenes y trayectoria.' },
-                { label: 'Misión y Visión', path: '/about/mission', icon: Anchor, desc: 'El propósito que nos guía.' },
-            ]
-        },
-        {
-            title: 'Organización',
-            items: [
-                 { label: 'Sedes en el Mundo', path: '/about/locations', icon: Map, desc: 'Nuestra presencia global.' },
-                 { label: 'Comunidad', path: '/about/community', icon: Users, desc: 'Quienes formamos Cafh.' },
-            ]
-        }
-    ]
-  },
-  { 
-    label: 'El Método', 
-    path: '/method',
-    description: 'Un camino de desenvolvimiento espiritual.',
-    columns: [
-        {
-            title: 'Pilares',
-            items: [
-                { label: 'Vida Interior', path: '/method/inner-life', icon: Heart, desc: 'El cultivo del ser.' },
-                { label: 'Mística del Corazón', path: '/method/mystic', icon: Sparkles, desc: 'Conexión profunda.' },
-            ]
-        },
-        {
-            title: 'Prácticas',
-            items: [
-                { label: 'Meditación', path: '/method/meditation', icon: Cloud, desc: 'Silencio y encuentro.' },
-                { label: 'Estudio', path: '/method/study', icon: Book, desc: 'Expansión de la conciencia.' },
-            ]
-        }
-    ]
-  },
-  { 
-    label: 'Recursos', 
-    path: '/resources',
-    description: 'Material para tu camino.',
-    columns: [
-        {
-            title: 'Formatos',
-            items: [
-                { label: 'Biblioteca Digital', path: '/resources/library', icon: BookOpen, desc: 'Textos y documentos.' },
-                { label: 'Videos y Charlas', path: '/resources/videos', icon: Video, desc: 'Contenido audiovisual.' },
-            ]
-        },
-        {
-            title: 'Inspiración',
-            items: [
-                { label: 'Blog', path: '/resources/blog', icon: Feather, desc: 'Reflexiones semanales.' },
-                { label: 'Podcast', path: '/resources/podcast', icon: MessageCircle, desc: 'Escucha en el camino.' },
-            ]
-        }
-    ]
-  },
-  { 
-    label: 'Actividades', 
-    path: '/activities',
-    description: 'Participa con nosotros.',
-    columns: [
-        {
-            title: 'Eventos',
-            items: [
-                { label: 'Calendario', path: '/activities/calendar', icon: Calendar, desc: 'Próximos encuentros.' },
-                { label: 'Retiros', path: '/activities/retreats', icon: Sun, desc: 'Espacios de silencio.' },
-            ]
-        },
-        {
-            title: 'Grupos',
-            items: [
-                { label: 'Reuniones', path: '/activities/meetings', icon: Coffee, desc: 'Diálogos con sentido.' },
-            ]
-        }
-    ]
-  },
-  { 
-    label: 'Páginas', 
-    path: '#',
-    description: 'Explora más contenidos.',
-    columns: [
-        {
-            title: 'Páginas Internas',
-            items: []
-        }
-    ]
-  },
+    {
+        label: 'Quiénes Somos',
+        path: '/about',
+        description: 'Nuestra identidad y propósito.',
+        columns: [
+            {
+                title: 'Identidad',
+                items: [
+                    { label: 'Nuestra Historia', path: '/about/history', icon: Compass, desc: 'Orígenes y trayectoria.' },
+                    { label: 'Misión y Visión', path: '/about/mission', icon: Anchor, desc: 'El propósito que nos guía.' },
+                ]
+            },
+            {
+                title: 'Organización',
+                items: [
+                    { label: 'Sedes en el Mundo', path: '/about/locations', icon: Map, desc: 'Nuestra presencia global.' },
+                    { label: 'Comunidad', path: '/about/community', icon: Users, desc: 'Quienes formamos Cafh.' },
+                ]
+            }
+        ]
+    },
+    {
+        label: 'El Método',
+        path: '/method',
+        description: 'Un camino de desenvolvimiento espiritual.',
+        columns: [
+            {
+                title: 'Pilares',
+                items: [
+                    { label: 'Vida Interior', path: '/method/inner-life', icon: Heart, desc: 'El cultivo del ser.' },
+                    { label: 'Mística del Corazón', path: '/method/mystic', icon: Sparkles, desc: 'Conexión profunda.' },
+                ]
+            },
+            {
+                title: 'Prácticas',
+                items: [
+                    { label: 'Meditación', path: '/method/meditation', icon: Cloud, desc: 'Silencio y encuentro.' },
+                    { label: 'Estudio', path: '/method/study', icon: Book, desc: 'Expansión de la conciencia.' },
+                ]
+            }
+        ]
+    },
+    {
+        label: 'Recursos',
+        path: '/resources',
+        description: 'Material para tu camino.',
+        columns: [
+            {
+                title: 'Formatos',
+                items: [
+                    { label: 'Biblioteca Digital', path: '/resources/library', icon: BookOpen, desc: 'Textos y documentos.' },
+                    { label: 'Videos y Charlas', path: '/resources/videos', icon: Video, desc: 'Contenido audiovisual.' },
+                ]
+            },
+            {
+                title: 'Inspiración',
+                items: [
+                    { label: 'Blog', path: '/resources/blog', icon: Feather, desc: 'Reflexiones semanales.' },
+                    { label: 'Podcast', path: '/resources/podcast', icon: MessageCircle, desc: 'Escucha en el camino.' },
+                ]
+            }
+        ]
+    },
+    {
+        label: 'Actividades',
+        path: '/activities',
+        description: 'Participa con nosotros.',
+        columns: [
+            {
+                title: 'Eventos',
+                items: [
+                    { label: 'Calendario', path: '/activities/calendar', icon: Calendar, desc: 'Próximos encuentros.' },
+                    { label: 'Retiros', path: '/activities/retreats', icon: Sun, desc: 'Espacios de silencio.' },
+                ]
+            },
+            {
+                title: 'Grupos',
+                items: [
+                    { label: 'Reuniones', path: '/activities/meetings', icon: Coffee, desc: 'Diálogos con sentido.' },
+                ]
+            }
+        ]
+    },
+    {
+        label: 'Páginas',
+        path: '#',
+        description: 'Explora más contenidos.',
+        columns: [
+            {
+                title: 'Páginas Internas',
+                items: []
+            }
+        ]
+    },
 ];
 
 export const MOCK_CONTACTS: Contact[] = [
-  { 
-    id: '1', 
-    name: 'Ana Flor', 
-    email: 'ana.flor@email.com', 
-    status: 'Subscribed', 
-    tags: ['Miembro', 'Donante'], 
-    engagementScore: 95, 
-    lastContact: '2023-10-25',
-    phone: '+56 9 1234 5678',
-    role: 'Member',
-    createdAt: '2023-01-15'
-  },
-  { 
-    id: '2', 
-    name: 'Carlos Rojas', 
-    email: 'carlos.r@email.com', 
-    status: 'Subscribed', 
-    tags: ['Interesado', 'Newsletter'], 
-    engagementScore: 45, 
-    lastContact: '2023-10-20',
-    phone: '+56 9 8765 4321',
-    role: 'Lead',
-    createdAt: '2023-03-20'
-  },
-  { 
-    id: '3', 
-    name: 'Maria Gonzalez', 
-    email: 'maria.g@email.com', 
-    status: 'Bounced', 
-    tags: ['Inactivo'], 
-    engagementScore: 10, 
-    lastContact: '2023-05-12',
-    phone: '',
-    role: 'Lead',
-    createdAt: '2022-11-05'
-  },
-  { 
-    id: '4', 
-    name: 'Jorge Silva', 
-    email: 'jorge.s@email.com', 
-    status: 'Subscribed', 
-    tags: ['Taller Meditación'], 
-    engagementScore: 78, 
-    lastContact: '2023-10-24',
-    phone: '',
-    role: 'Lead',
-    createdAt: '2023-06-10'
-  },
-  { 
-    id: '5', 
-    name: 'Elena Nuñez', 
-    email: 'elena.n@email.com', 
-    status: 'Subscribed', 
-    tags: ['Miembro', 'Voluntario'], 
-    engagementScore: 88, 
-    lastContact: '2023-10-26',
-    phone: '+56 9 5555 4444',
-    role: 'Member',
-    createdAt: '2023-02-28'
-  },
+    {
+        id: '1',
+        name: 'Ana Flor',
+        email: 'ana.flor@email.com',
+        status: 'Subscribed',
+        tags: ['Miembro', 'Donante'],
+        engagementScore: 95,
+        lastContact: '2023-10-25',
+        phone: '+56 9 1234 5678',
+        role: 'Member',
+        createdAt: '2023-01-15'
+    },
+    {
+        id: '2',
+        name: 'Carlos Rojas',
+        email: 'carlos.r@email.com',
+        status: 'Subscribed',
+        tags: ['Interesado', 'Newsletter'],
+        engagementScore: 45,
+        lastContact: '2023-10-20',
+        phone: '+56 9 8765 4321',
+        role: 'Lead',
+        createdAt: '2023-03-20'
+    },
+    {
+        id: '3',
+        name: 'Maria Gonzalez',
+        email: 'maria.g@email.com',
+        status: 'Bounced',
+        tags: ['Inactivo'],
+        engagementScore: 10,
+        lastContact: '2023-05-12',
+        phone: '',
+        role: 'Lead',
+        createdAt: '2022-11-05'
+    },
+    {
+        id: '4',
+        name: 'Jorge Silva',
+        email: 'jorge.s@email.com',
+        status: 'Subscribed',
+        tags: ['Taller Meditación'],
+        engagementScore: 78,
+        lastContact: '2023-10-24',
+        phone: '',
+        role: 'Lead',
+        createdAt: '2023-06-10'
+    },
+    {
+        id: '5',
+        name: 'Elena Nuñez',
+        email: 'elena.n@email.com',
+        status: 'Subscribed',
+        tags: ['Miembro', 'Voluntario'],
+        engagementScore: 88,
+        lastContact: '2023-10-26',
+        phone: '+56 9 5555 4444',
+        role: 'Member',
+        createdAt: '2023-02-28'
+    },
 ];
 
 export const MOCK_EMAIL_LOGS: EmailLog[] = [
-  { id: 'e1', contactId: '1', subject: 'Bienvenida a Cafh', sentAt: '2023-10-25 10:00', status: 'Opened', openedAt: '2023-10-25 10:30', campaignName: 'Onboarding' },
-  { id: 'e2', contactId: '1', subject: 'Boletín Mensual Octubre', sentAt: '2023-10-01 09:00', status: 'Clicked', openedAt: '2023-10-01 09:15', clickedAt: '2023-10-01 09:20', campaignName: 'Newsletter' },
-  { id: 'e3', contactId: '2', subject: 'Invitación Taller Meditación', sentAt: '2023-10-20 15:00', status: 'Delivered', campaignName: 'Eventos' },
-  { id: 'e4', contactId: '3', subject: 'Actualización de Datos', sentAt: '2023-05-12 11:00', status: 'Bounced', errorMessage: 'Address not found', campaignName: 'Mantenimiento' },
+    { id: 'e1', contactId: '1', subject: 'Bienvenida a Cafh', sentAt: '2023-10-25 10:00', status: 'Opened', openedAt: '2023-10-25 10:30', campaignName: 'Onboarding' },
+    { id: 'e2', contactId: '1', subject: 'Boletín Mensual Octubre', sentAt: '2023-10-01 09:00', status: 'Clicked', openedAt: '2023-10-01 09:15', clickedAt: '2023-10-01 09:20', campaignName: 'Newsletter' },
+    { id: 'e3', contactId: '2', subject: 'Invitación Taller Meditación', sentAt: '2023-10-20 15:00', status: 'Delivered', campaignName: 'Eventos' },
+    { id: 'e4', contactId: '3', subject: 'Actualización de Datos', sentAt: '2023-05-12 11:00', status: 'Bounced', errorMessage: 'Address not found', campaignName: 'Mantenimiento' },
 ];
 
 export const MOCK_EMAIL_METRICS: EmailMetrics = {
-  totalSent: 1250,
-  openRate: 42.5,
-  clickRate: 12.8,
-  bounceRate: 2.1,
-  history: [
-    { date: '2023-10-20', sent: 100, opened: 45, clicked: 12 },
-    { date: '2023-10-21', sent: 150, opened: 60, clicked: 18 },
-    { date: '2023-10-22', sent: 80, opened: 35, clicked: 8 },
-    { date: '2023-10-23', sent: 200, opened: 90, clicked: 25 },
-    { date: '2023-10-24', sent: 120, opened: 55, clicked: 15 },
-    { date: '2023-10-25', sent: 300, opened: 130, clicked: 40 },
-    { date: '2023-10-26', sent: 250, opened: 110, clicked: 32 },
-  ]
+    totalSent: 1250,
+    openRate: 42.5,
+    clickRate: 12.8,
+    bounceRate: 2.1,
+    history: [
+        { date: '2023-10-20', sent: 100, opened: 45, clicked: 12 },
+        { date: '2023-10-21', sent: 150, opened: 60, clicked: 18 },
+        { date: '2023-10-22', sent: 80, opened: 35, clicked: 8 },
+        { date: '2023-10-23', sent: 200, opened: 90, clicked: 25 },
+        { date: '2023-10-24', sent: 120, opened: 55, clicked: 15 },
+        { date: '2023-10-25', sent: 300, opened: 130, clicked: 40 },
+        { date: '2023-10-26', sent: 250, opened: 110, clicked: 32 },
+    ]
 };
 
 export const MOCK_AUTOMATIONS: AutomationWorkflow[] = [
-  { id: '1', name: 'Bienvenida Nuevos Suscriptores', trigger: 'Form Submission', status: 'Active', stats: { sent: 1250, opened: 980, clicked: 450 } },
-  { id: '2', name: 'Recordatorio Retiro Espiritual', trigger: 'Tag Added: Retiro', status: 'Active', stats: { sent: 300, opened: 280, clicked: 200 } },
-  { id: '3', name: 'Recuperación Donantes', trigger: 'Donation Expired', status: 'Paused', stats: { sent: 50, opened: 10, clicked: 2 } },
+    { id: '1', name: 'Bienvenida Nuevos Suscriptores', trigger: 'Form Submission', status: 'Active', stats: { sent: 1250, opened: 980, clicked: 450 } },
+    { id: '2', name: 'Recordatorio Retiro Espiritual', trigger: 'Tag Added: Retiro', status: 'Active', stats: { sent: 300, opened: 280, clicked: 200 } },
+    { id: '3', name: 'Recuperación Donantes', trigger: 'Donation Expired', status: 'Paused', stats: { sent: 50, opened: 10, clicked: 2 } },
 ];
 
 export const MOCK_CONTENT: ContentItem[] = [
-  { id: '1', title: 'La Búsqueda Interior', type: 'Article', status: 'Published', author: 'Santiago Bovisio', publishDate: '2023-10-01', views: 1240, tags: ['Mística', 'Lecturas Breves'] },
-  { id: '2', title: 'Método de Vida: Equilibrio', type: 'Page', status: 'Published', author: 'Admin', publishDate: '2023-09-15', views: 5600, tags: ['Bienestar', 'Filosofía'] },
-  { id: '3', title: 'Taller de Meditación Noviembre', type: 'Event', status: 'Draft', author: 'Coord. Actividades', publishDate: '-', views: 0, tags: ['Meditación', 'Cursos'] },
-  { id: '4', title: 'Guía de Autoconocimiento.pdf', type: 'Resource', status: 'Published', author: 'Comité Editorial', publishDate: '2023-08-20', views: 890, tags: ['Bienestar', 'Biblioteca'] },
-  { id: '5', title: 'Podcast: El Silencio', type: 'Resource', status: 'Published', author: 'Cafh', publishDate: '2023-11-01', views: 300, tags: ['Podcast', 'Meditación'] },
+    { id: '1', title: 'La Búsqueda Interior', type: 'Article', status: 'Published', author: 'Santiago Bovisio', publishDate: '2023-10-01', views: 1240, tags: ['Mística', 'Lecturas Breves'] },
+    { id: '2', title: 'Método de Vida: Equilibrio', type: 'Page', status: 'Published', author: 'Admin', publishDate: '2023-09-15', views: 5600, tags: ['Bienestar', 'Filosofía'] },
+    { id: '3', title: 'Taller de Meditación Noviembre', type: 'Event', status: 'Draft', author: 'Coord. Actividades', publishDate: '-', views: 0, tags: ['Meditación', 'Cursos'] },
+    { id: '4', title: 'Guía de Autoconocimiento.pdf', type: 'Resource', status: 'Published', author: 'Comité Editorial', publishDate: '2023-08-20', views: 890, tags: ['Bienestar', 'Biblioteca'] },
+    { id: '5', title: 'Podcast: El Silencio', type: 'Resource', status: 'Published', author: 'Cafh', publishDate: '2023-11-01', views: 300, tags: ['Podcast', 'Meditación'] },
 ];
 
 export const MOCK_MEDIA: MediaAsset[] = [
-  {
-    id: 'm1',
-    name: 'Logo_Cafh_Vector.svg',
-    type: 'image',
-    url: 'https://picsum.photos/seed/cafh1/400/400',
-    size: '45 KB',
-    dimensions: '512x512',
-    uploadedAt: '2023-10-01',
-    tags: ['Branding', 'Logo']
-  },
-  {
-    id: 'm2',
-    name: 'Retiro_Cajon_2023.jpg',
-    type: 'image',
-    url: 'https://picsum.photos/seed/retiro/1200/800',
-    size: '2.4 MB',
-    dimensions: '1920x1080',
-    uploadedAt: '2023-11-05',
-    tags: ['Eventos', 'Retiro']
-  },
-  {
-    id: 'm3',
-    name: 'Guia_Meditacion_Principiantes.pdf',
-    type: 'document',
-    url: '#',
-    size: '1.8 MB',
-    uploadedAt: '2023-09-20',
-    tags: ['Recursos', 'PDF']
-  },
-  {
-    id: 'm4',
-    name: 'Intro_Cafh_Video.mp4',
-    type: 'video',
-    url: 'https://cdn.pixabay.com/video/2020/12/03/58142-490367352_large.mp4',
-    size: '15.2 MB',
-    uploadedAt: '2023-08-15',
-    tags: ['Video', 'Institucional']
-  },
-  {
-    id: 'm5',
-    name: 'Meditacion_Guiada_Paz.mp3',
-    type: 'audio',
-    url: '#',
-    size: '8.4 MB',
-    uploadedAt: '2023-11-10',
-    tags: ['Audio', 'Meditación']
-  },
-  {
-    id: 'm6',
-    name: 'Banner_Home_V2.png',
-    type: 'image',
-    url: 'https://picsum.photos/seed/banner/1600/600',
-    size: '1.2 MB',
-    dimensions: '1600x600',
-    uploadedAt: '2023-11-12',
-    tags: ['Web', 'Banner']
-  }
+    {
+        id: 'm1',
+        name: 'Logo_Cafh_Vector.svg',
+        type: 'image',
+        url: 'https://picsum.photos/seed/cafh1/400/400',
+        size: '45 KB',
+        dimensions: '512x512',
+        uploadedAt: '2023-10-01',
+        tags: ['Branding', 'Logo']
+    },
+    {
+        id: 'm2',
+        name: 'Retiro_Cajon_2023.jpg',
+        type: 'image',
+        url: 'https://picsum.photos/seed/retiro/1200/800',
+        size: '2.4 MB',
+        dimensions: '1920x1080',
+        uploadedAt: '2023-11-05',
+        tags: ['Eventos', 'Retiro']
+    },
+    {
+        id: 'm3',
+        name: 'Guia_Meditacion_Principiantes.pdf',
+        type: 'document',
+        url: '#',
+        size: '1.8 MB',
+        uploadedAt: '2023-09-20',
+        tags: ['Recursos', 'PDF']
+    },
+    {
+        id: 'm4',
+        name: 'Intro_Cafh_Video.mp4',
+        type: 'video',
+        url: 'https://cdn.pixabay.com/video/2020/12/03/58142-490367352_large.mp4',
+        size: '15.2 MB',
+        uploadedAt: '2023-08-15',
+        tags: ['Video', 'Institucional']
+    },
+    {
+        id: 'm5',
+        name: 'Meditacion_Guiada_Paz.mp3',
+        type: 'audio',
+        url: '#',
+        size: '8.4 MB',
+        uploadedAt: '2023-11-10',
+        tags: ['Audio', 'Meditación']
+    },
+    {
+        id: 'm6',
+        name: 'Banner_Home_V2.png',
+        type: 'image',
+        url: 'https://picsum.photos/seed/banner/1600/600',
+        size: '1.2 MB',
+        dimensions: '1600x600',
+        uploadedAt: '2023-11-12',
+        tags: ['Web', 'Banner']
+    }
 ];
 
 export const ADMIN_NAV_ITEMS = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
-  { icon: Users, label: 'CRM & Contactos', path: '/admin/crm' },
-  { icon: MessageCircle, label: 'Automatizaciones', path: '/admin/automations' },
-  { icon: FileText, label: 'CMS & Contenidos', path: '/admin/cms' },
-  { icon: ImageIcon, label: 'Biblioteca Medios', path: '/admin/media' },
-  { icon: Zap, label: 'Mailrelay API', path: '/admin/mailrelay' },
-  { icon: BarChart3, label: 'Analítica', path: '/admin/analytics' },
-  { icon: Settings, label: 'Configuración', path: '/admin/settings' },
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
+    { icon: Users, label: 'CRM & Contactos', path: '/admin/crm' },
+    { icon: MessageCircle, label: 'Automatizaciones', path: '/admin/automations' },
+    { icon: FileText, label: 'CMS & Contenidos', path: '/admin/cms' },
+    { icon: ImageIcon, label: 'Biblioteca Medios', path: '/admin/media' },
+    { icon: BarChart3, label: 'Analítica', path: '/admin/analytics' },
+    { icon: Compass, label: 'Viaje Cafh', path: '/admin/journey' },
+    { icon: Settings, label: 'Configuración', path: '/admin/settings' },
 ];

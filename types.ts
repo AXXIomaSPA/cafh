@@ -450,7 +450,7 @@ export interface AutomationRule {
   status: 'Active' | 'Paused' | 'Draft';
   trigger: AutomationTrigger;
   nodes: AutomationNode[];
-  nodePositions?: Record<string, { x: number; y: number }>; // canvas positions
+  nodePositions?: Record<string, { x: number; y: number }>;
   createdAt: string;
   updatedAt: string;
   stats: {
@@ -461,3 +461,141 @@ export interface AutomationRule {
   };
 }
 
+// ============================================================
+// --- JOURNEY / PROFILE SYSTEM ---
+// ============================================================
+
+export interface WizardOptionEditable {
+  id: string;
+  label: string;
+  value: string;
+  profileTags: string[];
+}
+
+export interface WizardQuestion {
+  id: string;
+  order: number;
+  question: string;
+  subtitle?: string;
+  options: WizardOptionEditable[];
+  isActive: boolean;
+}
+
+export interface ProfileKitItem {
+  id: string;
+  title: string;
+  type: 'PDF' | 'Audio' | 'Video' | 'Article' | 'Link';
+  catalogItemId?: string;
+  url?: string;
+  description?: string;
+}
+
+/** A user profile archetype created by the admin */
+export interface ProfileType {
+  id: string;
+  name: string;
+  description: string;
+  emoji: string;
+  contentTags: string[];
+  kitItems: ProfileKitItem[];
+  crmTag: string;
+  crmListId?: string;
+  color: string;
+}
+
+
+/** Splash screen config shown after wizard completion */
+export interface WizardSplashConfig {
+  title: string;
+  message: string;
+  bgColor: string;
+  textColor: string;
+  durationSeconds: number;
+  redirectUrl: string;
+}
+
+/** Global wizard configuration */
+export interface WizardConfig {
+  splash: WizardSplashConfig;
+  defaultCrmListId?: string;
+  welcomeAutomationId?: string;
+  isActive: boolean;
+}
+
+/** The profile assigned to a registered user after completing the wizard */
+export interface UserWizardProfile {
+  userId: string;
+  profileTypeId: string;
+  profileTypeName: string;
+  wizardAnswers: Record<string, string>;
+  derivedTags: string[];
+  completedAt: string;
+}
+
+// ============================================================
+// --- CONTENT CATALOG ---
+// ============================================================
+
+export interface ContentCatalogItem {
+  id: string;
+  title: string;
+  description: string;
+  type: 'PDF' | 'Audio' | 'Video' | 'Article' | 'External';
+  mediaAssetId?: string;
+  externalUrl?: string;
+  thumbnailUrl?: string;
+  duration?: string;
+  tags: string[];
+  targetProfiles: string[];
+  isKitItem: boolean;
+  access: 'public' | 'member';
+  featured: boolean;
+  order: number;
+  publishedAt: string;
+  status: 'draft' | 'published';
+}
+
+// ============================================================
+// --- SITE SETTINGS ---
+// ============================================================
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  isActive: boolean;
+  lastLogin?: string;
+  createdAt: string;
+}
+
+export interface SiteSettings {
+  siteName: string;
+  siteDescription: string;
+  siteUrl: string;
+  logoUrl: string;
+  faviconUrl: string;
+  primaryColor: string;
+  accentColor: string;
+  timezone: string;
+  language: string;
+  maintenanceMode: boolean;
+  socialLinks: {
+    instagram?: string;
+    facebook?: string;
+    youtube?: string;
+    whatsapp?: string;
+    twitter?: string;
+  };
+  seoTitle: string;
+  seoDescription: string;
+  ogImageUrl?: string;
+  gaId?: string;
+  gtmId?: string;
+  metaPixelId?: string;
+  notificationEmail: string;
+  notifyOnSubscribe: boolean;
+  notifyOnBounce: boolean;
+  notifyOnAutomationFail: boolean;
+  weeklyDigest: boolean;
+}

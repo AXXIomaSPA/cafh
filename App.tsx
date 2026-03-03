@@ -11,7 +11,7 @@ const DynamicPageWrapper: React.FC = () => {
     return <DynamicPageView slug={slug || ''} />;
 };
 import { MemberDashboard } from './components/UserViews';
-import { DashboardView, CRMView, AutomationsView, CMSView, MediaLibraryView, AnalyticsView } from './components/AdminViews';
+import { DashboardView, CRMView, AutomationsView, CMSView, MediaLibraryView, AnalyticsView, JourneyView, SettingsView } from './components/AdminViews';
 import { db } from './storage';
 import { UserRole } from './types';
 
@@ -103,8 +103,9 @@ const App: React.FC = () => {
                 <Route path="/admin/automations" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><AutomationsView /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/cms" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><CMSView /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/media" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><MediaLibraryView /></AdminLayout></ProtectedRoute>} />
-                <Route path="/admin/mailrelay" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><div className="text-center py-20 text-slate-500">Módulo Mailrelay API en construcción</div></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/analytics" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><AnalyticsView /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/journey" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><JourneyView /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><SettingsView /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/*" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><div className="text-center py-20 text-slate-500">Módulo en construcción</div></AdminLayout></ProtectedRoute>} />
 
                 {/* CATCH ALL */}
