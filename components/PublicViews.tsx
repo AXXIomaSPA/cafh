@@ -4,7 +4,7 @@ import { Play, ArrowRight, Heart, Users, BookOpen, MapPin, Mail, ChevronRight, F
 import { useNavigate } from 'react-router-dom';
 import { MOCK_WIZARD_STEPS, MOCK_EVENTS } from '../constants';
 import { db } from '../storage';
-import { UserRole, HeroConfig, BlogPost, BlogConfig, HomeConfig, CustomPage, PageSection } from '../types';
+import { UserRole, HeroConfig, BlogPost, BlogConfig, HomeConfig, CustomPage, PageSection, WizardQuestion, ProfileType, UserWizardProfile } from '../types';
 import Markdown from 'react-markdown';
 
 // --- DYNAMIC PAGE VIEW ---
@@ -672,33 +672,220 @@ const VideoModal: React.FC<{ isOpen: boolean; onClose: () => void; videoId: stri
     );
 };
 
+// --- WIZARD MODAL (CONNECTED TO REAL DATA) ---
+
+// Helper: convierte WizardQuestion (admin) a formato compatible con WizardStep (fallback)
+const getWizardQuestions = (): WizardQuestion[] | null => {
+    try {
+        const raw = localStorage.getItem('cafh_journey_questions_v1');
+        if (!raw) return null;
+        const parsed: WizardQuestion[] = JSON.parse(raw);
+        const active = parsed.filter(q => q.isActive).sort((a, b) => a.order - b.order);
+        return active.length > 0 ? active : null;
+    } catch { return null; }
+};
+
+const getProfiles = (): ProfileType[] => {
+    try {
+        const raw = localStorage.getItem('cafh_journey_profiles_v1');
+        return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+};
+
+// Calculates dominant profile from answers
+const calculateProfile = (
+    selections: Record<number, string>,
+    adminQuestions: WizardQuestion[] | null
+): { profile: ProfileType | null; allTags: string[] } => {
+    const profiles = getProfiles();
+    let allTags: string[] = [];
+
+    if (adminQuestions && adminQuestions.length > 0) {
+        // Use real admin questions with profileTags
+        allTags = Object.entries(selections).flatMap(([stepIdx, optionValue]) => {
+            const question = adminQuestions[Number(stepIdx)];
+            if (!question) return [];
+            const option = question.options.find(o => o.value === optionValue);
+            return option?.profileTags || [];
+        });
+    } else {
+        // Use MOCK_WIZARD_STEPS fallback with relatedTags
+        allTags = Object.entries(selections).flatMap(([stepIdx, optionValue]) => {
+            const step = MOCK_WIZARD_STEPS[Number(stepIdx)];
+            if (!step) return [];
+            const option = step.options.find(o => o.value === optionValue);
+            return option?.relatedTags || [];
+        });
+    }
+
+    if (profiles.length === 0) return { profile: null, allTags };
+
+    const scored = profiles.map(p => ({
+        ...p,
+        score: p.contentTags.filter(t => allTags.includes(t)).length
+    }));
+    scored.sort((a, b) => b.score - a.score);
+    return { profile: scored[0] || null, allTags };
+};
+
 const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
+    const navigate = useNavigate();
+
+    // Load real questions once on mount
+    const [adminQuestions] = useState<WizardQuestion[] | null>(() => getWizardQuestions());
+
+    // Determine which question list to use
+    const totalSteps = adminQuestions ? adminQuestions.length : MOCK_WIZARD_STEPS.length;
+
     const [step, setStep] = useState(0);
     const [selections, setSelections] = useState<Record<number, string>>({});
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [showResults, setShowResults] = useState(false);
-    const navigate = useNavigate();
+    const [assignedProfile, setAssignedProfile] = useState<ProfileType | null>(null);
+    const [derivedTags, setDerivedTags] = useState<string[]>([]);
+
+    // Registration form state
+    const [showRegForm, setShowRegForm] = useState(false);
+    const [regName, setRegName] = useState('');
+    const [regEmail, setRegEmail] = useState('');
+    const [regPass, setRegPass] = useState('');
+    const [regError, setRegError] = useState<string | null>(null);
+    const [isRegistering, setIsRegistering] = useState(false);
+
+    // Reset on close/reopen
+    useEffect(() => {
+        if (!isOpen) {
+            setStep(0);
+            setSelections({});
+            setIsAnalyzing(false);
+            setShowResults(false);
+            setShowRegForm(false);
+            setRegName('');
+            setRegEmail('');
+            setRegPass('');
+            setRegError(null);
+            setAssignedProfile(null);
+            setDerivedTags([]);
+        }
+    }, [isOpen]);
+
+    // Get current question text
+    const getCurrentQuestion = (): { question: string; options: { label: string; value: string }[] } => {
+        if (adminQuestions && adminQuestions[step]) {
+            const q = adminQuestions[step];
+            return {
+                question: q.question,
+                options: q.options.map(o => ({ label: o.label, value: o.value }))
+            };
+        }
+        const mock = MOCK_WIZARD_STEPS[step];
+        return {
+            question: mock?.question || '',
+            options: mock?.options.map(o => ({ label: o.label, value: o.value })) || []
+        };
+    };
 
     const handleSelect = (optionValue: string) => {
-        setSelections({ ...selections, [step]: optionValue });
-        if (step < MOCK_WIZARD_STEPS.length - 1) {
+        const newSelections = { ...selections, [step]: optionValue };
+        setSelections(newSelections);
+
+        if (step < totalSteps - 1) {
             setStep(step + 1);
         } else {
-            // Finish
+            // All questions answered — calculate profile
             setIsAnalyzing(true);
             setTimeout(() => {
+                const { profile, allTags } = calculateProfile(newSelections, adminQuestions);
+                setAssignedProfile(profile);
+                setDerivedTags(allTags);
                 setIsAnalyzing(false);
                 setShowResults(true);
-            }, 2000); // Simulate AI analysis
+            }, 2000);
         }
     };
 
-    const handleRegister = () => {
-        // Here we would actually save the tags to the new user account
-        navigate('/member/dashboard');
+    const handleRegister = (e: React.FormEvent) => {
+        e.preventDefault();
+        setRegError(null);
+
+        if (!regName.trim() || !regEmail.trim() || regPass.length < 6) {
+            setRegError('Completa todos los campos. La contraseña debe tener al menos 6 caracteres.');
+            return;
+        }
+
+        setIsRegistering(true);
+
+        setTimeout(() => {
+            try {
+                // 1. Create the user session (simulate registration)
+                const userId = `u_${Date.now()}`;
+                const newUser = {
+                    id: userId,
+                    name: regName.trim(),
+                    email: regEmail.trim().toLowerCase(),
+                    role: 'MEMBER' as any,
+                    avatarUrl: '',
+                    tenantId: 't_santiago_01',
+                    interests: derivedTags,
+                    joinedDate: new Date().toISOString().split('T')[0]
+                };
+
+                // 2. Save session
+                localStorage.setItem('cafh_user_session_v1', JSON.stringify(newUser));
+
+                // 3. Save UserWizardProfile
+                const wizardProfile: UserWizardProfile = {
+                    userId,
+                    profileTypeId: assignedProfile?.id || 'default',
+                    profileTypeName: assignedProfile?.name || 'Viajero',
+                    wizardAnswers: Object.fromEntries(
+                        Object.entries(selections).map(([k, v]) => [
+                            adminQuestions ? (adminQuestions[Number(k)]?.id || k) : String(k),
+                            v
+                        ])
+                    ),
+                    derivedTags,
+                    completedAt: new Date().toISOString()
+                };
+                const existingProfiles: UserWizardProfile[] = JSON.parse(
+                    localStorage.getItem('cafh_user_wizard_profiles_v1') || '[]'
+                );
+                existingProfiles.push(wizardProfile);
+                localStorage.setItem('cafh_user_wizard_profiles_v1', JSON.stringify(existingProfiles));
+
+                // 4. Create CRM contact with profile tags
+                const crmTags = [
+                    'wizard_registration',
+                    ...(assignedProfile ? [assignedProfile.crmTag] : []),
+                    ...derivedTags
+                ].filter(Boolean);
+
+                db.crm.add({
+                    name: regName.trim(),
+                    email: regEmail.trim().toLowerCase(),
+                    phone: '',
+                    role: 'Member',
+                    status: 'Subscribed',
+                    lastContact: new Date().toISOString().split('T')[0],
+                    tags: crmTags,
+                    notes: `Registrado vía wizard. Perfil: ${assignedProfile?.name || 'Sin perfil'}`,
+                    createdAt: new Date().toISOString().split('T')[0],
+                    ...(assignedProfile?.crmListId ? { listIds: [assignedProfile.crmListId] } : {})
+                });
+
+                // 5. Redirect to dashboard
+                navigate('/member/dashboard');
+                onClose();
+            } catch (err) {
+                setRegError('Ocurrió un error al crear tu cuenta. Inténtalo de nuevo.');
+                setIsRegistering(false);
+            }
+        }, 800);
     };
 
     if (!isOpen) return null;
+
+    const currentQ = getCurrentQuestion();
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
@@ -707,12 +894,12 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
             <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl animate-fade-in-up overflow-hidden">
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 p-2 transition-colors"
+                    className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 p-2 transition-colors z-10"
                 >
                     <X size={24} />
                 </button>
 
-                {/* AI / Analysis Loading State */}
+                {/* State 1: Analyzing */}
                 {isAnalyzing && (
                     <div className="flex flex-col items-center justify-center py-10">
                         <div className="w-20 h-20 bg-cafh-light rounded-full flex items-center justify-center mb-6 relative">
@@ -720,58 +907,177 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                             <Loader2 className="w-20 h-20 text-cafh-indigo animate-spin absolute opacity-30" />
                         </div>
                         <h3 className="text-2xl font-display font-bold text-cafh-indigo mb-2">Diseñando tu viaje...</h3>
-                        <p className="text-slate-500">Nuestra IA está seleccionando los mejores recursos para ti.</p>
+                        <p className="text-slate-500">Analizando tus respuestas para encontrar tu perfil ideal.</p>
                     </div>
                 )}
 
-                {/* Results State */}
+                {/* State 2: Results + Register Form */}
                 {!isAnalyzing && showResults && (
-                    <div className="text-center">
-                        <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <Check size={32} />
-                        </div>
-                        <h3 className="text-3xl font-display font-bold text-slate-800 mb-4">¡Tu camino está listo!</h3>
-                        <p className="text-slate-600 mb-8 leading-relaxed">
-                            Hemos preparado una biblioteca personalizada con meditaciones, lecturas y grupos basados en tu búsqueda de <strong>Paz Interior</strong> y <strong>Sentido</strong>.
-                        </p>
+                    <div>
+                        {!showRegForm ? (
+                            // 2a: Profile reveal
+                            <div className="text-center">
+                                {assignedProfile ? (
+                                    <>
+                                        <div
+                                            className="w-20 h-20 rounded-[1.5rem] flex items-center justify-center mx-auto mb-4 text-4xl shadow-lg"
+                                            style={{ backgroundColor: assignedProfile.color + '22', border: `2px solid ${assignedProfile.color}` }}
+                                        >
+                                            {assignedProfile.emoji}
+                                        </div>
+                                        <span className="text-xs font-bold uppercase tracking-widest mb-1 block" style={{ color: assignedProfile.color }}>
+                                            Tu perfil
+                                        </span>
+                                        <h3 className="text-3xl font-display font-bold text-slate-800 mb-3">
+                                            {assignedProfile.name}
+                                        </h3>
+                                        <p className="text-slate-500 mb-6 leading-relaxed">
+                                            {assignedProfile.description}
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <Check size={32} />
+                                        </div>
+                                        <h3 className="text-3xl font-display font-bold text-slate-800 mb-3">¡Tu camino está listo!</h3>
+                                        <p className="text-slate-500 mb-6 leading-relaxed">
+                                            Hemos preparado una experiencia personalizada basada en tus respuestas.
+                                        </p>
+                                    </>
+                                )}
 
-                        <div className="bg-cafh-light p-6 rounded-2xl mb-8 border border-slate-100 text-left">
-                            <span className="text-xs font-bold text-cafh-indigo uppercase tracking-widest mb-2 block">Tu Kit Inicial Incluye:</span>
-                            <ul className="space-y-2">
-                                <li className="flex items-center gap-2 text-sm text-slate-700"><Check size={14} className="text-cafh-cyan" /> Guía PDF: "Primeros Pasos"</li>
-                                <li className="flex items-center gap-2 text-sm text-slate-700"><Check size={14} className="text-cafh-cyan" /> 3 Meditaciones guiadas (Audio)</li>
-                                <li className="flex items-center gap-2 text-sm text-slate-700"><Check size={14} className="text-cafh-cyan" /> Acceso a Calendario de Eventos</li>
-                            </ul>
-                        </div>
+                                {/* Kit Items */}
+                                {assignedProfile && assignedProfile.kitItems.length > 0 && (
+                                    <div className="bg-cafh-light p-6 rounded-2xl mb-6 border border-slate-100 text-left">
+                                        <span className="text-xs font-bold text-cafh-indigo uppercase tracking-widest mb-3 block">Tu Kit Inicial Incluye:</span>
+                                        <ul className="space-y-2">
+                                            {assignedProfile.kitItems.slice(0, 4).map(item => (
+                                                <li key={item.id} className="flex items-start gap-2 text-sm text-slate-700">
+                                                    <Check size={14} className="text-cafh-cyan mt-0.5 shrink-0" />
+                                                    <span><strong>{item.type}</strong>: {item.title}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
 
-                        <button
-                            onClick={handleRegister}
-                            className="w-full bg-cafh-indigo text-white py-4 rounded-xl font-bold text-lg hover:bg-slate-800 transition-colors shadow-xl shadow-cafh-indigo/20"
-                        >
-                            Crear mi cuenta gratuita para acceder
-                        </button>
+                                {!assignedProfile && (
+                                    <div className="bg-cafh-light p-6 rounded-2xl mb-6 border border-slate-100 text-left">
+                                        <span className="text-xs font-bold text-cafh-indigo uppercase tracking-widest mb-2 block">Tu Kit Inicial Incluye:</span>
+                                        <ul className="space-y-2">
+                                            <li className="flex items-center gap-2 text-sm text-slate-700"><Check size={14} className="text-cafh-cyan" /> Guía PDF: "Primeros Pasos"</li>
+                                            <li className="flex items-center gap-2 text-sm text-slate-700"><Check size={14} className="text-cafh-cyan" /> 3 Meditaciones guiadas (Audio)</li>
+                                            <li className="flex items-center gap-2 text-sm text-slate-700"><Check size={14} className="text-cafh-cyan" /> Acceso a Calendario de Eventos</li>
+                                        </ul>
+                                    </div>
+                                )}
+
+                                <button
+                                    onClick={() => setShowRegForm(true)}
+                                    className="w-full bg-cafh-indigo text-white py-4 rounded-xl font-bold text-lg hover:bg-slate-800 transition-colors shadow-xl shadow-cafh-indigo/20"
+                                >
+                                    Crear mi cuenta gratuita para acceder
+                                </button>
+                                <p className="text-xs text-slate-400 mt-3">¿Ya tienes cuenta? <button onClick={() => navigate('/login')} className="text-cafh-indigo font-bold hover:underline">Inicia sesión</button></p>
+                            </div>
+                        ) : (
+                            // 2b: Registration form
+                            <div>
+                                <button onClick={() => setShowRegForm(false)} className="flex items-center gap-2 text-slate-400 hover:text-slate-600 mb-6 text-sm font-medium transition-colors">
+                                    <ChevronRight size={16} className="rotate-180" /> Volver
+                                </button>
+                                <h3 className="text-2xl font-display font-bold text-slate-800 mb-1">Crea tu cuenta</h3>
+                                {assignedProfile && (
+                                    <p className="text-sm text-slate-500 mb-6">
+                                        Perfil asignado: <span className="font-bold" style={{ color: assignedProfile.color }}>{assignedProfile.emoji} {assignedProfile.name}</span>
+                                    </p>
+                                )}
+
+                                {regError && (
+                                    <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-5 flex items-center gap-3 text-sm font-medium border border-red-100">
+                                        <AlertCircle size={16} />
+                                        {regError}
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleRegister} className="space-y-4">
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Nombre completo</label>
+                                        <div className="relative">
+                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                            <input
+                                                type="text"
+                                                value={regName}
+                                                onChange={e => setRegName(e.target.value)}
+                                                className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
+                                                placeholder="Tu nombre"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Email</label>
+                                        <div className="relative">
+                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                            <input
+                                                type="email"
+                                                value={regEmail}
+                                                onChange={e => setRegEmail(e.target.value)}
+                                                className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
+                                                placeholder="tu@email.com"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Contraseña</label>
+                                        <div className="relative">
+                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                            <input
+                                                type="password"
+                                                value={regPass}
+                                                onChange={e => setRegPass(e.target.value)}
+                                                className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
+                                                placeholder="Mínimo 6 caracteres"
+                                                minLength={6}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        disabled={isRegistering}
+                                        className="w-full bg-cafh-indigo text-white py-4 rounded-xl font-bold text-lg hover:bg-slate-800 transition-colors shadow-xl shadow-cafh-indigo/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                    >
+                                        {isRegistering ? <Loader2 size={22} className="animate-spin" /> : 'Acceder a mi espacio personalizado'}
+                                    </button>
+                                </form>
+                                <p className="text-xs text-slate-400 text-center mt-4">Al registrarte aceptas los términos y condiciones de Cafh.</p>
+                            </div>
+                        )}
                     </div>
                 )}
 
-                {/* Questions State */}
+                {/* State 3: Questions */}
                 {!isAnalyzing && !showResults && (
                     <>
                         <div className="mb-8">
-                            <span className="text-xs font-bold text-cafh-cyan uppercase tracking-widest">Paso {step + 1} de {MOCK_WIZARD_STEPS.length}</span>
+                            <span className="text-xs font-bold text-cafh-cyan uppercase tracking-widest">Paso {step + 1} de {totalSteps}</span>
                             <div className="w-full h-2 bg-slate-100 rounded-full mt-2">
                                 <div
                                     className="h-full bg-cafh-cyan rounded-full transition-all duration-500"
-                                    style={{ width: `${((step + 1) / MOCK_WIZARD_STEPS.length) * 100}%` }}
+                                    style={{ width: `${((step + 1) / totalSteps) * 100}%` }}
                                 ></div>
                             </div>
                         </div>
 
                         <h3 className="text-2xl md:text-4xl font-display font-bold text-slate-800 mb-8">
-                            {MOCK_WIZARD_STEPS[step].question}
+                            {currentQ.question}
                         </h3>
 
                         <div className="space-y-3">
-                            {MOCK_WIZARD_STEPS[step].options.map((option) => (
+                            {currentQ.options.map((option) => (
                                 <button
                                     key={option.value}
                                     onClick={() => handleSelect(option.value)}

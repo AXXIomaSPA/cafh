@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../storage'; // Now using DB
 import { Calendar, Clock, BookOpen, Star, ArrowRight, User, Settings, LogOut, CheckCircle2, Video, ExternalLink, Mic, MicOff, Camera, CameraOff, MonitorUp, MoreVertical, PhoneOff, Copy, Check, Users, Shield, MessageSquare, Image as ImageIcon, Edit3, FileText, Download, List, Info } from 'lucide-react';
-import { UserActivity, ContentItem, CalendarEvent } from '../types';
+import { UserActivity, ContentItem, CalendarEvent, User as UserType, UserWizardProfile, BlogPost } from '../types';
 import { useNavigate } from 'react-router-dom';
 
 // --- MEET LOBBY MODAL (Context & Resources Briefing) ---
@@ -151,6 +151,9 @@ export const MemberDashboard: React.FC = () => {
     const [recommendedContent, setRecommendedContent] = useState<ContentItem[]>([]);
     const [nextEvent, setNextEvent] = useState<CalendarEvent | null>(null);
     const [isMeetModalOpen, setIsMeetModalOpen] = useState(false);
+    const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+    const [wizardProfile, setWizardProfile] = useState<UserWizardProfile | null>(null);
+    const [recentBlogPosts, setRecentBlogPosts] = useState<BlogPost[]>([]);
     
     // Header Customization State
     const [coverImage, setCoverImage] = useState("https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=2000&auto=format&fit=crop");
@@ -159,24 +162,46 @@ export const MemberDashboard: React.FC = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Load data from Local Memory
-        const userHistory = db.user.getHistory();
+        // 1. Load authenticated user
+        const user = db.auth.getCurrentUser();
+        setCurrentUser(user);
+
+        // 2. Load wizard profile for this user
+        let userWizardProfile: UserWizardProfile | null = null;
+        try {
+            const raw = localStorage.getItem('cafh_user_wizard_profiles_v1');
+            if (raw && user) {
+                const allProfiles: UserWizardProfile[] = JSON.parse(raw);
+                userWizardProfile = allProfiles.find(p => p.userId === user.id) || allProfiles[allProfiles.length - 1] || null;
+            }
+        } catch { /* ignore parse errors */ }
+        setWizardProfile(userWizardProfile);
+
+        // 3. Determine interests: wizard profile tags > user.interests > defaults
+        const userInterests = (
+            userWizardProfile?.derivedTags?.length ? userWizardProfile.derivedTags :
+            user?.interests?.length ? user.interests :
+            ['Meditación', 'Bienestar']
+        );
+
+        // 4. Load and filter content by interests
         const allContent = db.content.getAll();
         const allEvents = db.events.getAll();
-        
-        // Simulated logged-in user interests (In a real app, this comes from auth context)
-        const userInterests = ['Meditación', 'Bienestar']; 
         
         const recommendations = allContent.filter(c => 
             c.tags.some(tag => userInterests.includes(tag))
         );
 
-        // Find the next online or hybrid event that has a meeting URL
+        // 5. Load real blog posts (latest 2)
+        const allBlogPosts = db.blog.getAll();
+        setRecentBlogPosts(allBlogPosts.slice(0, 2));
+
+        // 6. Find the next online or hybrid event that has a meeting URL
         const upcomingEvent = allEvents.find(e => 
             (e.type === 'Online' || e.type === 'Híbrido') && e.meetingUrl
         );
 
-        setHistory(userHistory);
+        setHistory(db.user.getHistory());
         setRecommendedContent(recommendations);
         setNextEvent(upcomingEvent || null);
     }, []);
@@ -241,10 +266,14 @@ export const MemberDashboard: React.FC = () => {
                             <div className="absolute bottom-0 right-0 bg-green-500 w-6 h-6 rounded-full border-4 border-cafh-indigo"></div>
                         </div>
                         <div className="text-center md:text-left">
-                            <h1 className="text-4xl font-display font-bold text-white mb-1">Hola, Viajero</h1>
+                            <h1 className="text-4xl font-display font-bold text-white mb-1">
+                                Hola, {currentUser?.name?.split(' ')[0] || 'Viajero'}
+                            </h1>
                             <p className="text-blue-100 font-light flex items-center gap-2 justify-center md:justify-start">
-                                <span className="bg-white/20 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wide">Miembro</span>
-                                <span>desde Octubre 2023</span>
+                                <span className="bg-white/20 px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wide">
+                                    {wizardProfile?.profileTypeName || 'Miembro'}
+                                </span>
+                                <span>desde {currentUser?.joinedDate ? new Date(currentUser.joinedDate).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' }) : 'Cafh'}</span>
                             </p>
                         </div>
                     </div>
@@ -377,17 +406,19 @@ export const MemberDashboard: React.FC = () => {
                     <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
                         <h3 className="text-lg font-bold text-slate-800 mb-4">Novedades para ti</h3>
                         <div className="space-y-4">
-                            {[1, 2].map(i => (
-                                <div key={i} className="flex gap-4 items-center group cursor-pointer">
+                            {recentBlogPosts.length > 0 ? recentBlogPosts.map(post => (
+                                <div key={post.id} className="flex gap-4 items-center group cursor-pointer">
                                     <div className="w-16 h-16 bg-slate-200 rounded-xl overflow-hidden shrink-0">
-                                        <img src={`https://picsum.photos/seed/${i+100}/200`} alt="Blog" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                                        <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform" referrerPolicy="no-referrer" />
                                     </div>
                                     <div>
-                                        <h5 className="font-bold text-slate-700 text-sm leading-tight group-hover:text-cafh-indigo">Reflexión Semanal: El tiempo</h5>
-                                        <span className="text-xs text-slate-400">Hace 2 días</span>
+                                        <h5 className="font-bold text-slate-700 text-sm leading-tight group-hover:text-cafh-indigo line-clamp-2">{post.title}</h5>
+                                        <span className="text-xs text-slate-400">{post.date} • {post.author}</span>
                                     </div>
                                 </div>
-                            ))}
+                            )) : (
+                                <p className="text-slate-400 text-sm italic">No hay novedades recientes.</p>
+                            )}
                         </div>
                     </div>
                 </div>

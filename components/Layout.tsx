@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown, Bell, Search, User as UserIcon, LogOut, Globe, ChevronRight, FileText } from 'lucide-react';
+import { Menu, X, ChevronDown, Bell, Search, User as UserIcon, LogOut, Globe, ChevronRight, FileText, KeyRound } from 'lucide-react';
 import { PUBLIC_NAV_STRUCTURE, ADMIN_NAV_ITEMS, CURRENT_TENANT } from '../constants';
 import { db } from '../storage';
+import { User, UserRole } from '../types';
 
 // --- MEGA MENU COMPONENT (FULL WIDTH) ---
 
@@ -395,10 +396,35 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
     const navigate = useNavigate();
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const profileRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        setCurrentUser(db.auth.getCurrentUser());
+    }, []);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+                setIsProfileOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const handleLogout = () => {
         db.auth.logout();
         navigate('/login');
+    };
+
+    const roleLabel = (role?: string) => {
+        if (role === UserRole.SUPER_ADMIN) return 'Super Admin';
+        if (role === UserRole.ADMIN) return 'Administrador';
+        if (role === UserRole.EDITOR) return 'Editor';
+        return 'Usuario';
     };
 
     return (
@@ -502,14 +528,62 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
                             <Bell size={20} className="text-slate-500" />
                             <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
                         </div>
-                        <div className="flex items-center gap-3 pl-6 border-l border-slate-200">
+                        {/* Profile Dropdown */}
+                        <div ref={profileRef} className="relative flex items-center gap-3 pl-6 border-l border-slate-200">
                             <div className="text-right hidden sm:block">
-                                <p className="text-sm font-bold text-slate-800">Admin User</p>
-                                <p className="text-xs text-slate-500">Super Admin</p>
+                                <p className="text-sm font-bold text-slate-800">{currentUser?.name || 'Admin User'}</p>
+                                <p className="text-xs text-slate-500">{roleLabel(currentUser?.role)}</p>
                             </div>
-                            <div className="w-10 h-10 bg-cafh-light rounded-full flex items-center justify-center text-cafh-indigo border border-slate-200">
+                            <button
+                                onClick={() => setIsProfileOpen(prev => !prev)}
+                                className="w-10 h-10 bg-cafh-light rounded-full flex items-center justify-center text-cafh-indigo border border-slate-200 hover:border-cafh-cyan hover:bg-cafh-cyan/10 transition-all"
+                                title="Mi perfil"
+                            >
                                 <UserIcon size={20} />
-                            </div>
+                            </button>
+
+                            {/* Dropdown Panel */}
+                            {isProfileOpen && (
+                                <div className="absolute right-0 top-full mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50 animate-fade-in-up">
+                                    {/* User info header */}
+                                    <div className="px-5 py-4 bg-slate-50 border-b border-slate-100">
+                                        <div className="w-12 h-12 bg-cafh-indigo rounded-xl flex items-center justify-center text-white mb-3">
+                                            <UserIcon size={22} />
+                                        </div>
+                                        <p className="font-bold text-slate-800 text-sm">{currentUser?.name || 'Administrador'}</p>
+                                        <p className="text-xs text-slate-400 mt-0.5 truncate">{currentUser?.email || ''}</p>
+                                        <span className="inline-block mt-2 text-[10px] font-bold uppercase tracking-widest bg-cafh-indigo/10 text-cafh-indigo px-2 py-0.5 rounded-full">
+                                            {roleLabel(currentUser?.role)}
+                                        </span>
+                                    </div>
+                                    {/* Actions */}
+                                    <div className="p-2">
+                                        <button
+                                            onClick={() => { navigate('/'); setIsProfileOpen(false); }}
+                                            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 text-sm font-medium transition-colors"
+                                        >
+                                            <Globe size={16} className="text-slate-400" />
+                                            Ver sitio web
+                                        </button>
+                                        <button
+                                            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 text-sm font-medium transition-colors"
+                                            onClick={() => setIsProfileOpen(false)}
+                                        >
+                                            <KeyRound size={16} className="text-slate-400" />
+                                            Cambiar contraseña
+                                        </button>
+                                        <div className="border-t border-slate-100 mt-2 pt-2">
+                                            <button
+                                                onClick={handleLogout}
+                                                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50 text-sm font-bold transition-colors"
+                                            >
+                                                <LogOut size={16} />
+                                                Cerrar sesión
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </header>
