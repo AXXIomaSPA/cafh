@@ -18,6 +18,8 @@ import {
     Hash, Activity, Play, MousePointer, ChevronDown, ChevronUp, Database, UploadCloud, Settings, Eye, Target, Percent, Zap, Pause
 } from 'lucide-react';
 import { db } from '../storage';
+import { AutomationFlowBuilder } from './AutomationFlowBuilder';
+
 import {
     Contact, ContactList, EmailLog, EmailMetrics, MediaAsset,
     HomeConfig, ChangeLog, MegaMenuItem, CustomPage, PageSection, SMTPConfig, Campaign,
@@ -2646,6 +2648,7 @@ export const AutomationsView: React.FC = () => {
     const [wTriggerInactiveDays, setWTriggerInactiveDays] = useState(30);
     // Step 2: Nodes
     const [wNodes, setWNodes] = useState<AutomationNode[]>([]);
+    const [wNodePositions, setWNodePositions] = useState<Record<string, { x: number; y: number }>>({});
     // Node builder
     const [addingNodeType, setAddingNodeType] = useState<AutomationNodeType | ''>('');
     const [nodeEmailSubject, setNodeEmailSubject] = useState('');
@@ -2681,7 +2684,7 @@ export const AutomationsView: React.FC = () => {
     const resetWizard = () => {
         setWStep(1); setWName(''); setWDesc('');
         setWTriggerType('manual'); setWTriggerListId(''); setWTriggerTag(''); setWTriggerInactiveDays(30);
-        setWNodes([]); setAddingNodeType('');
+        setWNodes([]); setWNodePositions({}); setAddingNodeType('');
         setWSegmentType('subscribed'); setWSegmentValue('');
     };
 
@@ -2719,7 +2722,7 @@ export const AutomationsView: React.FC = () => {
             tag: wTriggerTag || undefined,
             inactiveDays: wTriggerInactiveDays,
         };
-        const data = { name: wName, description: wDesc, status, trigger, nodes: wNodes };
+        const data = { name: wName, description: wDesc, status, trigger, nodes: wNodes, nodePositions: wNodePositions };
         if (selectedAuto && viewTab === 'edit') {
             db.automations.save({ ...selectedAuto, ...data, updatedAt: new Date().toISOString() });
         } else {
@@ -2736,6 +2739,7 @@ export const AutomationsView: React.FC = () => {
         setWTriggerTag(auto.trigger.tag || '');
         setWTriggerInactiveDays(auto.trigger.inactiveDays || 30);
         setWNodes(auto.nodes);
+        setWNodePositions(auto.nodePositions || {});
         setWStep(1); setViewTab('edit');
     };
 
@@ -2992,54 +2996,31 @@ export const AutomationsView: React.FC = () => {
                         </div>
                     )}
 
-                    {/* STEP 2: Node Builder */}
+                    {/* STEP 2: Visual Flow Canvas */}
                     {wStep === 2 && (
-                        <div className="max-w-2xl">
-                            <div className="text-center mb-6">
-                                <h4 className="text-xl font-bold text-slate-800">Construye el Flujo</h4>
-                                <p className="text-sm text-slate-400 mt-1">Agrega nodos en secuencia: emails, esperas, condiciones, acciones</p>
+                        <div>
+                            <div className="text-center mb-5">
+                                <h4 className="text-xl font-bold text-slate-800">Diseña el Flujo</h4>
+                                <p className="text-sm text-slate-400 mt-1">Arrastra los nodos para organizar el flujo. Usa el panel inferior para agregar pasos.</p>
                             </div>
 
-                            {/* Current node flow */}
-                            <div className="mb-6">
-                                {wNodes.length === 0 ? (
-                                    <div className="text-center py-8 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400">
-                                        <Zap size={24} className="mx-auto mb-2" />
-                                        <p className="text-sm">Aún no hay nodos. Agrega el primero abajo.</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-2">
-                                        {wNodes.map((n, i) => (
-                                            <div key={n.id} className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl px-5 py-3">
-                                                <span className="text-xl">{nodeIcon[n.type]}</span>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-bold text-slate-800 capitalize">{n.type.replace('_', ' ')}</p>
-                                                    <p className="text-xs text-slate-500 truncate">
-                                                        {n.type === 'send_email' && `"${(n as SendEmailNode).subject}"`}
-                                                        {n.type === 'wait' && `${(n as WaitNode).amount} ${(n as WaitNode).unit}`}
-                                                        {n.type === 'update_tag' && `${(n as UpdateTagNode).action} tag: "${(n as UpdateTagNode).tag}"`}
-                                                        {n.type === 'move_to_list' && `Lista: ${lists.find(l => l.id === (n as MoveToListNode).listId)?.name || (n as MoveToListNode).listId}`}
-                                                        {n.type === 'condition' && `Condición: ${(n as ConditionNode).check}`}
-                                                        {n.type === 'end' && 'Fin del flujo'}
-                                                    </p>
-                                                </div>
-                                                {i < wNodes.length - 1 && <ChevronRight size={14} className="text-slate-300 shrink-0" />}
-                                                <button onClick={() => setWNodes(prev => prev.filter((_, idx) => idx !== i))}
-                                                    className="text-red-400 hover:text-red-600 transition-colors shrink-0"><Trash2 size={14} /></button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                            {/* ── React Flow Canvas ── */}
+                            <AutomationFlowBuilder
+                                trigger={{ type: wTriggerType, listId: wTriggerListId || undefined, tag: wTriggerTag || undefined, inactiveDays: wTriggerInactiveDays }}
+                                nodes={wNodes}
+                                nodePositions={wNodePositions}
+                                onPositionsChange={setWNodePositions}
+                                height={480}
+                            />
 
-                            {/* Node adder */}
-                            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5">
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Agregar Nodo</p>
+                            {/* ── Node Adder Panel (below canvas) ── */}
+                            <div className="mt-4 bg-slate-50 border border-slate-200 rounded-2xl p-5">
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Agregar nodo al flujo</p>
                                 <div className="flex flex-wrap gap-2 mb-4">
                                     {(['send_email', 'wait', 'condition', 'update_tag', 'move_to_list', 'end'] as AutomationNodeType[]).map(t => (
                                         <button key={t} onClick={() => setAddingNodeType(t)}
                                             className={`px-3 py-2 rounded-xl text-xs font-bold transition-all ${addingNodeType === t ? 'bg-cafh-indigo text-white' : 'bg-white border border-slate-200 text-slate-600 hover:border-cafh-indigo'}`}>
-                                            {nodeIcon[t]} {t.replace('_', ' ')}
+                                            {nodeIcon[t]} {t.replace(/_/g, ' ')}
                                         </button>
                                     ))}
                                 </div>
@@ -3048,7 +3029,7 @@ export const AutomationsView: React.FC = () => {
                                     <div className="space-y-3">
                                         <input value={nodeEmailSubject} onChange={e => setNodeEmailSubject(e.target.value)} placeholder="Asunto del email *"
                                             className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-cafh-indigo" />
-                                        <textarea value={nodeEmailContent} onChange={e => setNodeEmailContent(e.target.value)} placeholder="Contenido HTML del email *" rows={4}
+                                        <textarea value={nodeEmailContent} onChange={e => setNodeEmailContent(e.target.value)} placeholder="Contenido HTML del email *" rows={3}
                                             className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-cafh-indigo resize-none font-mono text-xs" />
                                     </div>
                                 )}
@@ -3102,6 +3083,23 @@ export const AutomationsView: React.FC = () => {
                                     <button onClick={handleAddNode} className="mt-3 px-5 py-2.5 bg-cafh-indigo text-white rounded-xl font-bold text-sm hover:bg-blue-900 transition-all">
                                         + Agregar al flujo
                                     </button>
+                                )}
+
+                                {/* Node list (removable) */}
+                                {wNodes.length > 0 && (
+                                    <div className="mt-4 pt-4 border-t border-slate-200">
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Nodos en el flujo ({wNodes.length})</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {wNodes.map((n, i) => (
+                                                <div key={n.id} className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700">
+                                                    <span>{nodeIcon[n.type]}</span>
+                                                    <span className="capitalize">{n.type.replace(/_/g, ' ')}</span>
+                                                    <button onClick={() => setWNodes(prev => prev.filter((_, idx) => idx !== i))}
+                                                        className="ml-1 text-red-400 hover:text-red-600 transition-colors">×</button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </div>

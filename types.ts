@@ -450,6 +450,7 @@ export interface AutomationRule {
   status: 'Active' | 'Paused' | 'Draft';
   trigger: AutomationTrigger;
   nodes: AutomationNode[];
+  nodePositions?: Record<string, { x: number; y: number }>; // canvas positions
   createdAt: string;
   updatedAt: string;
   stats: {
