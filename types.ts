@@ -509,6 +509,9 @@ export interface WizardSplashConfig {
   title: string;
   message: string;
   bgColor: string;
+  bgType: 'color' | 'image' | 'video'; // Background mode
+  bgImageUrl?: string;                  // Used when bgType === 'image'
+  bgVideoUrl?: string;                  // Used when bgType === 'video'
   textColor: string;
   durationSeconds: number;
   redirectUrl: string;

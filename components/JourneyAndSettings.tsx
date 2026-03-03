@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Save, X, ChevronRight, Settings, Globe2, Bell, Lock, Users, Database, Compass, Tag, Package, Star, Sliders, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ChevronRight, Settings, Globe2, Bell, Lock, Users, Database, Compass, Tag, Package, Star, Sliders, CheckCircle2, AlertCircle, Film, Image as ImageIcon, Palette } from 'lucide-react';
 import { db } from '../storage';
-import type { WizardQuestion, WizardOptionEditable, ProfileType, ProfileKitItem, SiteSettings, AdminUser, UserRole } from '../types';
+import type { WizardQuestion, WizardOptionEditable, ProfileType, ProfileKitItem, SiteSettings, AdminUser, UserRole, WizardSplashConfig } from '../types';
 
 // ─── DEFAULTS ────────────────────────────────────────────────
 const DEFAULT_QUESTIONS: WizardQuestion[] = [
@@ -51,12 +51,32 @@ function loadLS<T>(key: string, def: T): T { try { const s = localStorage.getIte
 function saveLS(key: string, val: any) { try { localStorage.setItem(key, JSON.stringify(val)); } catch { } }
 
 // ─── JOURNEY VIEW ─────────────────────────────────────────────
-type JTab = 'questions' | 'profiles';
+type JTab = 'questions' | 'profiles' | 'splash';
+
+const LS_WIZARD_CONFIG = 'cafh_wizard_config_v1';
+
+const DEFAULT_SPLASH: WizardSplashConfig = {
+    title: '¡Bienvenido a tu camino!',
+    message: 'Tu espacio personalizado está listo. Estamos preparando todo para ti...',
+    bgColor: '#1e2f6b',
+    bgType: 'color',
+    bgImageUrl: '',
+    bgVideoUrl: '',
+    textColor: '#ffffff',
+    durationSeconds: 4,
+    redirectUrl: '/member/dashboard',
+};
 
 export const JourneyView: React.FC = () => {
     const [tab, setTab] = useState<JTab>('questions');
     const [questions, setQuestions] = useState<WizardQuestion[]>(() => loadLS(LS_QUESTIONS, DEFAULT_QUESTIONS));
     const [profiles, setProfiles] = useState<ProfileType[]>(() => loadLS(LS_PROFILES, DEFAULT_PROFILES));
+    const [splashConfig, setSplashConfig] = useState<WizardSplashConfig>(() => {
+        try {
+            const raw = localStorage.getItem(LS_WIZARD_CONFIG);
+            return raw ? { ...DEFAULT_SPLASH, ...JSON.parse(raw).splash } : DEFAULT_SPLASH;
+        } catch { return DEFAULT_SPLASH; }
+    });
 
     // Question editing state
     const [editQ, setEditQ] = useState<WizardQuestion | null>(null);
@@ -67,6 +87,11 @@ export const JourneyView: React.FC = () => {
 
     const saveQuestions = (q: WizardQuestion[]) => { setQuestions(q); saveLS(LS_QUESTIONS, q); flash(); };
     const saveProfiles = (p: ProfileType[]) => { setProfiles(p); saveLS(LS_PROFILES, p); flash(); };
+    const saveSplash = (cfg: WizardSplashConfig) => {
+        setSplashConfig(cfg);
+        saveLS(LS_WIZARD_CONFIG, { splash: cfg, isActive: true });
+        flash();
+    };
 
     const deleteQuestion = (id: string) => saveQuestions(questions.filter(q => q.id !== id));
     const deleteProfile = (id: string) => saveProfiles(profiles.filter(p => p.id !== id));
@@ -95,7 +120,7 @@ export const JourneyView: React.FC = () => {
 
             {/* Tabs */}
             <div className="flex gap-2 bg-white border border-slate-200 rounded-2xl p-1.5 w-fit shadow-sm">
-                {([['questions', '📋 Preguntas del Wizard'], ['profiles', '🧬 Tipos de Perfil']] as [JTab, string][]).map(([t, l]) => (
+                {([['questions', '📋 Preguntas del Wizard'], ['profiles', '🧬 Tipos de Perfil'], ['splash', '🎬 Splash Screen']] as [JTab, string][]).map(([t, l]) => (
                     <button key={t} onClick={() => setTab(t)} className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === t ? 'bg-cafh-indigo text-white shadow-lg shadow-indigo-200' : 'text-slate-500 hover:text-slate-800'}`}>{l}</button>
                 ))}
             </div>
@@ -160,6 +185,147 @@ export const JourneyView: React.FC = () => {
                         className="border-2 border-dashed border-slate-200 rounded-2xl p-6 text-slate-400 hover:border-cafh-indigo hover:text-cafh-indigo transition-colors font-bold text-sm flex items-center justify-center">
                         + Nuevo Tipo de Perfil
                     </button>
+                </div>
+            )}
+
+            {/* Splash Config */}
+            {tab === 'splash' && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Editor Panel */}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+                        <h3 className="font-bold text-slate-800 flex items-center gap-2"><Film size={18} className="text-cafh-indigo" /> Configuración del Splash</h3>
+
+                        {/* Tipo de fondo */}
+                        <div>
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Tipo de Fondo</label>
+                            <div className="flex gap-2">
+                                {(['color', 'image', 'video'] as const).map(type => (
+                                    <button key={type} onClick={() => saveSplash({ ...splashConfig, bgType: type })}
+                                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold border-2 transition-all capitalize ${
+                                            splashConfig.bgType === type ? 'border-cafh-indigo bg-cafh-indigo/10 text-cafh-indigo' : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                                        }`}>
+                                        {type === 'color' ? '🎨 Color' : type === 'image' ? '🖼️ Imagen' : '🎬 Video'}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Color de fondo (solo si bgType === 'color') */}
+                        {splashConfig.bgType === 'color' && (
+                            <div>
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Color de Fondo</label>
+                                <div className="flex items-center gap-3">
+                                    <input type="color" value={splashConfig.bgColor}
+                                        onChange={e => saveSplash({ ...splashConfig, bgColor: e.target.value })}
+                                        className="w-12 h-10 rounded-xl border border-slate-200 cursor-pointer p-1" />
+                                    <span className="text-sm font-mono text-slate-500">{splashConfig.bgColor}</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* URL de imagen */}
+                        {splashConfig.bgType === 'image' && (
+                            <div>
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">URL de Imagen de Fondo</label>
+                                <input type="url" value={splashConfig.bgImageUrl || ''}
+                                    onChange={e => saveSplash({ ...splashConfig, bgImageUrl: e.target.value })}
+                                    placeholder="https://images.unsplash.com/..."
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-cafh-indigo text-sm font-mono" />
+                                <p className="text-xs text-slate-400 mt-1">Recomendado: 1920×1080 px, formato JPG o PNG</p>
+                            </div>
+                        )}
+
+                        {/* URL de video */}
+                        {splashConfig.bgType === 'video' && (
+                            <div>
+                                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">URL de Video de Fondo (MP4)</label>
+                                <input type="url" value={splashConfig.bgVideoUrl || ''}
+                                    onChange={e => saveSplash({ ...splashConfig, bgVideoUrl: e.target.value })}
+                                    placeholder="https://cdn.example.com/video.mp4"
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-cafh-indigo text-sm font-mono" />
+                                <p className="text-xs text-slate-400 mt-1">Formato MP4 con loop y sin audio</p>
+                            </div>
+                        )}
+
+                        {/* Color de texto */}
+                        <div>
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Color de Texto</label>
+                            <div className="flex gap-3">
+                                {['#ffffff', '#1e2f6b', '#f0f4ff', '#ffd700'].map(c => (
+                                    <button key={c} onClick={() => saveSplash({ ...splashConfig, textColor: c })}
+                                        style={{ backgroundColor: c, border: splashConfig.textColor === c ? '3px solid #6366f1' : '2px solid #e2e8f0' }}
+                                        className="w-9 h-9 rounded-xl shadow-sm transition-transform hover:scale-110" />
+                                ))}
+                                <input type="color" value={splashConfig.textColor}
+                                    onChange={e => saveSplash({ ...splashConfig, textColor: e.target.value })}
+                                    className="w-9 h-9 rounded-xl border border-slate-200 cursor-pointer p-0.5 bg-transparent" />
+                            </div>
+                        </div>
+
+                        {/* Título */}
+                        <div>
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Título del Splash</label>
+                            <input type="text" value={splashConfig.title}
+                                onChange={e => saveSplash({ ...splashConfig, title: e.target.value })}
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-cafh-indigo text-sm font-medium" />
+                        </div>
+
+                        {/* Mensaje */}
+                        <div>
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Mensaje de Bienvenida</label>
+                            <textarea value={splashConfig.message} rows={3}
+                                onChange={e => saveSplash({ ...splashConfig, message: e.target.value })}
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-cafh-indigo text-sm resize-none" />
+                        </div>
+
+                        {/* Duración */}
+                        <div>
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">
+                                Duración: <strong className="text-cafh-indigo">{splashConfig.durationSeconds}s</strong>
+                            </label>
+                            <input type="range" min={2} max={10} step={1} value={splashConfig.durationSeconds}
+                                onChange={e => saveSplash({ ...splashConfig, durationSeconds: Number(e.target.value) })}
+                                className="w-full accent-cafh-indigo" />
+                            <div className="flex justify-between text-xs text-slate-400 mt-1">
+                                <span>2s mínimo</span><span>10s máximo</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Live Preview */}
+                    <div>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Preview en vivo</p>
+                        <div
+                            className="relative rounded-2xl overflow-hidden aspect-[9/16] md:aspect-video shadow-xl border border-slate-200 flex flex-col items-center justify-center text-center p-8"
+                            style={{
+                                backgroundColor: splashConfig.bgType === 'color' ? splashConfig.bgColor : '#000',
+                                backgroundImage: splashConfig.bgType === 'image' && splashConfig.bgImageUrl ? `url(${splashConfig.bgImageUrl})` : undefined,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                            }}
+                        >
+                            {splashConfig.bgType === 'video' && splashConfig.bgVideoUrl && (
+                                <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-70">
+                                    <source src={splashConfig.bgVideoUrl} type="video/mp4" />
+                                </video>
+                            )}
+                            {/* Overlay */}
+                            <div className="absolute inset-0 bg-black/20" />
+                            {/* Content */}
+                            <div className="relative z-10" style={{ color: splashConfig.textColor }}>
+                                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl" style={{ backgroundColor: splashConfig.textColor + '22', border: `2px solid ${splashConfig.textColor}` }}>
+                                    ✨
+                                </div>
+                                <h4 className="text-xl font-bold mb-2">{splashConfig.title || '¡Bienvenido!'}</h4>
+                                <p className="text-sm opacity-80 leading-relaxed max-w-xs">{splashConfig.message}</p>
+                                <div className="mt-6 flex items-center justify-center gap-2 text-sm opacity-70">
+                                    <span>Redirigiendo en {splashConfig.durationSeconds}s</span>
+                                    <span className="w-5 h-5 rounded-full border-2 border-current animate-spin border-t-transparent" />
+                                </div>
+                            </div>
+                        </div>
+                        <p className="text-xs text-slate-400 text-center mt-3">Así verá el usuario el splash tras registrarse</p>
+                    </div>
                 </div>
             )}
 

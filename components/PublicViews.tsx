@@ -4,7 +4,7 @@ import { Play, ArrowRight, Heart, Users, BookOpen, MapPin, Mail, ChevronRight, F
 import { useNavigate } from 'react-router-dom';
 import { MOCK_WIZARD_STEPS, MOCK_EVENTS } from '../constants';
 import { db } from '../storage';
-import { UserRole, HeroConfig, BlogPost, BlogConfig, HomeConfig, CustomPage, PageSection, WizardQuestion, ProfileType, UserWizardProfile } from '../types';
+import { UserRole, HeroConfig, BlogPost, BlogConfig, HomeConfig, CustomPage, PageSection, WizardQuestion, ProfileType, UserWizardProfile, WizardSplashConfig } from '../types';
 import Markdown from 'react-markdown';
 
 // --- DYNAMIC PAGE VIEW ---
@@ -728,6 +728,27 @@ const calculateProfile = (
     return { profile: scored[0] || null, allTags };
 };
 
+// Helper: read splash config from localStorage
+const getSplashConfig = (): WizardSplashConfig => {
+    const DEFAULT: WizardSplashConfig = {
+        title: '\u00a1Bienvenido a tu camino!',
+        message: 'Tu espacio personalizado est\u00e1 listo. Estamos preparando todo para ti...',
+        bgColor: '#1e2f6b',
+        bgType: 'color',
+        bgImageUrl: '',
+        bgVideoUrl: '',
+        textColor: '#ffffff',
+        durationSeconds: 4,
+        redirectUrl: '/member/dashboard',
+    };
+    try {
+        const raw = localStorage.getItem('cafh_wizard_config_v1');
+        if (!raw) return DEFAULT;
+        const parsed = JSON.parse(raw);
+        return parsed.splash ? { ...DEFAULT, ...parsed.splash } : DEFAULT;
+    } catch { return DEFAULT; }
+};
+
 const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
 
@@ -752,6 +773,29 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
     const [regError, setRegError] = useState<string | null>(null);
     const [isRegistering, setIsRegistering] = useState(false);
 
+    // Splash state
+    const [showSplash, setShowSplash] = useState(false);
+    const [splashConfig] = useState<WizardSplashConfig>(() => getSplashConfig());
+    const [countdown, setCountdown] = useState(splashConfig.durationSeconds);
+
+    // Countdown timer when splash is active
+    useEffect(() => {
+        if (!showSplash) return;
+        setCountdown(splashConfig.durationSeconds);
+        const interval = setInterval(() => {
+            setCountdown(prev => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    navigate(splashConfig.redirectUrl || '/member/dashboard');
+                    onClose();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [showSplash]);
+
     // Reset on close/reopen
     useEffect(() => {
         if (!isOpen) {
@@ -760,6 +804,7 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
             setIsAnalyzing(false);
             setShowResults(false);
             setShowRegForm(false);
+            setShowSplash(false);
             setRegName('');
             setRegEmail('');
             setRegPass('');
@@ -873,9 +918,9 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                     ...(assignedProfile?.crmListId ? { listIds: [assignedProfile.crmListId] } : {})
                 });
 
-                // 5. Redirect to dashboard
-                navigate('/member/dashboard');
-                onClose();
+                // 5. Show splash instead of direct navigate
+                setIsRegistering(false);
+                setShowSplash(true);
             } catch (err) {
                 setRegError('Ocurrió un error al crear tu cuenta. Inténtalo de nuevo.');
                 setIsRegistering(false);
@@ -886,18 +931,96 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
     if (!isOpen) return null;
 
     const currentQ = getCurrentQuestion();
+    // Computed splash progress (0→1)
+    const splashProgress = countdown / splashConfig.durationSeconds;
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-cafh-indigo/90 backdrop-blur-md" onClick={onClose}></div>
+            <div className="absolute inset-0 bg-cafh-indigo/90 backdrop-blur-md" onClick={!showSplash ? onClose : undefined}></div>
 
-            <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl animate-fade-in-up overflow-hidden">
-                <button
-                    onClick={onClose}
-                    className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 p-2 transition-colors z-10"
-                >
-                    <X size={24} />
-                </button>
+            <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl animate-fade-in-up overflow-hidden">
+
+                {/* ── SPLASH SCREEN ── Full-screen inside modal */}
+                {showSplash && (
+                    <div
+                        className="relative flex flex-col items-center justify-center min-h-[80vh] md:min-h-[600px] w-full overflow-hidden text-center p-10"
+                        style={{
+                            backgroundColor: splashConfig.bgType === 'color' ? splashConfig.bgColor : '#0a0a1a',
+                            backgroundImage: splashConfig.bgType === 'image' && splashConfig.bgImageUrl
+                                ? `url(${splashConfig.bgImageUrl})` : undefined,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                        }}
+                    >
+                        {/* Video background */}
+                        {splashConfig.bgType === 'video' && splashConfig.bgVideoUrl && (
+                            <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover">
+                                <source src={splashConfig.bgVideoUrl} type="video/mp4" />
+                            </video>
+                        )}
+                        {/* Dark overlay for readability */}
+                        <div className="absolute inset-0 bg-black/30" />
+
+                        {/* Content */}
+                        <div className="relative z-10" style={{ color: splashConfig.textColor }}>
+                            {/* Animated icon */}
+                            <div className="relative w-24 h-24 mx-auto mb-8">
+                                {/* Circular progress ring */}
+                                <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 96 96">
+                                    <circle cx="48" cy="48" r="44" fill="none" stroke="currentColor" strokeOpacity="0.15" strokeWidth="4" />
+                                    <circle
+                                        cx="48" cy="48" r="44" fill="none"
+                                        stroke="currentColor" strokeWidth="4"
+                                        strokeDasharray={`${2 * Math.PI * 44}`}
+                                        strokeDashoffset={`${2 * Math.PI * 44 * (1 - splashProgress)}`}
+                                        strokeLinecap="round"
+                                        style={{ transition: 'stroke-dashoffset 0.9s ease' }}
+                                    />
+                                </svg>
+                                {/* Countdown number */}
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-3xl font-bold" style={{ color: splashConfig.textColor }}>
+                                        {countdown}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Profile badge */}
+                            {assignedProfile && (
+                                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 text-sm font-bold"
+                                    style={{ backgroundColor: splashConfig.textColor + '22', border: `1.5px solid ${splashConfig.textColor}55` }}>
+                                    <span>{assignedProfile.emoji}</span>
+                                    <span style={{ color: splashConfig.textColor }}>{assignedProfile.name}</span>
+                                </div>
+                            )}
+
+                            <h2 className="text-3xl md:text-4xl font-display font-bold mb-4 leading-tight">
+                                {splashConfig.title}
+                            </h2>
+                            <p className="text-lg opacity-80 max-w-sm mx-auto leading-relaxed">
+                                {splashConfig.message}
+                            </p>
+
+                            {/* Loading dots */}
+                            <div className="flex justify-center gap-1.5 mt-8">
+                                {[0, 1, 2].map(i => (
+                                    <span key={i} className="w-2 h-2 rounded-full animate-bounce"
+                                        style={{ backgroundColor: splashConfig.textColor, animationDelay: `${i * 0.15}s` }} />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── WIZARD CONTENT (hidden while splash) ── */}
+                {!showSplash && (
+                    <div className="p-8 md:p-12">
+                        <button
+                            onClick={onClose}
+                            className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 p-2 transition-colors z-10"
+                        >
+                            <X size={24} />
+                        </button>
 
                 {/* State 1: Analyzing */}
                 {isAnalyzing && (
@@ -1089,6 +1212,8 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                             ))}
                         </div>
                     </>
+                )}
+                    </div>
                 )}
             </div>
         </div>
