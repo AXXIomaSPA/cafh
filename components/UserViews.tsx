@@ -3,6 +3,7 @@ import { db } from '../storage'; // Now using DB
 import { Calendar, Clock, BookOpen, Star, ArrowRight, User, Settings, LogOut, CheckCircle2, Video, ExternalLink, Mic, MicOff, Camera, CameraOff, MonitorUp, MoreVertical, PhoneOff, Copy, Check, Users, Shield, MessageSquare, Image as ImageIcon, Edit3, FileText, Download, List, Info, Play, Feather, X } from 'lucide-react';
 import { UserActivity, ContentItem, CalendarEvent, User as UserType, UserWizardProfile, BlogPost } from '../types';
 import { useNavigate } from 'react-router-dom';
+import { ZoomWidget } from './MeetingsMemberView';
 
 // --- MEET LOBBY MODAL (Context & Resources Briefing) ---
 const MeetLobbyModal: React.FC<{ isOpen: boolean; onClose: () => void; event: CalendarEvent | null }> = ({ isOpen, onClose, event }) => {
@@ -31,9 +32,9 @@ const MeetLobbyModal: React.FC<{ isOpen: boolean; onClose: () => void; event: Ca
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-md transition-opacity duration-300" onClick={onClose}></div>
-            
+
             <div className="relative w-full max-w-5xl bg-white rounded-3xl overflow-hidden shadow-2xl animate-fade-in-up flex flex-col md:flex-row h-auto md:h-[550px]">
-                
+
                 {/* LEFT: Context & Resources (Briefing Area) */}
                 <div className="flex-1 bg-slate-50 p-8 flex flex-col border-r border-slate-100">
                     <div className="flex items-center gap-2 mb-6">
@@ -98,22 +99,22 @@ const MeetLobbyModal: React.FC<{ isOpen: boolean; onClose: () => void; event: Ca
                         <div className="w-16 h-16 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center mb-6">
                             <Video size={32} />
                         </div>
-                        
+
                         <h2 className="text-2xl font-display font-bold text-slate-800 mb-2 leading-tight">{event.title}</h2>
-                        
+
                         <div className="flex flex-col gap-2 mt-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                             <div className="flex items-center gap-3 text-slate-600">
+                            <div className="flex items-center gap-3 text-slate-600">
                                 <Clock size={16} className="text-cafh-indigo" />
                                 <span className="text-sm font-medium">{event.time}</span>
-                             </div>
-                             <div className="flex items-center gap-3 text-slate-600">
+                            </div>
+                            <div className="flex items-center gap-3 text-slate-600">
                                 <User size={16} className="text-cafh-indigo" />
                                 <span className="text-sm">Organiza: <strong>Sede Central</strong></span>
-                             </div>
-                             <div className="flex items-center gap-3 text-slate-600">
+                            </div>
+                            <div className="flex items-center gap-3 text-slate-600">
                                 <Shield size={16} className="text-cafh-indigo" />
                                 <span className="text-sm">Sala privada para miembros</span>
-                             </div>
+                            </div>
                         </div>
                     </div>
 
@@ -123,15 +124,15 @@ const MeetLobbyModal: React.FC<{ isOpen: boolean; onClose: () => void; event: Ca
                             Serás redirigido a Google Meet para conectar tu cámara y micrófono.
                         </div>
 
-                        <button 
+                        <button
                             onClick={handleJoin}
                             className="w-full py-4 bg-cafh-indigo text-white rounded-xl font-bold text-lg hover:bg-blue-900 transition-all shadow-xl shadow-cafh-indigo/20 flex items-center justify-center gap-2 group"
                         >
                             <span>Ir a la Llamada</span>
-                            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform"/>
+                            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                         </button>
-                        
-                        <button 
+
+                        <button
                             onClick={handleCopyLink}
                             className="w-full py-3 text-slate-500 font-bold text-sm hover:text-cafh-indigo hover:bg-slate-50 rounded-xl transition-colors flex items-center justify-center gap-2"
                         >
@@ -155,7 +156,7 @@ export const MemberDashboard: React.FC = () => {
     const [currentUser, setCurrentUser] = useState<UserType | null>(null);
     const [wizardProfile, setWizardProfile] = useState<UserWizardProfile | null>(null);
     const [recentBlogPosts, setRecentBlogPosts] = useState<BlogPost[]>([]);
-    
+
     // Header Customization State
     const [coverImage, setCoverImage] = useState("https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=2000&auto=format&fit=crop");
     const [isHoveringHeader, setIsHoveringHeader] = useState(false);
@@ -181,8 +182,8 @@ export const MemberDashboard: React.FC = () => {
         // 3. Determine interests: wizard profile tags > user.interests > defaults
         const userInterests = (
             userWizardProfile?.derivedTags?.length ? userWizardProfile.derivedTags :
-            user?.interests?.length ? user.interests :
-            ['Meditación', 'Bienestar']
+                user?.interests?.length ? user.interests :
+                    ['Meditación', 'Bienestar']
         );
 
         // 4. Load and filter content & media by interests
@@ -194,10 +195,10 @@ export const MemberDashboard: React.FC = () => {
             .map((m: any) => ({
                 id: `m_${m.id}`, originalId: m.id, title: m.name, type: m.type, tags: m.tags || [], date: m.uploadedAt, url: m.url, source: 'media'
             }));
-            
+
         const allEvents = db.events.getAll();
-        
-        const recommendations = [...contents, ...medias].filter(c => 
+
+        const recommendations = [...contents, ...medias].filter(c =>
             c.tags.some((tag: string) => userInterests.includes(tag))
         ).slice(0, 6); // Limit to 6 recommendations
 
@@ -206,7 +207,7 @@ export const MemberDashboard: React.FC = () => {
         setRecentBlogPosts(allBlogPosts.slice(0, 2));
 
         // 6. Find the next online or hybrid event that has a meeting URL
-        const upcomingEvent = allEvents.find(e => 
+        const upcomingEvent = allEvents.find(e =>
             (e.type === 'Online' || e.type === 'Híbrido') && e.meetingUrl
         );
 
@@ -252,7 +253,7 @@ export const MemberDashboard: React.FC = () => {
                     <div className="relative w-full max-w-4xl bg-white rounded-[2rem] overflow-hidden shadow-2xl animate-fade-in-up" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center p-6 border-b border-slate-100">
                             <h3 className="text-xl font-bold text-slate-800">{selectedResource.title}</h3>
-                            <button onClick={() => setSelectedResource(null)} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full"><X size={20}/></button>
+                            <button onClick={() => setSelectedResource(null)} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full"><X size={20} /></button>
                         </div>
                         <div className="p-6 bg-slate-50 min-h-[400px] flex flex-col items-center justify-center">
                             {(selectedResource.type === 'video') ? (
@@ -268,7 +269,7 @@ export const MemberDashboard: React.FC = () => {
                                 selectedResource.url && selectedResource.url !== '#' ? (
                                     <iframe src={selectedResource.url} className="w-full h-[60vh] rounded-xl border border-slate-200" title="Document Viewer" />
                                 ) : (
-                                    <div className="text-center text-slate-500"><BookOpen size={48} className="mx-auto mb-4 opacity-50"/> <p>El documento no tiene un archivo asignado.</p></div>
+                                    <div className="text-center text-slate-500"><BookOpen size={48} className="mx-auto mb-4 opacity-50" /> <p>El documento no tiene un archivo asignado.</p></div>
                                 )
                             ) : (
                                 <div className="text-center p-12 max-w-lg">
@@ -283,19 +284,19 @@ export const MemberDashboard: React.FC = () => {
                     </div>
                 </div>
             )}
-            
+
             {/* Dashboard Header - Customizable & Immersive */}
-            <div 
+            <div
                 className="relative pt-32 pb-32 md:pb-48 px-6 rounded-b-[3rem] shadow-xl overflow-hidden group"
                 onMouseEnter={() => setIsHoveringHeader(true)}
                 onMouseLeave={() => setIsHoveringHeader(false)}
             >
                 {/* Background Layer with Blend Mode */}
                 <div className="absolute inset-0 z-0 bg-cafh-indigo">
-                    <img 
-                        src={coverImage} 
-                        alt="Cover" 
-                        className="w-full h-full object-cover opacity-40 mix-blend-multiply transition-transform duration-700 group-hover:scale-105" 
+                    <img
+                        src={coverImage}
+                        alt="Cover"
+                        className="w-full h-full object-cover opacity-40 mix-blend-multiply transition-transform duration-700 group-hover:scale-105"
                     />
                     {/* Gradient Overlay for Text Readability & Seamless Transition */}
                     <div className="absolute inset-0 bg-gradient-to-b from-cafh-indigo/90 via-cafh-indigo/60 to-slate-50"></div>
@@ -305,7 +306,7 @@ export const MemberDashboard: React.FC = () => {
                 <div className="absolute top-0 right-0 w-96 h-96 bg-cafh-cyan rounded-full blur-[100px] opacity-20 pointer-events-none mix-blend-screen"></div>
 
                 {/* Edit Cover Button */}
-                <button 
+                <button
                     onClick={handleChangeCover}
                     className={`absolute top-24 right-6 z-20 bg-white/10 backdrop-blur-md border border-white/20 text-white p-2.5 rounded-full hover:bg-white/20 transition-all duration-300 ${isHoveringHeader ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}
                     title="Cambiar imagen de portada"
@@ -334,12 +335,12 @@ export const MemberDashboard: React.FC = () => {
                             </p>
                         </div>
                     </div>
-                    
+
                     <div className="flex flex-wrap justify-center gap-3">
                         <button className="px-5 py-2.5 bg-white/10 backdrop-blur-md text-white rounded-full text-sm font-bold hover:bg-white/20 flex items-center gap-2 transition-colors border border-white/10">
                             <Settings size={16} /> Ajustes
                         </button>
-                        <button 
+                        <button
                             onClick={handleLogout}
                             className="px-5 py-2.5 bg-cafh-clay/90 text-white rounded-full text-sm font-bold hover:bg-red-600 flex items-center gap-2 transition-colors shadow-lg shadow-red-900/20 backdrop-blur-md"
                         >
@@ -351,10 +352,10 @@ export const MemberDashboard: React.FC = () => {
 
             {/* Content Grid */}
             <div className="max-w-7xl mx-auto px-6 -mt-20 md:-mt-24 grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-20">
-                
+
                 {/* LEFT COLUMN: Main Content */}
                 <div className="lg:col-span-8 space-y-8">
-                    
+
                     {/* Personalized Recommendations (Result of Wizard) */}
                     <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
                         <div className="flex items-center justify-between mb-6">
@@ -364,17 +365,16 @@ export const MemberDashboard: React.FC = () => {
                             </h2>
                             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden md:block">Basado en tus intereses</span>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {recommendedContent.length > 0 ? recommendedContent.map(item => (
                                 <div key={item.id} onClick={() => handleResourceClick(item)} className="group border border-slate-100 rounded-2xl p-5 hover:bg-slate-50 transition-colors cursor-pointer flex gap-4 items-start">
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
-                                        item.type === 'Article' ? 'bg-blue-50 text-blue-600' :
-                                        (item.type === 'Resource' || item.type === 'document') ? 'bg-green-50 text-green-600' :
-                                        item.type === 'audio' ? 'bg-purple-50 text-purple-600' :
-                                        'bg-red-50 text-red-600'
-                                    }`}>
-                                        {item.type === 'Article' ? <Feather size={20}/> : (item.type === 'Resource' || item.type === 'document') ? <Download size={20}/> : item.type === 'audio' ? <Play size={20}/> : <Video size={20}/>}
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${item.type === 'Article' ? 'bg-blue-50 text-blue-600' :
+                                            (item.type === 'Resource' || item.type === 'document') ? 'bg-green-50 text-green-600' :
+                                                item.type === 'audio' ? 'bg-purple-50 text-purple-600' :
+                                                    'bg-red-50 text-red-600'
+                                        }`}>
+                                        {item.type === 'Article' ? <Feather size={20} /> : (item.type === 'Resource' || item.type === 'document') ? <Download size={20} /> : item.type === 'audio' ? <Play size={20} /> : <Video size={20} />}
                                     </div>
                                     <div>
                                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white border border-slate-200 px-2 py-0.5 rounded-full">{item.type}</span>
@@ -416,53 +416,13 @@ export const MemberDashboard: React.FC = () => {
 
                 {/* RIGHT COLUMN: Sidebar Tools */}
                 <div className="lg:col-span-4 space-y-8">
-                    
-                    {/* Dynamic Google Meet / Next Event Widget */}
-                    <div className="bg-cafh-indigo text-white rounded-3xl p-8 shadow-lg relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-10 -mt-10"></div>
-                        
-                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                            {nextEvent ? <Video size={20} className="text-cafh-cyan animate-pulse" /> : <Calendar size={20}/>} 
-                            {nextEvent ? 'Sala Virtual' : 'Próximo Evento'}
-                        </h3>
-                        
-                        {nextEvent ? (
-                            <div className="animate-fade-in-up">
-                                <div className="bg-white/10 backdrop-blur rounded-2xl p-5 border border-white/20 mb-4">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div className="text-3xl font-display font-bold">{nextEvent.day} {nextEvent.month}</div>
-                                        <span className="bg-green-500/20 text-green-300 border border-green-500/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider animate-pulse">En vivo</span>
-                                    </div>
-                                    <div className="text-cafh-cyan font-bold text-sm uppercase tracking-widest mb-3 flex items-center gap-2">
-                                        <Video size={14}/> {nextEvent.platform || 'Online'}
-                                    </div>
-                                    <p className="font-medium leading-tight mb-2">{nextEvent.title}</p>
-                                    <p className="text-xs text-blue-200">{nextEvent.time}</p>
-                                </div>
-                                
-                                <button 
-                                    onClick={() => setIsMeetModalOpen(true)}
-                                    className="w-full py-4 bg-green-600 text-white rounded-xl font-bold text-base hover:bg-green-500 transition-colors shadow-lg shadow-green-900/20 flex items-center justify-center gap-2 group"
-                                >
-                                    <Video size={20} className="group-hover:scale-110 transition-transform" /> 
-                                    Unirse a la Sala
-                                </button>
-                                <p className="text-center text-[10px] text-blue-300 mt-3">
-                                    Sala de espera habilitada.
-                                </p>
-                            </div>
-                        ) : (
-                            // Fallback if no online event found
-                            <>
-                                <div className="bg-white/10 backdrop-blur rounded-2xl p-5 border border-white/20 mb-4">
-                                    <p className="text-blue-100 text-sm">No tienes eventos virtuales próximos.</p>
-                                </div>
-                                <button className="w-full py-3 bg-white text-cafh-indigo rounded-xl font-bold text-sm hover:bg-slate-100 transition-colors">
-                                    Ver Calendario Completo
-                                </button>
-                            </>
-                        )}
-                    </div>
+
+                    {/* Zoom Widget — Módulo 1 Fase 3 */}
+                    <ZoomWidget
+                        event={nextEvent}
+                        userId={currentUser?.id || ''}
+                        userName={currentUser?.name || 'Miembro'}
+                    />
 
                     {/* Blog Feed / News */}
                     <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
@@ -487,9 +447,9 @@ export const MemberDashboard: React.FC = () => {
             </div>
 
             {/* MODALS */}
-            <MeetLobbyModal 
-                isOpen={isMeetModalOpen} 
-                onClose={() => setIsMeetModalOpen(false)} 
+            <MeetLobbyModal
+                isOpen={isMeetModalOpen}
+                onClose={() => setIsMeetModalOpen(false)}
                 event={nextEvent}
             />
         </div>
