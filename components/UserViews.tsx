@@ -29,7 +29,7 @@ const MeetLobbyModal: React.FC<{ isOpen: boolean; onClose: () => void; event: Ca
     const agenda = event.agenda || [];
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-md transition-opacity duration-300" onClick={onClose}></div>
 
@@ -282,7 +282,7 @@ export const MemberDashboard: React.FC = () => {
         <div className="min-h-screen bg-slate-50 pb-20">
             {/* Modal Popup Viewer */}
             {selectedResource && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm" onClick={() => setSelectedResource(null)}>
+                <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm" onClick={() => setSelectedResource(null)}>
                     <div className="relative w-full max-w-4xl bg-white rounded-[2rem] overflow-hidden shadow-2xl animate-fade-in-up" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center p-6 border-b border-slate-100">
                             <h3 className="text-xl font-bold text-slate-800">{selectedResource.title}</h3>
