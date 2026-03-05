@@ -1049,12 +1049,15 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                     userId: userId!,
                     profileTypeId: assignedProfile?.id || 'default',
                     profileTypeName: assignedProfile?.name || 'Viajero',
-                    wizardAnswers: Object.fromEntries(
-                        Object.entries(selections).map(([k, v]) => [
-                            adminQuestions ? (adminQuestions[Number(k)]?.id || k) : String(k),
-                            v
-                        ])
-                    ),
+                    wizardAnswers: {
+                        ...Object.fromEntries(
+                            Object.entries(selections).map(([k, v]) => [
+                                adminQuestions ? (adminQuestions[Number(k)]?.id || k) : String(k),
+                                v
+                            ])
+                        ),
+                        registered_email: finalUser?.email || regEmail // For resilient matching
+                    },
                     derivedTags,
                     completedAt: new Date().toISOString()
                 };

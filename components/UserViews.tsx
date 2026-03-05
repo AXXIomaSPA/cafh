@@ -167,6 +167,9 @@ export const MemberDashboard: React.FC = () => {
 
     const navigate = useNavigate();
 
+    // Unified check if user has done the journey or is already profiled (has interests)
+    const isProfiled = !!wizardProfile || (currentUser?.interests && currentUser.interests.length > 0);
+
     useEffect(() => {
         // 1. Load authenticated user
         const user = db.auth.getCurrentUser();
@@ -178,7 +181,8 @@ export const MemberDashboard: React.FC = () => {
             const raw = localStorage.getItem('cafh_user_wizard_profiles_v1');
             if (raw && user) {
                 const allProfiles: UserWizardProfile[] = JSON.parse(raw);
-                userWizardProfile = allProfiles.find(p => p.userId === user.id) || null;
+                // Resilient match: by ID or by Email (if ID was lost or regenerated)
+                userWizardProfile = allProfiles.find(p => p.userId === user.id || p.wizardAnswers?.registered_email === user.email) || null;
             }
         } catch { /* ignore parse errors */ }
         setWizardProfile(userWizardProfile);
@@ -187,7 +191,7 @@ export const MemberDashboard: React.FC = () => {
         const userInterests = (
             userWizardProfile?.derivedTags?.length ? userWizardProfile.derivedTags :
                 user?.interests?.length ? user.interests :
-                    ['Meditación', 'Bienestar']
+                    [] // No default interests to avoid showing content to users without journey
         );
 
         // 4. Load and filter content & media by interests
@@ -202,9 +206,9 @@ export const MemberDashboard: React.FC = () => {
 
         const allEvents = db.events.getAll();
 
-        const recommendations = userWizardProfile ? [...contents, ...medias].filter(c =>
+        const recommendations = (userWizardProfile || (user && user.interests && user.interests.length > 0)) ? [...contents, ...medias].filter(c =>
             c.tags.some((tag: string) => userInterests.includes(tag))
-        ).slice(0, 6) : []; // No contents until wizard is done
+        ).slice(0, 6) : []; // No contents until wizard is done or interests exist
 
         // 5. Load real blog posts (latest 2)
         const allBlogPosts = db.blog.getAll();
@@ -226,7 +230,7 @@ export const MemberDashboard: React.FC = () => {
                 city: user.city || ''
             });
         }
-    }, []);
+    }, [wizardProfile?.userId]);
 
     const handleLogout = () => {
         db.auth.logout();
@@ -420,7 +424,7 @@ export const MemberDashboard: React.FC = () => {
                         {activeTab === 'resumen' && (
                             <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 h-full">
                                 {/* Journey Banner - Shown only if no profile */}
-                                {!wizardProfile && (
+                                {!isProfiled && (
                                     <div className="mb-10 p-1 relative overflow-hidden group rounded-[2rem] animate-fade-in-up">
                                         <div className="absolute inset-0 bg-gradient-to-r from-cafh-indigo to-blue-900 opacity-90 group-hover:opacity-100 transition-opacity"></div>
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-cafh-cyan/20 blur-3xl -mr-16 -mt-16"></div>
@@ -452,7 +456,7 @@ export const MemberDashboard: React.FC = () => {
                                         Tu Biblioteca Personalizada
                                     </h2>
                                     <span className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden md:block">
-                                        {wizardProfile ? 'Basado en tu perfil' : 'Contenidos destacados'}
+                                        {isProfiled ? 'Basado en tu perfil' : 'Contenidos destacados'}
                                     </span>
                                 </div>
 
@@ -515,13 +519,13 @@ export const MemberDashboard: React.FC = () => {
                         {activeTab === 'perfil' && (
                             <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 h-full relative overflow-hidden">
                                 {/* Profile Badge Overlay - Only if wizard completed */}
-                                {wizardProfile && (
+                                {isProfiled && (
                                     <div className="absolute top-8 right-8 flex flex-col items-center animate-fade-in-up">
                                         <div className="w-16 h-16 bg-cafh-light rounded-[1.2rem] flex items-center justify-center text-3xl shadow-sm border border-slate-100 mb-2">
-                                            {wizardProfile.profileTypeName === 'Contemplativo' ? '🌿' :
-                                                wizardProfile.profileTypeName === 'Comunitario' ? '🤝' :
-                                                    wizardProfile.profileTypeName === 'Explorador' ? '📚' :
-                                                        wizardProfile.profileTypeName === 'Buscador Profundo' ? '🏔️' : '✨'}
+                                            {wizardProfile?.profileTypeName === 'Contemplativo' ? '🌿' :
+                                                wizardProfile?.profileTypeName === 'Comunitario' ? '🤝' :
+                                                    wizardProfile?.profileTypeName === 'Explorador' ? '📚' :
+                                                        wizardProfile?.profileTypeName === 'Buscador Profundo' ? '🏔️' : '✨'}
                                         </div>
                                         <span className="text-[10px] font-bold text-cafh-indigo uppercase tracking-wider bg-cafh-indigo/10 px-2 py-0.5 rounded-full">Mi Perfil</span>
                                     </div>
@@ -533,17 +537,17 @@ export const MemberDashboard: React.FC = () => {
                                     </div>
                                     <div>
                                         <h2 className="text-2xl font-bold text-slate-800 font-display">
-                                            {wizardProfile ? wizardProfile.profileTypeName : 'Mi Información'}
+                                            {wizardProfile ? wizardProfile.profileTypeName : isProfiled ? 'Miembro Perfilado' : 'Mi Información'}
                                         </h2>
                                         <p className="text-sm text-slate-500">
-                                            {wizardProfile ? 'Perfil basado en tu Viaje de Autoconocimiento' : 'Aún no has definido tu perfil.'}
+                                            {wizardProfile ? 'Perfil basado en tu Viaje de Autoconocimiento' : isProfiled ? 'Perfil basado en tus intereses previos' : 'Aún no has definido tu perfil.'}
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-6">
                                     {/* Action button if no profile */}
-                                    {!wizardProfile && (
+                                    {!isProfiled && (
                                         <div className="p-5 bg-cafh-peach/10 border border-cafh-peach/20 rounded-2xl flex items-center justify-between gap-4">
                                             <p className="text-sm text-cafh-peach font-medium">Define tu perfil para una mejor experiencia.</p>
                                             <button
