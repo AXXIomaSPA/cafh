@@ -1,5 +1,5 @@
 import { MOCK_BLOG_POSTS, MOCK_EVENTS, MOCK_CONTENT, MOCK_CONTACTS, MOCK_USER_HISTORY, HERO_CONFIG, BLOG_CONFIG_DEFAULT, MOCK_MEDIA, MOCK_EMAIL_LOGS, MOCK_EMAIL_METRICS, DEFAULT_HOME_CONFIG, PUBLIC_NAV_STRUCTURE } from './constants';
-import { BlogPost, CalendarEvent, ContentItem, Contact, ContactList, UserActivity, HeroConfig, BlogConfig, User, UserRole, MediaAsset, EmailLog, EmailMetrics, ChangeLog, HomeConfig, CustomPage, MegaMenuItem, FooterConfig, SMTPConfig, Campaign, AutomationRule, AutomationExecution, AutomationNode, SendEmailNode, WaitNode, ConditionNode, UpdateTagNode, MoveToListNode } from './types';
+import { BlogPost, CalendarEvent, ContentItem, Contact, ContactList, UserActivity, ContentInteraction, HeroConfig, BlogConfig, User, UserRole, MediaAsset, EmailLog, EmailMetrics, ChangeLog, HomeConfig, CustomPage, MegaMenuItem, FooterConfig, SMTPConfig, Campaign, AutomationRule, AutomationExecution, AutomationNode, SendEmailNode, WaitNode, ConditionNode, UpdateTagNode, MoveToListNode } from './types';
 
 // STORAGE KEYS
 const KEYS = {
@@ -15,6 +15,7 @@ const KEYS = {
     MEDIA: 'cafh_media_v1',
     EMAIL_LOGS: 'cafh_email_logs_v1',
     EMAIL_METRICS: 'cafh_email_metrics_v1',
+    CONTENT_INTERACTIONS: 'cafh_content_interactions_v1',
     HOME_CONFIG: 'cafh_home_config_v1',
     CUSTOM_PAGES: 'cafh_pages_v1',
     MEGA_MENU: 'cafh_menu_v1',
@@ -361,6 +362,36 @@ export const db = {
             if (type && type !== 'all') items = items.filter(i => i.type === type);
             if (query) items = items.filter(i => i.name.toLowerCase().includes(query.toLowerCase()) || i.tags.some(t => t.toLowerCase().includes(query.toLowerCase())));
             return items;
+        }
+    },
+    analytics: {
+        trackConsumption: (interaction: Omit<ContentInteraction, 'id' | 'timestamp'>) => {
+            const history = db.analytics.getInteractions();
+            const newInteraction: ContentInteraction = {
+                ...interaction,
+                id: Math.random().toString(36).substr(2, 9),
+                timestamp: new Date().toISOString()
+            };
+            // Limit array to prevent localstorage crash
+            const updated = [newInteraction, ...history].slice(0, 5000);
+            localStorage.setItem(KEYS.CONTENT_INTERACTIONS, JSON.stringify(updated));
+
+            // Also increment views on the content/media item directly if possible
+            if (interaction.assetType === 'Article' || interaction.assetType === 'Resource' || interaction.assetType === 'Page' || interaction.assetType === 'Event') {
+                const currentContent = db.content.getAll();
+                const contentIndex = currentContent.findIndex(c => c.id === interaction.assetId);
+                if (contentIndex !== -1) {
+                    currentContent[contentIndex].views = (currentContent[contentIndex].views || 0) + 1;
+                    localStorage.setItem(KEYS.CONTENT, JSON.stringify(currentContent));
+                }
+            }
+            
+            return newInteraction;
+        },
+        getInteractions: (): ContentInteraction[] => {
+            try {
+                return JSON.parse(localStorage.getItem(KEYS.CONTENT_INTERACTIONS) || '[]');
+            } catch { return []; }
         }
     },
     // CMS & PAGE BUILDER MODULES

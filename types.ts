@@ -39,6 +39,16 @@ export interface UserActivity {
   status: 'Completed' | 'Registered';
 }
 
+export interface ContentInteraction {
+  id: string;
+  userId?: string; // Optional if public
+  assetId: string;
+  assetName: string;
+  assetType: string; // 'video', 'audio', 'document', 'Article', etc.
+  tags: string[];
+  timestamp: string;
+}
+
 // Wizard / AI Logic
 export interface WizardOption {
   label: string;

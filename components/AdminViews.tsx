@@ -4133,6 +4133,34 @@ const MediaUploadModal: React.FC<{
     const [name, setName] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const [availableTags, setAvailableTags] = useState<string[]>([]);
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+    useEffect(() => {
+        try {
+            const rawProfiles = localStorage.getItem('cafh_journey_profiles_v1');
+            const profiles = rawProfiles ? JSON.parse(rawProfiles) : [];
+            const rawQs = localStorage.getItem('cafh_journey_questions_v1');
+            const qs = rawQs ? JSON.parse(rawQs) : [];
+
+            let allTags = new Set<string>();
+            qs.forEach((q: any) => {
+                q.options?.forEach((o: any) => {
+                    o.profileTags?.forEach((t: string) => allTags.add(t));
+                });
+            });
+            profiles.forEach((p: any) => {
+                p.contentTags?.forEach((t: string) => allTags.add(t));
+            });
+
+            const defaults = ['Meditación', 'Bienestar', 'Mística', 'Filosofía', 'Grupos', 'Voluntariado', 'Lecturas Breves', 'Podcast', 'Reuniones', 'Cursos', 'Retiros', 'Biblioteca', 'Blog', 'Meditación Guiada', 'Diálogos', 'Estudio'];
+            defaults.forEach(t => allTags.add(t));
+
+            setAvailableTags(Array.from(allTags).sort());
+        } catch (e) {
+            console.error(e);
+        }
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -4152,9 +4180,10 @@ const MediaUploadModal: React.FC<{
                     url: base64,
                     type: type as any,
                     size: (file.size / 1024 / 1024).toFixed(2) + ' MB',
-                    tags: ['Local']
+                    tags: selectedTags.length > 0 ? selectedTags : ['Local']
                 });
                 setIsProcessing(false);
+                setSelectedTags([]);
                 onClose();
             };
             reader.readAsDataURL(file);
@@ -4214,23 +4243,45 @@ const MediaUploadModal: React.FC<{
                     </div>
 
                     {uploadType === 'local' ? (
-                        <div
-                            onClick={() => fileInputRef.current?.click()}
-                            className="border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center hover:border-cafh-blue hover:bg-blue-50 transition-all cursor-pointer group"
-                        >
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                className="hidden"
-                                onChange={handleFileChange}
-                            />
-                            {isProcessing ? (
-                                <RefreshCw size={48} className="mx-auto mb-4 text-cafh-blue animate-spin" />
-                            ) : (
-                                <Plus size={48} className="mx-auto mb-4 text-slate-300 group-hover:text-cafh-blue transition-colors" />
-                            )}
-                            <p className="text-slate-600 font-bold">Haz clic para seleccionar un archivo</p>
-                            <p className="text-xs text-slate-400 mt-2">Imágenes, videos, audio o documentos</p>
+                        <div className="space-y-6">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Etiquetas del Viaje para este Archivo</label>
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                    {availableTags.map(tag => {
+                                        const isSelected = selectedTags.includes(tag);
+                                        return (
+                                            <button
+                                                key={tag}
+                                                onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isSelected ? 'bg-cafh-blue text-white shadow-md' : 'bg-slate-50 border border-slate-200 text-slate-500 hover:border-cafh-blue'}`}
+                                            >
+                                                {tag}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                                <p className="text-[10px] text-slate-400">Estas etiquetas conectan el archivo con los perfiles del viaje de usuario.</p>
+                            </div>
+                            <div
+                                onClick={() => fileInputRef.current?.click()}
+                                className="border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center hover:border-cafh-blue hover:bg-blue-50 transition-all cursor-pointer group"
+                            >
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        handleFileChange(e);
+                                    }}
+                                />
+                                {isProcessing ? (
+                                    <RefreshCw size={48} className="mx-auto mb-4 text-cafh-blue animate-spin" />
+                                ) : (
+                                    <Plus size={48} className="mx-auto mb-4 text-slate-300 group-hover:text-cafh-blue transition-colors" />
+                                )}
+                                <p className="text-slate-600 font-bold">Haz clic para seleccionar un archivo</p>
+                                <p className="text-xs text-slate-400 mt-2">Imágenes, videos, audio o documentos</p>
+                            </div>
                         </div>
                     ) : (
                         <div className="space-y-6">
@@ -4254,8 +4305,39 @@ const MediaUploadModal: React.FC<{
                                     className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
                                 />
                             </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Etiquetas del Viaje para este Archivo</label>
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                    {availableTags.map(tag => {
+                                        const isSelected = selectedTags.includes(tag);
+                                        return (
+                                            <button
+                                                key={tag}
+                                                onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isSelected ? 'bg-cafh-blue text-white shadow-md' : 'bg-slate-50 border border-slate-200 text-slate-500 hover:border-cafh-blue'}`}
+                                            >
+                                                {tag}
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                                <p className="text-[10px] text-slate-400 mt-2">El contenido con estas etiquetas aparecerá en el dashboard de los miembros de acuerdo a lo definido en el Viaje.</p>
+                            </div>
                             <button
-                                onClick={handleUrlUpload}
+                                onClick={() => {
+                                    if (!url || !name) return;
+                                    let type: 'image' | 'video' | 'audio' | 'document' = 'document';
+                                    const lowerUrl = url.toLowerCase();
+                                    if (lowerUrl.match(/\.(jpg|jpeg|png|gif|webp|svg)$/)) type = 'image';
+                                    else if (lowerUrl.match(/\.(mp4|webm|ogg|mov)$/)) type = 'video';
+                                    else if (lowerUrl.match(/\.(mp3|wav|ogg)$/)) type = 'audio';
+
+                                    onUpload({ name, url, type, size: 'External', tags: selectedTags.length > 0 ? selectedTags : ['URL'] });
+                                    onClose();
+                                    setUrl('');
+                                    setName('');
+                                    setSelectedTags([]);
+                                }}
                                 disabled={!url || !name}
                                 className="w-full py-4 bg-cafh-blue text-white font-bold rounded-2xl shadow-xl shadow-blue-100 hover:bg-blue-900 transition-all disabled:opacity-50"
                             >
@@ -5422,6 +5504,8 @@ export const AnalyticsView: React.FC = () => {
     const emailLogs = useMemo(() => db.emails.getLogs(), []);
     const allContent = useMemo(() => db.content.getAll(), []);
     const emailMetrics = useMemo(() => db.emails.getMetrics(), []);
+    const allMedia = useMemo(() => db.media.getAll(), []);
+    const interactions = useMemo(() => db.analytics.getInteractions(), []);
 
     const totalContacts = contacts.length;
     const subscribed = contacts.filter(c => c.status === 'Subscribed').length;
@@ -5471,11 +5555,19 @@ export const AnalyticsView: React.FC = () => {
         tasa: stats.sent > 0 ? Math.round((stats.opened / stats.sent) * 100) : 0,
     })).sort((a, b) => b.Enviados - a.Enviados);
 
+    // Tags Populares de Intereses (Consumo de Contenido) y CRM
     const tagCount: Record<string, number> = {};
     contacts.forEach(c => c.tags?.forEach(t => { tagCount[t] = (tagCount[t] || 0) + 1; }));
-    const topTags = Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 12);
+    interactions.forEach(i => i.tags?.forEach(t => { tagCount[t] = (tagCount[t] || 0) + 1; })); // Incluye también lo que más lee la gente
+    const topTags = Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 15);
 
-    const contentTable = [...allContent].sort((a, b) => (b.views || 0) - (a.views || 0));
+    // Tabla de rendimiento que une Contenido del CMS y Biblioteca de Medios (Videos/Audios/PDFs) consumidos
+    const interactionCounts: Record<string, number> = {};
+    interactions.forEach(i => { interactionCounts[i.assetId] = (interactionCounts[i.assetId] || 0) + 1; });
+    const contentTable = [
+        ...allContent.map(c => ({ id: c.id, title: c.title, type: c.type, author: c.author, views: c.views || interactionCounts[c.id] || 0, status: c.status })),
+        ...allMedia.map((m: any) => ({ id: m.id, title: m.name, type: m.type, author: 'Sist. Archivos', views: interactionCounts[m.id] || 0, status: 'Published' }))
+    ].sort((a, b) => b.views - a.views).slice(0, 15);
 
     const emailHistoryChart = emailMetrics?.history?.map(h => ({
         date: h.date.slice(5), Enviados: h.sent, Abiertos: h.opened,
@@ -5687,7 +5779,7 @@ export const AnalyticsView: React.FC = () => {
                                             </div>
                                         </td>
                                         <td className="px-4 py-4">
-                                            <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${item.type === 'Article' ? 'bg-blue-50 text-blue-700' : item.type === 'Resource' ? 'bg-green-50 text-green-700' : 'bg-purple-50 text-purple-700'}`}>
+                                            <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${item.type === 'Article' ? 'bg-blue-50 text-blue-700' : (item.type === 'video' || item.type === 'audio') ? 'bg-[conic-gradient(at_top_right,_var(--tw-gradient-stops))] from-indigo-200 via-slate-600 to-indigo-200 text-transparent bg-clip-text font-black' : (item.type === 'Resource' || item.type === 'document') ? 'bg-green-50 text-green-700' : 'bg-purple-50 text-purple-700'}`}>
                                                 {item.type}
                                             </span>
                                         </td>

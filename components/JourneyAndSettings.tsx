@@ -201,9 +201,8 @@ export const JourneyView: React.FC = () => {
                             <div className="flex gap-2">
                                 {(['color', 'image', 'video'] as const).map(type => (
                                     <button key={type} onClick={() => saveSplash({ ...splashConfig, bgType: type })}
-                                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold border-2 transition-all capitalize ${
-                                            splashConfig.bgType === type ? 'border-cafh-indigo bg-cafh-indigo/10 text-cafh-indigo' : 'border-slate-200 text-slate-500 hover:border-slate-300'
-                                        }`}>
+                                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold border-2 transition-all capitalize ${splashConfig.bgType === type ? 'border-cafh-indigo bg-cafh-indigo/10 text-cafh-indigo' : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                                            }`}>
                                         {type === 'color' ? '🎨 Color' : type === 'image' ? '🖼️ Imagen' : '🎬 Video'}
                                     </button>
                                 ))}
@@ -339,6 +338,15 @@ export const JourneyView: React.FC = () => {
 // ─── QUESTION EDITOR ─────────────────────────────────────────
 const QuestionEditor: React.FC<{ q: WizardQuestion; onSave: (q: WizardQuestion) => void; onClose: () => void }> = ({ q, onSave, onClose }) => {
     const [data, setData] = useState<WizardQuestion>(q);
+    const [availableTags, setAvailableTags] = useState<string[]>([]);
+
+    useEffect(() => {
+        const mTags = db.media.getAll().flatMap((m: any) => m.tags || []);
+        const cTags = db.content.getAll().flatMap((c: any) => c.tags || []);
+        const defaultTags = ['Meditación', 'Bienestar', 'Mística', 'Filosofía', 'Grupos', 'Voluntariado', 'Lecturas Breves', 'Podcast', 'Reuniones', 'Cursos', 'Retiros', 'Biblioteca', 'Blog', 'Meditación Guiada', 'Diálogos', 'Estudio'];
+        setAvailableTags(Array.from(new Set([...mTags, ...cTags, ...defaultTags])).sort());
+    }, []);
+
     const addOption = () => setData(d => ({ ...d, options: [...d.options, { id: `o${Date.now()}`, label: '', value: `opt${d.options.length + 1}`, profileTags: [] }] }));
     const updOption = (id: string, field: keyof WizardOptionEditable, val: any) => setData(d => ({ ...d, options: d.options.map(o => o.id === id ? { ...o, [field]: val } : o) }));
     const delOption = (id: string) => setData(d => ({ ...d, options: d.options.filter(o => o.id !== id) }));
@@ -365,7 +373,23 @@ const QuestionEditor: React.FC<{ q: WizardQuestion; onSave: (q: WizardQuestion) 
                                         <input value={o.label} onChange={e => updOption(o.id, 'label', e.target.value)} placeholder="Texto de la opción" className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-cafh-indigo" />
                                         <button onClick={() => delOption(o.id)} className="p-2 text-red-400 hover:text-red-600"><Trash2 size={14} /></button>
                                     </div>
-                                    <input value={o.profileTags.join(', ')} onChange={e => updOption(o.id, 'profileTags', e.target.value.split(',').map(t => t.trim()).filter(Boolean))} placeholder="Tags: Meditación, Paz, Bienestar" className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-cafh-indigo text-slate-600" />
+                                    <div className="text-xs font-bold text-slate-400 mt-1">Etiquetas vinculadas a esta opción:</div>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {availableTags.map(tag => {
+                                            const isSelected = o.profileTags.includes(tag);
+                                            return (
+                                                <button key={tag} onClick={() => {
+                                                    const nextTags = isSelected ? o.profileTags.filter(t => t !== tag) : [...o.profileTags, tag];
+                                                    updOption(o.id, 'profileTags', nextTags);
+                                                }}
+                                                    className={`px-2 py-1 rounded-md text-[10px] font-bold transition-colors ${isSelected ? 'bg-cafh-indigo text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:border-cafh-indigo'}`}
+                                                >
+                                                    {tag}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <input value={o.profileTags.join(', ')} onChange={e => updOption(o.id, 'profileTags', e.target.value.split(',').map(t => t.trim()).filter(Boolean))} placeholder="O escribe tags manuales separados por coma..." className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-cafh-indigo text-slate-600" />
                                 </div>
                             ))}
                         </div>
@@ -384,6 +408,14 @@ const QuestionEditor: React.FC<{ q: WizardQuestion; onSave: (q: WizardQuestion) 
 // ─── PROFILE EDITOR ──────────────────────────────────────────
 const ProfileEditor: React.FC<{ p: ProfileType; onSave: (p: ProfileType) => void; onClose: () => void }> = ({ p, onSave, onClose }) => {
     const [data, setData] = useState<ProfileType>(p);
+    const [availableTags, setAvailableTags] = useState<string[]>([]);
+
+    useEffect(() => {
+        const mTags = db.media.getAll().flatMap((m: any) => m.tags || []);
+        const cTags = db.content.getAll().flatMap((c: any) => c.tags || []);
+        const defaultTags = ['Meditación', 'Bienestar', 'Mística', 'Filosofía', 'Grupos', 'Voluntariado', 'Lecturas Breves', 'Podcast', 'Reuniones', 'Cursos', 'Retiros', 'Biblioteca', 'Blog', 'Meditación Guiada', 'Diálogos', 'Estudio'];
+        setAvailableTags(Array.from(new Set([...mTags, ...cTags, ...defaultTags])).sort());
+    }, []);
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
@@ -415,9 +447,24 @@ const ProfileEditor: React.FC<{ p: ProfileType; onSave: (p: ProfileType) => void
                         </div>
                     </div>
                     <div>
-                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Tags de Contenido (separados por coma)</label>
-                        <input value={data.contentTags.join(', ')} onChange={e => setData(d => ({ ...d, contentTags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) }))} placeholder="Meditación, Paz, Bienestar" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-cafh-indigo text-sm" />
-                        <p className="text-xs text-slate-400 mt-1">Los contenidos con estos tags aparecerán en el dashboard del usuario</p>
+                        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Tags de Contenido Asociados</label>
+                        <div className="flex flex-wrap gap-1.5 mb-2">
+                            {availableTags.map(tag => {
+                                const isSelected = data.contentTags.includes(tag);
+                                return (
+                                    <button key={tag} onClick={() => {
+                                        const nextTags = isSelected ? data.contentTags.filter(t => t !== tag) : [...data.contentTags, tag];
+                                        setData(d => ({ ...d, contentTags: nextTags }));
+                                    }}
+                                        className={`px-2 py-1.5 rounded-lg text-xs font-bold transition-colors ${isSelected ? 'bg-cafh-indigo text-white shadow-md' : 'bg-slate-50 border border-slate-200 text-slate-500 hover:bg-slate-100 hover:border-cafh-indigo'}`}
+                                    >
+                                        {tag}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <input value={data.contentTags.join(', ')} onChange={e => setData(d => ({ ...d, contentTags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) }))} placeholder="O escribe tags manuales separados por coma..." className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-cafh-indigo text-sm" />
+                        <p className="text-xs text-slate-400 mt-1">Los contenidos vinculados a estas etiquetas aparecerán en el dashboard del usuario</p>
                     </div>
                     <div>
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-2">Tag CRM Automático</label>

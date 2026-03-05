@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../storage'; // Now using DB
-import { Calendar, Clock, BookOpen, Star, ArrowRight, User, Settings, LogOut, CheckCircle2, Video, ExternalLink, Mic, MicOff, Camera, CameraOff, MonitorUp, MoreVertical, PhoneOff, Copy, Check, Users, Shield, MessageSquare, Image as ImageIcon, Edit3, FileText, Download, List, Info } from 'lucide-react';
+import { Calendar, Clock, BookOpen, Star, ArrowRight, User, Settings, LogOut, CheckCircle2, Video, ExternalLink, Mic, MicOff, Camera, CameraOff, MonitorUp, MoreVertical, PhoneOff, Copy, Check, Users, Shield, MessageSquare, Image as ImageIcon, Edit3, FileText, Download, List, Info, Play, Feather, X } from 'lucide-react';
 import { UserActivity, ContentItem, CalendarEvent, User as UserType, UserWizardProfile, BlogPost } from '../types';
 import { useNavigate } from 'react-router-dom';
 
@@ -148,7 +148,8 @@ const MeetLobbyModal: React.FC<{ isOpen: boolean; onClose: () => void; event: Ca
 export const MemberDashboard: React.FC = () => {
     // State management for DB data
     const [history, setHistory] = useState<UserActivity[]>([]);
-    const [recommendedContent, setRecommendedContent] = useState<ContentItem[]>([]);
+    const [recommendedContent, setRecommendedContent] = useState<any[]>([]);
+    const [selectedResource, setSelectedResource] = useState<any | null>(null);
     const [nextEvent, setNextEvent] = useState<CalendarEvent | null>(null);
     const [isMeetModalOpen, setIsMeetModalOpen] = useState(false);
     const [currentUser, setCurrentUser] = useState<UserType | null>(null);
@@ -184,13 +185,21 @@ export const MemberDashboard: React.FC = () => {
             ['Meditación', 'Bienestar']
         );
 
-        // 4. Load and filter content by interests
-        const allContent = db.content.getAll();
+        // 4. Load and filter content & media by interests
+        const contents = db.content.getAll().map(c => ({
+            id: `c_${c.id}`, originalId: c.id, title: c.title, type: c.type, tags: c.tags, date: c.publishDate, url: c.imageUrl, source: 'content'
+        }));
+        const medias = db.media.getAll()
+            .filter(m => ['document', 'video', 'audio'].includes(m.type))
+            .map((m: any) => ({
+                id: `m_${m.id}`, originalId: m.id, title: m.name, type: m.type, tags: m.tags || [], date: m.uploadedAt, url: m.url, source: 'media'
+            }));
+            
         const allEvents = db.events.getAll();
         
-        const recommendations = allContent.filter(c => 
-            c.tags.some(tag => userInterests.includes(tag))
-        );
+        const recommendations = [...contents, ...medias].filter(c => 
+            c.tags.some((tag: string) => userInterests.includes(tag))
+        ).slice(0, 6); // Limit to 6 recommendations
 
         // 5. Load real blog posts (latest 2)
         const allBlogPosts = db.blog.getAll();
@@ -211,6 +220,16 @@ export const MemberDashboard: React.FC = () => {
         navigate('/login');
     };
 
+    const handleResourceClick = (res: any) => {
+        db.analytics.trackConsumption({
+            assetId: res.originalId,
+            assetName: res.title,
+            assetType: res.type,
+            tags: res.tags
+        });
+        setSelectedResource(res);
+    };
+
     const handleChangeCover = () => {
         // In a real app, this would open a file picker
         // For prototype, we cycle through a few preset high-quality images
@@ -227,6 +246,44 @@ export const MemberDashboard: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
+            {/* Modal Popup Viewer */}
+            {selectedResource && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm" onClick={() => setSelectedResource(null)}>
+                    <div className="relative w-full max-w-4xl bg-white rounded-[2rem] overflow-hidden shadow-2xl animate-fade-in-up" onClick={e => e.stopPropagation()}>
+                        <div className="flex justify-between items-center p-6 border-b border-slate-100">
+                            <h3 className="text-xl font-bold text-slate-800">{selectedResource.title}</h3>
+                            <button onClick={() => setSelectedResource(null)} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full"><X size={20}/></button>
+                        </div>
+                        <div className="p-6 bg-slate-50 min-h-[400px] flex flex-col items-center justify-center">
+                            {(selectedResource.type === 'video') ? (
+                                <video src={selectedResource.url} controls autoPlay className="w-full max-h-[60vh] rounded-xl outline-none bg-black" />
+                            ) : (selectedResource.type === 'audio') ? (
+                                <div className="bg-white p-8 rounded-2xl shadow-sm text-center w-full max-w-md">
+                                    <div className="w-20 h-20 bg-cafh-indigo/10 text-cafh-indigo rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <Play fill="currentColor" size={32} />
+                                    </div>
+                                    <audio src={selectedResource.url} controls autoPlay className="w-full outline-none" />
+                                </div>
+                            ) : (selectedResource.type === 'document' || selectedResource.type === 'Resource') ? (
+                                selectedResource.url && selectedResource.url !== '#' ? (
+                                    <iframe src={selectedResource.url} className="w-full h-[60vh] rounded-xl border border-slate-200" title="Document Viewer" />
+                                ) : (
+                                    <div className="text-center text-slate-500"><BookOpen size={48} className="mx-auto mb-4 opacity-50"/> <p>El documento no tiene un archivo asignado.</p></div>
+                                )
+                            ) : (
+                                <div className="text-center p-12 max-w-lg">
+                                    <div className="w-20 h-20 bg-cafh-cyan/10 text-cafh-cyan rounded-[1.5rem] flex items-center justify-center mx-auto mb-6">
+                                        <Feather size={32} />
+                                    </div>
+                                    <h4 className="text-2xl font-bold text-slate-800 mb-4">{selectedResource.title}</h4>
+                                    <p className="text-slate-600">Al simular este artículo, registramos que lo leíste. En producción mostraría el contenido del post.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+            
             {/* Dashboard Header - Customizable & Immersive */}
             <div 
                 className="relative pt-32 pb-32 md:pb-48 px-6 rounded-b-[3rem] shadow-xl overflow-hidden group"
@@ -310,18 +367,23 @@ export const MemberDashboard: React.FC = () => {
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {recommendedContent.length > 0 ? recommendedContent.map(item => (
-                                <div key={item.id} className="group border border-slate-100 rounded-2xl p-5 hover:bg-slate-50 transition-colors cursor-pointer flex gap-4 items-start">
-                                    <div className="w-12 h-12 bg-cafh-light rounded-xl flex items-center justify-center text-cafh-indigo shrink-0">
-                                        <BookOpen size={20} />
+                                <div key={item.id} onClick={() => handleResourceClick(item)} className="group border border-slate-100 rounded-2xl p-5 hover:bg-slate-50 transition-colors cursor-pointer flex gap-4 items-start">
+                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                                        item.type === 'Article' ? 'bg-blue-50 text-blue-600' :
+                                        (item.type === 'Resource' || item.type === 'document') ? 'bg-green-50 text-green-600' :
+                                        item.type === 'audio' ? 'bg-purple-50 text-purple-600' :
+                                        'bg-red-50 text-red-600'
+                                    }`}>
+                                        {item.type === 'Article' ? <Feather size={20}/> : (item.type === 'Resource' || item.type === 'document') ? <Download size={20}/> : item.type === 'audio' ? <Play size={20}/> : <Video size={20}/>}
                                     </div>
                                     <div>
-                                        <span className="text-xs font-bold text-cafh-cyan uppercase">{item.type}</span>
-                                        <h4 className="font-bold text-slate-700 leading-tight mb-2 group-hover:text-cafh-indigo transition-colors">{item.title}</h4>
-                                        <span className="text-xs text-slate-400">Lectura de 5 min</span>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white border border-slate-200 px-2 py-0.5 rounded-full">{item.type}</span>
+                                        <h4 className="font-bold text-slate-700 leading-tight mb-2 mt-2 group-hover:text-cafh-indigo transition-colors">{item.title}</h4>
+                                        <span className="text-xs text-slate-400">Lectura / Consumo</span>
                                     </div>
                                 </div>
                             )) : (
-                                <p className="text-slate-500 italic">Completa "Comenzar el Viaje" para ver recomendaciones.</p>
+                                <p className="text-slate-500 italic">Completa "Comenzar el Viaje" o añade tags a tu perfil para ver recomendaciones.</p>
                             )}
                         </div>
                     </div>

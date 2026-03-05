@@ -306,86 +306,113 @@ export const PublicFooter: React.FC = () => {
                 <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-cafh-lavender rounded-full blur-3xl mix-blend-overlay"></div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 relative z-10">
-                <div className="lg:col-span-4 space-y-6">
-                    <span className="font-sans font-bold text-5xl text-white block mb-6">Cafh</span>
-                    <p className="text-slate-300 text-lg leading-relaxed font-light">
-                        Una reunión de personas dedicadas al servicio de la gente. Nuestro propósito es puramente espiritual, ayudando a desarrollar la conciencia y la capacidad de amar.
-                    </p>
-                    <div className="flex gap-4 pt-4">
-                        {footerConfig.socialLinks?.map((link: any, idx: number) => (
-                            <a
-                                key={idx}
-                                href={link.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer transition-colors backdrop-blur-sm"
-                            >
-                                <Globe size={20} />
-                            </a>
-                        ))}
-                    </div>
-                </div>
+            <div className="max-w-7xl mx-auto px-6 relative z-10">
+                {/* Main grid — 12 columns: Brand(3) | NavCol1(2) | NavCol2(2) | ContactCol(2) | Subscribe(3) = 12 */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-6">
 
-                {/* Dynamic Columns 1 & 2 */}
-                {footerConfig.columns?.slice(0, 2).map((col: any, idx: number) => (
-                    <div key={idx} className="lg:col-span-2 lg:col-start-6">
-                        <h4 className="text-white font-bold mb-6 text-xl">{col.title}</h4>
-                        <ul className="space-y-5 text-base font-medium">
-                            {col.links?.map((link: any, lIdx: number) => (
+                    {/* Brand + Social — span 3 */}
+                    <div className="lg:col-span-3 space-y-5">
+                        <span className="font-sans font-bold text-5xl text-white block">Cafh</span>
+                        <p className="text-slate-300 text-sm leading-relaxed font-light">
+                            Una reunión de personas dedicadas al servicio de la gente. Nuestro propósito es puramente espiritual, ayudando a desarrollar la conciencia y la capacidad de amar.
+                        </p>
+                        <div className="flex gap-2.5 pt-1">
+                            {footerConfig.socialLinks?.map((link: any, idx: number) => (
+                                <a
+                                    key={idx}
+                                    href={link.url || '#'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title={link.platform}
+                                    className="w-10 h-10 rounded-full bg-white/10 hover:bg-cafh-cyan/20 hover:border-cafh-cyan border border-white/10 flex items-center justify-center text-white cursor-pointer transition-all duration-200"
+                                >
+                                    <Globe size={16} />
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Dynamic Nav Columns — span 2 each (cols 4-5 and 6-7) */}
+                    {footerConfig.columns?.slice(0, 2).map((col: any, idx: number) => (
+                        <div key={idx} className="lg:col-span-2">
+                            <h4 className="text-white font-bold mb-5 uppercase tracking-widest text-[11px]">{col.title}</h4>
+                            <ul className="space-y-3.5">
+                                {col.links?.map((link: any, lIdx: number) => (
+                                    <li key={lIdx}>
+                                        <a
+                                            href={link.path || link.url || '#'}
+                                            className="text-slate-300 hover:text-cafh-cyan transition-colors flex items-center gap-2 text-sm font-medium group"
+                                        >
+                                            <div className="w-1 h-1 rounded-full bg-cafh-cyan/40 group-hover:bg-cafh-cyan transition-colors flex-shrink-0"></div>
+                                            {link.label}
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
+
+                    {/* Column 3 — span 2 (cols 8-9) */}
+                    <div className="lg:col-span-2">
+                        <h4 className="text-white font-bold mb-5 uppercase tracking-widest text-[11px]">
+                            {footerConfig.columns?.[2]?.title || 'Comunidad'}
+                        </h4>
+                        <ul className="space-y-3.5">
+                            {footerConfig.columns?.[2]?.links?.map((link: any, lIdx: number) => (
                                 <li key={lIdx}>
-                                    <a href={link.url} className="hover:text-cafh-cyan transition-colors flex items-center gap-3">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-cafh-cyan"></div>
+                                    <a
+                                        href={link.path || link.url || '#'}
+                                        className="text-slate-300 hover:text-cafh-cyan transition-colors flex items-center gap-2 text-sm font-medium group"
+                                    >
+                                        <div className="w-1 h-1 rounded-full bg-cafh-cyan/40 group-hover:bg-cafh-cyan transition-colors flex-shrink-0"></div>
                                         {link.label}
                                     </a>
                                 </li>
                             ))}
                         </ul>
                     </div>
-                ))}
 
-                {/* Column 3 (Contact Info usually) */}
-                <div className="lg:col-span-2">
-                    <h4 className="text-white font-bold mb-6 text-xl">{footerConfig.columns?.[2]?.title || 'Contacto'}</h4>
-                    <ul className="space-y-5 text-base opacity-80">
-                        {footerConfig.columns?.[2]?.links?.map((link: any, lIdx: number) => (
-                            <li key={lIdx} className="flex flex-col">
-                                <span className="text-xs uppercase tracking-widest text-cafh-cyan mb-1">{link.label}</span>
-                                {link.url?.startsWith('mailto:') ? link.url.replace('mailto:', '') : (link.url || link.value || '')}
-                            </li>
-                        ))}
-                    </ul>
+                    {/* Subscription Box — span 3 (cols 10-12) */}
+                    <div className="lg:col-span-3 sm:col-span-2">
+                        <h4 className="text-white font-bold mb-5 uppercase tracking-widest text-xs">
+                            {footerConfig.subscriptionTitle || 'Mantente Conectado'}
+                        </h4>
+                        <div className="bg-white/5 backdrop-blur-md p-6 rounded-2xl border border-white/10">
+                            <p className="text-sm mb-4 text-blue-200/80 leading-relaxed">{footerConfig.subscriptionSubtitle}</p>
+                            <form onSubmit={handleSubscribe} className="space-y-3">
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="Tu dirección de email"
+                                    className="bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-sm w-full focus:ring-2 focus:ring-cafh-cyan focus:border-cafh-cyan/30 outline-none text-white placeholder-white/40 transition-all"
+                                    required
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className={`w-full px-4 py-3 rounded-xl font-bold transition-all text-sm shadow-lg shadow-black/20 ${isSuccess
+                                        ? 'bg-green-500 text-white'
+                                        : 'bg-cafh-cyan text-cafh-indigo hover:bg-white'
+                                        }`}
+                                >
+                                    {isSubmitting ? 'Enviando...' : isSuccess ? '✓ ¡Suscrito!' : 'Suscribirme'}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div className="lg:col-span-3">
-                    <h4 className="text-white font-bold mb-6 text-xl">{footerConfig.subscriptionTitle}</h4>
-                    <div className="bg-white/5 backdrop-blur-md p-6 md:p-8 rounded-[2rem] border border-white/10">
-                        <p className="text-sm mb-4 text-blue-200">{footerConfig.subscriptionSubtitle}</p>
-                        <form onSubmit={handleSubscribe} className="space-y-3">
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="Tu email"
-                                className="bg-white/10 border border-white/10 rounded-xl px-5 py-4 text-base w-full focus:ring-2 focus:ring-cafh-cyan outline-none text-white placeholder-white/50 transition-all"
-                                required
-                            />
-                            <button
-                                type="submit"
-                                disabled={isSubmitting}
-                                className={`w-full px-5 py-4 rounded-xl font-bold transition-all text-base shadow-lg ${isSuccess
-                                    ? 'bg-green-500 text-white'
-                                    : 'bg-cafh-cyan text-cafh-indigo hover:bg-white shadow-cafh-cyan/20'
-                                    }`}
-                            >
-                                {isSubmitting ? 'Enviando...' : isSuccess ? '¡Suscrito!' : 'Enviar'}
-                            </button>
-                        </form>
+                {/* Copyright Bar */}
+                <div className="mt-16 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-white/40 font-light">
+                    <span>{footerConfig.copyright}</span>
+                    <div className="flex items-center gap-1 text-xs text-white/25">
+                        <span className="font-sans font-bold text-white/30">Cafh</span>
+                        <span>·</span>
+                        <span>Plataforma Digital</span>
                     </div>
                 </div>
-            </div>
-            <div className="max-w-7xl mx-auto px-6 mt-16 pt-8 border-t border-white/10 text-center text-sm opacity-50 font-light">
-                {footerConfig.copyright}
             </div>
         </footer>
     );
