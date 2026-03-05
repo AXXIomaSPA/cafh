@@ -49,5 +49,13 @@ La persistencia se maneja actualmente vía `localStorage` mediante el objeto glo
 - **Colores**: `cafh-indigo` (#1e2f6b), `cafh-cyan` (#6fcfeb), `cafh-peach` (#f7a281).
 - **Z-Index**: Modales globales en `z-[60]`. Header en `z-30`.
 
+## 5. Notas Técnicas Recientes (Marzo 2026)
+- **Creación de Cuentas y CRM**: Cuando un usuario crea una cuenta, el sistema le asigna automáticamente el estado inicial de `Pending` tanto en la colección de usuarios como en el CRM. Además se le asigna la etiqueta `['web_registration']` por defecto en la colección del CRM. La cuenta requiere la activación manual de un administrador para pasar al estado `Active`.
+- **Pestaña "Historial" del Usuario**: La pestaña de historial de la vista de usuarios (`MemberDashboard`) se muestra actualmente para todas las cuentas -incluso las recién creadas- porque se nutre de datos de prueba (`MOCK_USER_HISTORY`). A futuro se conectará esto a la API de analítica para mostrar registros reales de la base de datos por ID de usuario.
+- **Card de Sala Virtual y Novedades**: 
+  - La card de **Sala Virtual** filtra y muestra el evento "Online" o "Híbrido" más próximo *en el tiempo futuro*. Descarta los eventos pasados y se ordena por fecha. (Si aparecían actividades extrañas previamente era debido a la falta de un filtro estricto por fechas futuras).
+  - La lista de **Novedades para ti** muestra el contenido consumible del blog y además, ahora muestra los próximos eventos que tengan modalidad "Presencial", permitiendo a los usuarios encontrar sus actividades offline fácilmente.
+- **Footer y Compliance**: Se agregó en `Layout.tsx` la declaración de seguridad de datos, protección de la privacidad y aceptación de cookies en la zona de copyright, según los estándares globales vigentes.
+
 ---
-*Ultima actualización: 2026-03-05 (Refactorización Onboarding y Perfiles)*
+*Ultima actualización: 2026-03-05 (Validación de Flujos, UX y Perfiles)*
