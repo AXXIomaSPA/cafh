@@ -212,9 +212,23 @@ export const MemberDashboard: React.FC = () => {
             c.tags.some((tag: string) => userInterests.includes(tag))
         ).slice(0, 6) : []; // No contents until wizard is done or interests exist
 
-        // 5. Load real blog posts (latest 2)
+        // 5. Load real blog posts and upcoming Presencial events (for "Novedades para ti")
         const allBlogPosts = db.blog.getAll();
-        setRecentBlogPosts(allBlogPosts.slice(0, 2));
+
+        const upcomingPresencial = allEvents
+            .filter(e => e.type === 'Presencial')
+            .map(e => ({
+                id: `evt_${e.id}`,
+                title: `Evento Presencial: ${e.title}`,
+                excerpt: `Ubicación: ${e.location}`,
+                author: 'Cafh',
+                date: e.date,
+                imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600&auto=format&fit=crop',
+                tags: ['Evento']
+            })) as any[];
+
+        const combinedNews = [...upcomingPresencial, ...allBlogPosts].slice(0, 3);
+        setRecentBlogPosts(combinedNews as any);
 
         // 6. Find the next online or hybrid event that has a meeting URL
         const upcomingEvent = allEvents.find(e =>

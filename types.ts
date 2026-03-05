@@ -37,6 +37,7 @@ export interface User {
 
 export interface UserActivity {
   id: string;
+  userId?: string;
   type: 'Event' | 'Reading' | 'Donation' | 'Meditation';
   title: string;
   date: string;

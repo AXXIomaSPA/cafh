@@ -258,9 +258,9 @@ export const MOCK_WIZARD_STEPS: WizardStep[] = [
 ];
 
 export const MOCK_USER_HISTORY: UserActivity[] = [
-    { id: '101', type: 'Event', title: 'Taller de Introducción a la Meditación', date: '2023-10-15', status: 'Completed' },
-    { id: '102', type: 'Reading', title: 'Artículo: El valor del silencio', date: '2023-10-20', status: 'Completed' },
-    { id: '103', type: 'Meditation', title: 'Sesión Guiada: Paz Interior', date: '2023-11-01', status: 'Completed' },
+    { id: '101', userId: 'dummy_user', type: 'Event', title: 'Taller de Introducción a la Meditación', date: '2023-10-15', status: 'Completed' },
+    { id: '102', userId: 'dummy_user', type: 'Reading', title: 'Artículo: El valor del silencio', date: '2023-10-20', status: 'Completed' },
+    { id: '103', userId: 'dummy_user', type: 'Meditation', title: 'Sesión Guiada: Paz Interior', date: '2023-11-01', status: 'Completed' },
 ];
 
 // Rich Navigation Structure for Mega Menu

@@ -689,10 +689,19 @@ export const db = {
 
     // User Context
     user: {
-        getHistory: (): UserActivity[] => JSON.parse(localStorage.getItem(KEYS.HISTORY) || '[]'),
+        getHistory: (): UserActivity[] => {
+            const allHistory: UserActivity[] = JSON.parse(localStorage.getItem(KEYS.HISTORY) || '[]');
+            const user = db.auth.getCurrentUser();
+            if (!user) return [];
+            return allHistory.filter(a => a.userId === user.id);
+        },
         addHistory: (activity: UserActivity) => {
-            const current = db.user.getHistory();
-            const updated = [activity, ...current];
+            const allHistory: UserActivity[] = JSON.parse(localStorage.getItem(KEYS.HISTORY) || '[]');
+            const user = db.auth.getCurrentUser();
+            if (user && !activity.userId) {
+                activity.userId = user.id;
+            }
+            const updated = [activity, ...allHistory];
             localStorage.setItem(KEYS.HISTORY, JSON.stringify(updated));
         },
         getPreferences: () => JSON.parse(localStorage.getItem(KEYS.USER_PREFS) || '{}')
