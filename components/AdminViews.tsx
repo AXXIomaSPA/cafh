@@ -798,6 +798,16 @@ export const CRMView: React.FC = () => {
         setContactToEdit(null);
     };
 
+    const handleApproveMember = async (contact: Contact) => {
+        if (!confirm(`¿Estás seguro de que deseas aprobar y activar la cuenta de ${contact.name}? Se le enviará un correo de bienvenida automático.`)) return;
+        const result = await db.admin.approveMember(contact.id);
+        if (result) {
+            setContacts(db.crm.getAll());
+            // Optionally refresh email logs too since a welcome email was sent
+            setAllEmailLogs(db.emails.getLogs());
+        }
+    };
+
     const onMassEmailSent = async (subject: string, content: string) => {
         const recipients = contacts.filter(c => c.status === 'Subscribed').map(c => c.email);
         if (recipients.length > 0) {
@@ -971,6 +981,31 @@ export const CRMView: React.FC = () => {
             {/* Contacts Table */}
             <div className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
                 <div className="p-6 border-b border-slate-100 flex flex-col gap-3">
+                    {/* Urgency Alert: Pending Activations */}
+                    {contacts.some(c => c.status === 'Pending') && (
+                        <div className={`p-4 rounded-2xl flex items-center justify-between mb-2 transition-all ${filterStatus === 'Pending' ? 'bg-amber-100 border border-amber-200' : 'bg-amber-50 border border-amber-100 animate-pulse'}`}>
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-white text-amber-600 flex items-center justify-center shadow-sm">
+                                    <Clock size={20} />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold text-amber-800">
+                                        {filterStatus === 'Pending' ? 'Revisando Cuentas Pendientes' : 'Cuentas Pendientes de Activación'}
+                                    </p>
+                                    <p className="text-xs text-amber-600">Hay {contacts.filter(c => c.status === 'Pending').length} miembros esperando aprobación.</p>
+                                </div>
+                            </div>
+                            {filterStatus !== 'Pending' && (
+                                <button
+                                    onClick={() => handleFilterChange(() => setFilterStatus('Pending'))}
+                                    className="px-4 py-2 bg-amber-600 text-white rounded-xl text-xs font-bold hover:bg-amber-700 transition-colors shadow-lg shadow-amber-200"
+                                >
+                                    Ver Pendientes
+                                </button>
+                            )}
+                        </div>
+                    )}
+
                     {/* Search row */}
                     <div className="flex flex-col sm:flex-row gap-3">
                         <div className="relative flex-1">
@@ -1169,6 +1204,13 @@ export const CRMView: React.FC = () => {
                                         </td>
                                         <td className="px-4 py-4 text-right">
                                             <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all">
+                                                {contact.status === 'Pending' && (
+                                                    <button onClick={(e) => { e.stopPropagation(); handleApproveMember(contact); }}
+                                                        title="Aprobar y Activar Miembro"
+                                                        className="p-2 bg-emerald-50 border border-emerald-100 rounded-lg text-emerald-600 hover:bg-emerald-600 hover:text-white transition-colors shadow-sm">
+                                                        <CheckCircle2 size={14} />
+                                                    </button>
+                                                )}
                                                 <button onClick={(e) => { e.stopPropagation(); handleSendEmail(contact); }}
                                                     className="p-2 bg-white border border-slate-200 rounded-lg text-slate-400 hover:text-cafh-indigo hover:border-cafh-indigo transition-colors shadow-sm">
                                                     <Mail size={14} />

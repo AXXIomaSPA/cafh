@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { db } from '../storage'; // Now using DB
 import { Calendar, Clock, BookOpen, Star, ArrowRight, User, Settings, LogOut, CheckCircle2, Video, ExternalLink, Mic, MicOff, Camera, CameraOff, MonitorUp, MoreVertical, PhoneOff, Copy, Check, Users, Shield, MessageSquare, Image as ImageIcon, Edit3, FileText, Download, List, Info, Play, Feather, X, Heart, Grid, Save, Sparkles } from 'lucide-react';
 import { UserActivity, ContentItem, CalendarEvent, User as UserType, UserWizardProfile, BlogPost } from '../types';
@@ -28,7 +29,7 @@ const MeetLobbyModal: React.FC<{ isOpen: boolean; onClose: () => void; event: Ca
     const resources = event.resources || [];
     const agenda = event.agenda || [];
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-md transition-opacity duration-300" onClick={onClose}></div>
@@ -142,7 +143,8 @@ const MeetLobbyModal: React.FC<{ isOpen: boolean; onClose: () => void; event: Ca
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
@@ -285,7 +287,7 @@ export const MemberDashboard: React.FC = () => {
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
             {/* Modal Popup Viewer */}
-            {selectedResource && (
+            {selectedResource && createPortal(
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm" onClick={() => setSelectedResource(null)}>
                     <div className="relative w-full max-w-4xl bg-white rounded-[2rem] overflow-hidden shadow-2xl animate-fade-in-up" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center p-6 border-b border-slate-100">
@@ -319,7 +321,8 @@ export const MemberDashboard: React.FC = () => {
                             )}
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {/* Dashboard Header - Customizable & Immersive */}

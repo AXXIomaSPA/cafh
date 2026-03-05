@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import * as Lucide from 'lucide-react';
 import { Play, ArrowRight, Heart, Users, BookOpen, MapPin, Mail, ChevronRight, Flower2, Sparkles, Wind, Sun, X, Loader2, Check, Calendar, Mic, FileText, User, Headphones, Activity, Clock, Lock, ArrowLeft, AlertCircle, ChevronLeft, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -790,7 +791,7 @@ export const LoginView: React.FC = () => {
 const VideoModal: React.FC<{ isOpen: boolean; onClose: () => void; videoId: string }> = ({ isOpen, onClose, videoId }) => {
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" onClick={onClose}></div>
             <div className="relative w-full max-w-4xl bg-black rounded-3xl overflow-hidden shadow-2xl animate-fade-in-up">
@@ -812,7 +813,8 @@ const VideoModal: React.FC<{ isOpen: boolean; onClose: () => void; videoId: stri
                     ></iframe>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
@@ -1118,7 +1120,7 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
     // Computed splash progress (0→1)
     const splashProgress = countdown / splashConfig.durationSeconds;
 
-    return (
+    return createPortal(
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-cafh-indigo/90 backdrop-blur-md" onClick={!showSplash ? onClose : undefined}></div>
 
@@ -1401,7 +1403,8 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                     </div>
                 )}
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

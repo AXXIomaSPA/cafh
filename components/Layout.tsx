@@ -418,6 +418,13 @@ export const PublicFooter: React.FC = () => {
                         <span>Plataforma Digital</span>
                     </div>
                 </div>
+
+                {/* Compliance & Data Protection Policy Statement */}
+                <div className="mt-6 text-center text-[10px] md:text-xs text-white/30 font-light border-t border-white/5 pt-6 pb-2 px-4">
+                    <p className="max-w-4xl mx-auto leading-relaxed">
+                        Sistema asegurado con validación de cuentas estricto, alineado a los estándares mundiales de protección de datos personales (RGPD/GDPR). El uso de esta plataforma constituye la aceptación de nuestras políticas de privacidad y el uso de cookies operacionales.
+                    </p>
+                </div>
             </div>
         </footer>
     );

@@ -101,6 +101,21 @@ const defaultActivityCategories: ActivityCategory[] = [
     { id: 'cat_5', name: 'Comunidad', color: '#db2777', icon: 'Users' },
 ];
 
+// MULTI-TENANT CONTEXT FILTER
+const filterByTenant = <T extends { tenantId?: string }>(items: T[]): T[] => {
+    try {
+        const sessionStr = localStorage.getItem(KEYS.SESSION);
+        if (sessionStr) {
+            const user: User = JSON.parse(sessionStr);
+            if (user.role === UserRole.SUPER_ADMIN) return items; // Global view for Super Admins
+            return items.filter(item => item.tenantId === user.tenantId); // Particionado por Sede
+        }
+    } catch {
+        // Fallback or unauthenticated
+    }
+    return items;
+};
+
 // DATABASE API
 export const db = {
     // Initializer (Run on App mount)
@@ -390,7 +405,8 @@ export const db = {
             }
         },
         getAllUsers: (): User[] => {
-            return JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
+            const allUsers: User[] = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
+            return filterByTenant(allUsers);
         },
         updateCurrentUser: (updates: Partial<User>): User | null => {
             try {
@@ -683,7 +699,10 @@ export const db = {
     },
     // CRM & EMAIL MODULES
     crm: {
-        getAll: (): Contact[] => JSON.parse(localStorage.getItem(KEYS.CONTACTS) || '[]'),
+        getAll: (): Contact[] => {
+            const allContacts: Contact[] = JSON.parse(localStorage.getItem(KEYS.CONTACTS) || '[]');
+            return filterByTenant(allContacts);
+        },
         getById: (id: string): Contact | undefined => db.crm.getAll().find(c => c.id === id),
         update: (contact: Contact) => {
             const all = db.crm.getAll();
@@ -736,7 +755,8 @@ export const db = {
         },
         getLists: (): ContactList[] => {
             try {
-                return JSON.parse(localStorage.getItem(KEYS.CRM_LISTS) || '[]');
+                const allLists: ContactList[] = JSON.parse(localStorage.getItem(KEYS.CRM_LISTS) || '[]');
+                return filterByTenant(allLists);
             } catch { return []; }
         },
         addList: (listData: Omit<ContactList, 'id' | 'createdAt'>) => {
@@ -777,6 +797,44 @@ export const db = {
                 localStorage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
             }
             return all;
+        }
+    },
+    admin: {
+        approveMember: async (contactId: string) => {
+            const contact = db.crm.getById(contactId);
+            if (!contact || contact.status !== 'Pending') return null;
+
+            // Updated contact status
+            contact.status = 'Subscribed';
+            contact.notes = (contact.notes || '') + `\n[${new Date().toISOString().split('T')[0]}] Cuenta activada por administrador.`;
+            contact.tags = Array.from(new Set([...(contact.tags || []), 'Miembro', 'Active']));
+            db.crm.update(contact);
+
+            // Updated associated user status if exists
+            const allUsers = db.auth.getAllUsers();
+            const userIndex = allUsers.findIndex(u => u.email.toLowerCase() === contact.email.toLowerCase());
+            if (userIndex !== -1) {
+                allUsers[userIndex].status = 'Active';
+                localStorage.setItem(KEYS.USERS, JSON.stringify(allUsers));
+
+                // If currently logged in as this user, update session
+                const currentUser = db.auth.getCurrentUser();
+                if (currentUser && currentUser.email.toLowerCase() === contact.email.toLowerCase()) {
+                    db.auth.updateCurrentUser({ status: 'Active' });
+                }
+            }
+
+            // Simulate Welcome Email
+            await db.emails.send(
+                contact.id,
+                '¡Bienvenido a la Comunidad Cafh!',
+                `<h1>Hola ${contact.name}!</h1><p>Tu cuenta ha sido activada exitosamente por nuestro equipo administrativo. Ya puedes acceder a todos los contenidos exclusivos para miembros.</p><p>Que tu camino de desenvolvimiento sea pleno.</p>`
+            );
+
+            // Log change in CMS logs
+            db.cms.logChange('Users', 'Update', `Usuario ${contact.email} activado por administrador.`);
+
+            return contact;
         }
     },
     emails: {

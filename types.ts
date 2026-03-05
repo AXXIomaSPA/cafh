@@ -88,6 +88,7 @@ export interface ChangeLog {
 
 export interface ContentItem {
   id: string;
+  tenantId?: string;
   title: string;
   type: 'Article' | 'Page' | 'Event' | 'Resource';
   status: 'Published' | 'Draft';
@@ -224,6 +225,7 @@ export interface EventResource {
 
 export interface CalendarEvent {
   id: string;
+  tenantId?: string;
   title: string;
   date: string;
   day: string;
@@ -260,6 +262,7 @@ export interface HeroMedia {
 
 export interface ContactList {
   id: string;
+  tenantId?: string;
   name: string;
   description: string;
   createdAt: string;
@@ -268,6 +271,7 @@ export interface ContactList {
 
 export interface Contact {
   id: string;
+  tenantId?: string;
   name: string;
   firstName?: string;
   lastName?: string;
@@ -358,6 +362,7 @@ export interface NavItem {
 // --- EMAIL CAMPAIGNS ---
 export interface Campaign {
   id: string;
+  tenantId?: string;
   name: string;          // Internal campaign name
   subject: string;
   content: string;       // HTML content
@@ -466,6 +471,7 @@ export interface AutomationExecution {
 
 export interface AutomationRule {
   id: string;
+  tenantId?: string;
   name: string;
   description?: string;
   status: 'Active' | 'Paused' | 'Draft';
