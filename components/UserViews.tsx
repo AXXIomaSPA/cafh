@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../storage'; // Now using DB
-import { Calendar, Clock, BookOpen, Star, ArrowRight, User, Settings, LogOut, CheckCircle2, Video, ExternalLink, Mic, MicOff, Camera, CameraOff, MonitorUp, MoreVertical, PhoneOff, Copy, Check, Users, Shield, MessageSquare, Image as ImageIcon, Edit3, FileText, Download, List, Info, Play, Feather, X } from 'lucide-react';
+import { Calendar, Clock, BookOpen, Star, ArrowRight, User, Settings, LogOut, CheckCircle2, Video, ExternalLink, Mic, MicOff, Camera, CameraOff, MonitorUp, MoreVertical, PhoneOff, Copy, Check, Users, Shield, MessageSquare, Image as ImageIcon, Edit3, FileText, Download, List, Info, Play, Feather, X, Heart, Grid, Save } from 'lucide-react';
 import { UserActivity, ContentItem, CalendarEvent, User as UserType, UserWizardProfile, BlogPost } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { ZoomWidget } from './MeetingsMemberView';
@@ -158,8 +158,12 @@ export const MemberDashboard: React.FC = () => {
     const [recentBlogPosts, setRecentBlogPosts] = useState<BlogPost[]>([]);
 
     // Header Customization State
-    const [coverImage, setCoverImage] = useState("https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=2000&auto=format&fit=crop");
     const [isHoveringHeader, setIsHoveringHeader] = useState(false);
+
+    // Tabs & Profile Edit State
+    const [activeTab, setActiveTab] = useState<'resumen' | 'historial' | 'perfil'>('resumen');
+    const [profileForm, setProfileForm] = useState({ name: '', phone: '', city: '' });
+    const [isSaving, setIsSaving] = useState(false);
 
     const navigate = useNavigate();
 
@@ -214,6 +218,14 @@ export const MemberDashboard: React.FC = () => {
         setHistory(db.user.getHistory());
         setRecommendedContent(recommendations);
         setNextEvent(upcomingEvent || null);
+
+        if (user) {
+            setProfileForm({
+                name: user.name || '',
+                phone: user.phone || '',
+                city: user.city || ''
+            });
+        }
     }, []);
 
     const handleLogout = () => {
@@ -232,18 +244,39 @@ export const MemberDashboard: React.FC = () => {
     };
 
     const handleChangeCover = () => {
-        // In a real app, this would open a file picker
-        // For prototype, we cycle through a few preset high-quality images
         const presets = [
-            "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=2000&auto=format&fit=crop", // Nature
-            "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=2000&auto=format&fit=crop", // Light
-            "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=2000&auto=format&fit=crop", // Calm
-            "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=2000&auto=format&fit=crop"  // Mountain
+            "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=2000&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=2000&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=2000&auto=format&fit=crop",
+            "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=2000&auto=format&fit=crop"
         ];
-        const currentIdx = presets.indexOf(coverImage);
+        const currentCover = currentUser?.coverUrl || presets[0];
+        const currentIdx = presets.indexOf(currentCover);
         const nextIdx = (currentIdx + 1) % presets.length;
-        setCoverImage(presets[nextIdx]);
+
+        const nextImage = presets[nextIdx];
+        if (currentUser) {
+            const updated = (db.auth as any).updateCurrentUser({ coverUrl: nextImage });
+            if (updated) setCurrentUser(updated);
+        }
     };
+
+    const handleSaveProfile = () => {
+        setIsSaving(true);
+        setTimeout(() => {
+            if (currentUser) {
+                const updated = (db.auth as any).updateCurrentUser({
+                    name: profileForm.name,
+                    phone: profileForm.phone,
+                    city: profileForm.city
+                });
+                if (updated) setCurrentUser(updated);
+            }
+            setIsSaving(false);
+        }, 600);
+    };
+
+    const currentCover = currentUser?.coverUrl || "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=2000&auto=format&fit=crop";
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
@@ -294,7 +327,7 @@ export const MemberDashboard: React.FC = () => {
                 {/* Background Layer with Blend Mode */}
                 <div className="absolute inset-0 z-0 bg-cafh-indigo">
                     <img
-                        src={coverImage}
+                        src={currentCover}
                         alt="Cover"
                         className="w-full h-full object-cover opacity-40 mix-blend-multiply transition-transform duration-700 group-hover:scale-105"
                     />
@@ -337,7 +370,13 @@ export const MemberDashboard: React.FC = () => {
                     </div>
 
                     <div className="flex flex-wrap justify-center gap-3">
-                        <button className="px-5 py-2.5 bg-white/10 backdrop-blur-md text-white rounded-full text-sm font-bold hover:bg-white/20 flex items-center gap-2 transition-colors border border-white/10">
+                        <button
+                            onClick={() => window.open('https://contribuciones.cafh.cl/login', '_blank')}
+                            className="px-5 py-2.5 bg-cafh-peach/90 text-white rounded-full text-sm font-bold hover:bg-orange-500 flex items-center gap-2 transition-colors shadow-lg shadow-cafh-peach/20 backdrop-blur-md"
+                        >
+                            <Heart size={16} className="fill-current" /> Donar
+                        </button>
+                        <button className="px-5 py-2.5 bg-white/10 backdrop-blur-md text-white rounded-full text-sm font-bold hover:bg-white/20 flex items-center gap-2 transition-colors border border-white/10" onClick={() => setActiveTab('perfil')}>
                             <Settings size={16} /> Ajustes
                         </button>
                         <button
@@ -350,52 +389,80 @@ export const MemberDashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Content Grid */}
-            <div className="max-w-7xl mx-auto px-6 -mt-20 md:-mt-24 grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-20">
+            {/* TAB BAR NAVEGACION */}
+            <div className="max-w-7xl mx-auto px-6 -mt-10 relative z-30 mb-8">
+                <div className="flex bg-white rounded-2xl p-2 shadow-lg w-full max-w-sm border border-slate-100 mx-auto md:mx-0">
+                    {[
+                        { id: 'resumen', label: 'Resumen', icon: Grid },
+                        { id: 'historial', label: 'Historial', icon: Clock },
+                        { id: 'perfil', label: 'Mi Perfil', icon: User }
+                    ].map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id as any)}
+                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === tab.id
+                                    ? 'bg-slate-50 text-cafh-indigo shadow-sm'
+                                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                                }`}
+                        >
+                            <tab.icon size={16} />
+                            <span className="hidden sm:inline">{tab.label}</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
 
-                {/* LEFT COLUMN: Main Content */}
-                <div className="lg:col-span-8 space-y-8">
+            {/* Content Container */}
+            <div className="max-w-7xl mx-auto px-6 relative z-20">
+                {activeTab === 'resumen' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        {/* LEFT COLUMN: Main Content */}
+                        <div className="lg:col-span-8 space-y-8">
+                            {/* Personalized Recommendations */}
 
-                    {/* Personalized Recommendations (Result of Wizard) */}
-                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-display font-bold text-slate-800 flex items-center gap-2">
-                                <Star className="text-cafh-peach fill-current" />
-                                Tu Biblioteca Personalizada
-                            </h2>
-                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden md:block">Basado en tus intereses</span>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {recommendedContent.length > 0 ? recommendedContent.map(item => (
-                                <div key={item.id} onClick={() => handleResourceClick(item)} className="group border border-slate-100 rounded-2xl p-5 hover:bg-slate-50 transition-colors cursor-pointer flex gap-4 items-start">
-                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${item.type === 'Article' ? 'bg-blue-50 text-blue-600' :
-                                            (item.type === 'Resource' || item.type === 'document') ? 'bg-green-50 text-green-600' :
-                                                item.type === 'audio' ? 'bg-purple-50 text-purple-600' :
-                                                    'bg-red-50 text-red-600'
-                                        }`}>
-                                        {item.type === 'Article' ? <Feather size={20} /> : (item.type === 'Resource' || item.type === 'document') ? <Download size={20} /> : item.type === 'audio' ? <Play size={20} /> : <Video size={20} />}
-                                    </div>
-                                    <div>
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white border border-slate-200 px-2 py-0.5 rounded-full">{item.type}</span>
-                                        <h4 className="font-bold text-slate-700 leading-tight mb-2 mt-2 group-hover:text-cafh-indigo transition-colors">{item.title}</h4>
-                                        <span className="text-xs text-slate-400">Lectura / Consumo</span>
-                                    </div>
+                            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-2xl font-display font-bold text-slate-800 flex items-center gap-2">
+                                        <Star className="text-cafh-peach fill-current" />
+                                        Tu Biblioteca Personalizada
+                                    </h2>
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden md:block">Basado en tus intereses</span>
                                 </div>
-                            )) : (
-                                <p className="text-slate-500 italic">Completa "Comenzar el Viaje" o añade tags a tu perfil para ver recomendaciones.</p>
-                            )}
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {recommendedContent.length > 0 ? recommendedContent.map(item => (
+                                        <div key={item.id} onClick={() => handleResourceClick(item)} className="group border border-slate-100 rounded-2xl p-5 hover:bg-slate-50 transition-colors cursor-pointer flex gap-4 items-start">
+                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${item.type === 'Article' ? 'bg-blue-50 text-blue-600' :
+                                                (item.type === 'Resource' || item.type === 'document') ? 'bg-green-50 text-green-600' :
+                                                    item.type === 'audio' ? 'bg-purple-50 text-purple-600' :
+                                                        'bg-red-50 text-red-600'
+                                                }`}>
+                                                {item.type === 'Article' ? <Feather size={20} /> : (item.type === 'Resource' || item.type === 'document') ? <Download size={20} /> : item.type === 'audio' ? <Play size={20} /> : <Video size={20} />}
+                                            </div>
+                                            <div>
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white border border-slate-200 px-2 py-0.5 rounded-full">{item.type}</span>
+                                                <h4 className="font-bold text-slate-700 leading-tight mb-2 mt-2 group-hover:text-cafh-indigo transition-colors">{item.title}</h4>
+                                                <span className="text-xs text-slate-400">Lectura / Consumo</span>
+                                            </div>
+                                        </div>
+                                    )) : (
+                                        <p className="text-slate-500 italic">Completa "Comenzar el Viaje" o añade tags a tu perfil para ver recomendaciones.</p>
+                                    )}
+                                </div>
+                            </div>
+
                         </div>
                     </div>
+                )}
 
-                    {/* History Timeline */}
-                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                {activeTab === 'historial' && (
+                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 max-w-4xl">
                         <h2 className="text-2xl font-display font-bold text-slate-800 mb-6 flex items-center gap-2">
                             <Clock className="text-cafh-turquoise" />
-                            Tu Historial
+                            Tu Historial Compelto
                         </h2>
                         <div className="relative border-l-2 border-slate-100 ml-3 space-y-8 pl-8 py-2">
-                            {history.map(activity => (
+                            {history.length > 0 ? history.map(activity => (
                                 <div key={activity.id} className="relative">
                                     <div className="absolute -left-[41px] top-1 w-6 h-6 bg-white border-4 border-cafh-indigo rounded-full"></div>
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -408,42 +475,73 @@ export const MemberDashboard: React.FC = () => {
                                         </span>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-
-                </div>
-
-                {/* RIGHT COLUMN: Sidebar Tools */}
-                <div className="lg:col-span-4 space-y-8">
-
-                    {/* Zoom Widget — Módulo 1 Fase 3 */}
-                    <ZoomWidget
-                        event={nextEvent}
-                        userId={currentUser?.id || ''}
-                        userName={currentUser?.name || 'Miembro'}
-                    />
-
-                    {/* Blog Feed / News */}
-                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-                        <h3 className="text-lg font-bold text-slate-800 mb-4">Novedades para ti</h3>
-                        <div className="space-y-4">
-                            {recentBlogPosts.length > 0 ? recentBlogPosts.map(post => (
-                                <div key={post.id} className="flex gap-4 items-center group cursor-pointer">
-                                    <div className="w-16 h-16 bg-slate-200 rounded-xl overflow-hidden shrink-0">
-                                        <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform" referrerPolicy="no-referrer" />
-                                    </div>
-                                    <div>
-                                        <h5 className="font-bold text-slate-700 text-sm leading-tight group-hover:text-cafh-indigo line-clamp-2">{post.title}</h5>
-                                        <span className="text-xs text-slate-400">{post.date} • {post.author}</span>
-                                    </div>
-                                </div>
                             )) : (
-                                <p className="text-slate-400 text-sm italic">No hay novedades recientes.</p>
+                                <p className="text-slate-400 italic">No hay registros de actividad todavía.</p>
                             )}
                         </div>
                     </div>
-                </div>
+                )}
+
+                {activeTab === 'perfil' && (
+                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 max-w-2xl">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-12 h-12 bg-cafh-indigo/10 rounded-2xl flex items-center justify-center text-cafh-indigo">
+                                <User size={24} />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl font-bold text-slate-800 font-display">Editar Mi Perfil</h2>
+                                <p className="text-sm text-slate-500">Actualiza tus datos y preferencias.</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-5">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-1.5 ml-1">Nombre Completo</label>
+                                <input
+                                    type="text"
+                                    value={profileForm.name}
+                                    onChange={e => setProfileForm(f => ({ ...f, name: e.target.value }))}
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cafh-indigo/50 focus:border-cafh-indigo transition-all font-medium text-slate-700"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5 ml-1">Teléfono Móvil</label>
+                                    <input
+                                        type="tel"
+                                        value={profileForm.phone}
+                                        onChange={e => setProfileForm(f => ({ ...f, phone: e.target.value }))}
+                                        placeholder="+56 9 1234 5678"
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cafh-indigo/50 focus:border-cafh-indigo transition-all font-medium text-slate-700"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 mb-1.5 ml-1">Ciudad de Residencia</label>
+                                    <input
+                                        type="text"
+                                        value={profileForm.city}
+                                        onChange={e => setProfileForm(f => ({ ...f, city: e.target.value }))}
+                                        placeholder="Ej: Santiago, Buenos Aires"
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cafh-indigo/50 focus:border-cafh-indigo transition-all font-medium text-slate-700"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+                                <span className="text-xs text-slate-400">Los cambios se aplican automáticamente en tu sesión.</span>
+                                <button
+                                    onClick={handleSaveProfile}
+                                    disabled={isSaving}
+                                    className="px-6 py-3 bg-cafh-indigo text-white rounded-xl font-bold text-sm shadow-xl shadow-cafh-indigo/20 flex items-center gap-2 hover:bg-blue-800 transition-colors disabled:opacity-50"
+                                >
+                                    {isSaving ? <MoreVertical size={16} className="animate-spin" /> : <Save size={16} />}
+                                    {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* MODALS */}

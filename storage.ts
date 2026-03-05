@@ -332,6 +332,20 @@ export const db = {
             }
         },
         getAllUsers: (): User[] => MOCK_USERS,
+        updateCurrentUser: (updates: Partial<User>): User | null => {
+            try {
+                const session = localStorage.getItem(KEYS.SESSION);
+                if (session) {
+                    const current = JSON.parse(session);
+                    const updated = { ...current, ...updates };
+                    localStorage.setItem(KEYS.SESSION, JSON.stringify(updated));
+                    return updated;
+                }
+            } catch {
+                // ignore
+            }
+            return null;
+        }
     },
 
     // MANAGEABLE HERO CONFIG
