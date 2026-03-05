@@ -330,7 +330,8 @@ export const db = {
             } catch {
                 return null;
             }
-        }
+        },
+        getAllUsers: (): User[] => MOCK_USERS,
     },
 
     // MANAGEABLE HERO CONFIG

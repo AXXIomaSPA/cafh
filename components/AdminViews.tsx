@@ -3217,7 +3217,6 @@ export const CMSView: React.FC = () => {
                     { id: 'pages', label: 'Páginas Internas', icon: FileText },
                     { id: 'menu', label: 'Mega Menú', icon: Grid },
                     { id: 'articles', label: 'Artículos & SEO', icon: File },
-                    { id: 'events', label: 'Eventos (Cerebro)', icon: CalendarIcon },
                     { id: 'changelog', label: 'Bitácora', icon: Clock },
                 ].map(tab => (
                     <button
@@ -3247,9 +3246,6 @@ export const CMSView: React.FC = () => {
                 )}
                 {activeTab === 'articles' && (
                     <ArticlesManager />
-                )}
-                {activeTab === 'events' && (
-                    <EventsManager />
                 )}
                 {activeTab === 'menu' && (
                     <MenuEditor />

@@ -16,10 +16,11 @@ import {
     Users, Star, TrendingUp, Eye, Clock, CheckCircle2,
     AlertTriangle, Image as ImageIcon, Search, ArrowRight,
     Layers, Palette, FileText, ExternalLink, Copy, Archive,
-    ToggleLeft, ToggleRight, Sparkles
+    ToggleLeft, ToggleRight, Sparkles, ChevronLeft, ChevronRight,
+    List, Grid as GridIcon
 } from 'lucide-react';
 import { db } from '../storage';
-import { ActivityEvent, ActivityCategory, Contact } from '../types';
+import { ActivityEvent, ActivityCategory, User, UserRole, Contact } from '../types';
 
 // ─── Palette helpers ─────────────────────────────────────────
 const MODALITY_CFG = {
@@ -93,7 +94,7 @@ const emptyEvent = (): Omit<ActivityEvent, 'id' | 'createdAt' | 'updatedAt'> => 
 const ActividadesTab: React.FC = () => {
     const [events, setEvents] = useState<ActivityEvent[]>([]);
     const [cats, setCats] = useState<ActivityCategory[]>([]);
-    const [contacts, setContacts] = useState<Contact[]>([]);
+    const [adminUsers, setAdminUsers] = useState<User[]>([]);
     const [showForm, setShowForm] = useState(false);
     const [editing, setEditing] = useState<ActivityEvent | null>(null);
     const [form, setForm] = useState(emptyEvent());
@@ -105,7 +106,10 @@ const ActividadesTab: React.FC = () => {
     const load = useCallback(() => {
         setEvents(db.activities.getAll());
         setCats(db.activities.getCategories());
-        setContacts(db.crm.getAll());
+        // Organizadores = solo usuarios con rol admin del sistema
+        const allUsers: User[] = (db.auth as any).getAllUsers();
+        const admins = allUsers.filter(u => u.role === UserRole.ADMIN || u.role === UserRole.SUPER_ADMIN);
+        setAdminUsers(admins);
     }, []);
 
     useEffect(() => { load(); }, [load]);
@@ -255,10 +259,10 @@ const ActividadesTab: React.FC = () => {
                                     <input value={form.zoomUrl || ''} onChange={e => setForm(f => ({ ...f, zoomUrl: e.target.value }))} className={input} placeholder="https://zoom.us/j/..." />
                                 </SField>
                             ) : null}
-                            <SField label="Organizador (CRM)">
+                            <SField label="Organizador">
                                 <select value={form.organizerContactId || ''} onChange={e => setForm(f => ({ ...f, organizerContactId: e.target.value || undefined }))} className={select}>
                                     <option value="">Sin organizador asignado</option>
-                                    {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    {adminUsers.map(u => <option key={u.id} value={u.id}>{u.name} ({u.role})</option>)}
                                 </select>
                             </SField>
                             <SField label="Descripción">
@@ -596,21 +600,249 @@ const AnalyticsTab: React.FC = () => {
 };
 
 // ══════════════════════════════════════════════════════════════
+// CALENDARIO TAB — Vistas Día / Semana / Mes
+// ══════════════════════════════════════════════════════════════
+const WEEKDAYS_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const MONTHS_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+const evColor = (ev: ActivityEvent, cats: ActivityCategory[]): string => {
+    const cat = cats.find(c => c.id === ev.category);
+    return cat?.color || '#4f46e5';
+};
+
+const CalendarioTab: React.FC = () => {
+    const [view, setView] = useState<'dia' | 'semana' | 'mes'>('mes');
+    const [cursor, setCursor] = useState(new Date());
+    const [events, setEvents] = useState<ActivityEvent[]>([]);
+    const [cats, setCats] = useState<ActivityCategory[]>([]);
+    const [selected, setSelected] = useState<ActivityEvent | null>(null);
+
+    useEffect(() => {
+        setEvents(db.activities.getAll().filter(e => e.status !== 'Archivado'));
+        setCats(db.activities.getCategories());
+    }, []);
+
+    const isoDate = (d: Date) => d.toISOString().slice(0, 10);
+    const eventsOn = (ds: string) => events.filter(e => e.startDate <= ds && e.endDate >= ds);
+
+    const nav = (dir: number) => {
+        const d = new Date(cursor);
+        if (view === 'dia') d.setDate(d.getDate() + dir);
+        else if (view === 'semana') d.setDate(d.getDate() + dir * 7);
+        else d.setMonth(d.getMonth() + dir);
+        setCursor(d);
+    };
+
+    const heading = () => {
+        if (view === 'dia') return cursor.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        if (view === 'semana') {
+            const s = new Date(cursor); s.setDate(s.getDate() - s.getDay());
+            const e = new Date(s); e.setDate(e.getDate() + 6);
+            return `${s.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })} – ${e.toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+        }
+        return `${MONTHS_ES[cursor.getMonth()]} ${cursor.getFullYear()}`;
+    };
+
+    // Vista Día
+    const DiaView = () => {
+        const ds = isoDate(cursor);
+        const todayEvs = eventsOn(ds);
+        const hours = Array.from({ length: 14 }, (_, i) => i + 7);
+        return (
+            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+                <div className="p-4 bg-slate-50 border-b border-slate-100">
+                    <p className="text-sm font-bold text-slate-700 capitalize">{cursor.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+                </div>
+                {todayEvs.length === 0 ? (
+                    <p className="text-slate-400 text-sm italic text-center py-12">Sin eventos este día</p>
+                ) : (
+                    <div className="divide-y divide-slate-50">
+                        {todayEvs.map(ev => (
+                            <div key={ev.id} onClick={() => setSelected(ev)}
+                                className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 cursor-pointer transition-colors">
+                                <div className="w-1 self-stretch rounded-full shrink-0" style={{ backgroundColor: evColor(ev, cats) }} />
+                                <div className="text-xs font-mono text-slate-400 shrink-0 w-24">{ev.startTime}–{ev.endTime}</div>
+                                <div className="flex-1">
+                                    <p className="font-semibold text-slate-800 text-sm">{ev.title}</p>
+                                    <p className="text-xs text-slate-400">{ev.modality}</p>
+                                </div>
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${STATUS_CFG[ev.status]?.color || ''
+                                    }`}>{ev.status}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // Vista Semana
+    const SemanaView = () => {
+        const weekStart = new Date(cursor);
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+        const days = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(weekStart); d.setDate(d.getDate() + i); return d;
+        });
+        const today = isoDate(new Date());
+        return (
+            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+                <div className="grid grid-cols-7 border-b border-slate-100">
+                    {days.map(d => {
+                        const ds = isoDate(d);
+                        const isToday = ds === today;
+                        return (
+                            <div key={ds} className={`p-3 text-center border-r last:border-r-0 border-slate-100 ${isToday ? 'bg-cafh-indigo/5' : ''}`}>
+                                <p className="text-[11px] text-slate-400 font-bold uppercase">{WEEKDAYS_ES[d.getDay()]}</p>
+                                <p className={`text-lg font-bold mt-0.5 ${isToday ? 'text-cafh-indigo' : 'text-slate-700'}`}>{d.getDate()}</p>
+                            </div>
+                        );
+                    })}
+                </div>
+                <div className="grid grid-cols-7 min-h-[260px]">
+                    {days.map(d => {
+                        const ds = isoDate(d);
+                        const dayEvs = eventsOn(ds);
+                        return (
+                            <div key={ds} className="border-r last:border-r-0 border-slate-50 p-1.5 space-y-1">
+                                {dayEvs.map(ev => (
+                                    <div key={ev.id} onClick={() => setSelected(ev)}
+                                        className="rounded-lg px-2 py-1 text-white text-[10px] font-semibold cursor-pointer hover:opacity-90 truncate"
+                                        style={{ backgroundColor: evColor(ev, cats) }}>
+                                        {ev.startTime} {ev.title}
+                                    </div>
+                                ))}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    // Vista Mes
+    const MesView = () => {
+        const year = cursor.getFullYear();
+        const month = cursor.getMonth();
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const today = isoDate(new Date());
+        const cells: (number | null)[] = [
+            ...Array(firstDay).fill(null),
+            ...Array.from({ length: daysInMonth }, (_, i) => i + 1)
+        ];
+        while (cells.length % 7 !== 0) cells.push(null);
+        return (
+            <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+                <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50">
+                    {WEEKDAYS_ES.map(w => (
+                        <div key={w} className="py-2 text-center text-[11px] font-bold text-slate-400 uppercase tracking-wider">{w}</div>
+                    ))}
+                </div>
+                <div className="grid grid-cols-7">
+                    {cells.map((day, idx) => {
+                        if (!day) return <div key={`e_${idx}`} className="border-r border-b border-slate-50 h-24 bg-slate-50/40" />;
+                        const ds = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                        const dayEvs = eventsOn(ds);
+                        const isToday = ds === today;
+                        return (
+                            <div key={ds} className={`border-r border-b border-slate-100 h-24 p-1.5 flex flex-col ${idx % 7 === 6 ? 'border-r-0' : ''
+                                }`}>
+                                <span className={`text-xs font-bold self-start mb-1 w-6 h-6 flex items-center justify-center rounded-full shrink-0 ${isToday ? 'bg-cafh-indigo text-white' : 'text-slate-500'
+                                    }`}>{day}</span>
+                                <div className="space-y-0.5 overflow-hidden flex-1 min-h-0">
+                                    {dayEvs.slice(0, 3).map(ev => (
+                                        <div key={ev.id} onClick={() => setSelected(ev)}
+                                            className="rounded px-1.5 py-0.5 text-white text-[9px] font-semibold cursor-pointer hover:opacity-90 truncate"
+                                            style={{ backgroundColor: evColor(ev, cats) }}>
+                                            {ev.title}
+                                        </div>
+                                    ))}
+                                    {dayEvs.length > 3 && <p className="text-[9px] text-slate-400 pl-0.5">+{dayEvs.length - 3} más</p>}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <div className="space-y-4">
+            {/* Barra de navegación del calendario */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <button onClick={() => nav(-1)} className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
+                        <ChevronLeft size={16} />
+                    </button>
+                    <button onClick={() => setCursor(new Date())} className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition-colors">
+                        Hoy
+                    </button>
+                    <button onClick={() => nav(1)} className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
+                        <ChevronRight size={16} />
+                    </button>
+                    <h3 className="text-base font-bold text-slate-800 ml-2 capitalize">{heading()}</h3>
+                </div>
+                <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
+                    {(['dia', 'semana', 'mes'] as const).map(v => (
+                        <button key={v} onClick={() => setView(v)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${view === v ? 'bg-white text-cafh-indigo shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                                }`}>
+                            {v === 'dia' ? 'Día' : v === 'semana' ? 'Semana' : 'Mes'}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {view === 'dia' && <DiaView />}
+            {view === 'semana' && <SemanaView />}
+            {view === 'mes' && <MesView />}
+
+            {/* Panel de detalle del evento */}
+            {selected && (
+                <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setSelected(null)} />
+                    <div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl p-8">
+                        <button onClick={() => setSelected(null)} className="absolute top-5 right-5 p-2 text-slate-400 hover:bg-slate-100 rounded-xl"><X size={16} /></button>
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: evColor(selected, cats) }} />
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${MODALITY_CFG[selected.modality]?.color || ''
+                                }`}>{selected.modality}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${STATUS_CFG[selected.status]?.color || ''
+                                }`}>{selected.status}</span>
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-800 mb-1">{selected.title}</h3>
+                        <p className="text-xs text-slate-400 mb-4">{selected.startDate} · {selected.startTime} – {selected.endTime}</p>
+                        {selected.description && <p className="text-sm text-slate-500 leading-relaxed mb-4">{selected.description}</p>}
+                        {selected.zoomUrl && (
+                            <a href={selected.zoomUrl} target="_blank" rel="noreferrer"
+                                className="inline-flex items-center gap-2 text-sm font-semibold text-cafh-indigo hover:underline">
+                                <Video size={14} /> Unirse a sesión Zoom
+                            </a>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// ══════════════════════════════════════════════════════════════
 // MAIN — CalendarAdminView
 // ══════════════════════════════════════════════════════════════
 const TABS = [
-    { id: 'actividades', label: 'Actividades', icon: <CalendarDays size={14} /> },
+    { id: 'calendario', label: 'Calendario', icon: <CalendarDays size={14} /> },
+    { id: 'actividades', label: 'Actividades', icon: <GridIcon size={14} /> },
     { id: 'categorias', label: 'Categorías', icon: <Tag size={14} /> },
     { id: 'envio', label: 'Envío Masivo', icon: <Send size={14} /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={14} /> },
 ];
 
 export const CalendarAdminView: React.FC = () => {
-    const [tab, setTab] = useState('actividades');
+    const [tab, setTab] = useState('calendario');
 
     return (
         <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
-            {/* Header */}
             <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
                     <div className="p-2.5 bg-cafh-indigo/10 rounded-xl">
@@ -625,6 +857,7 @@ export const CalendarAdminView: React.FC = () => {
 
             <TabBar tabs={TABS} active={tab} onChange={setTab} />
 
+            {tab === 'calendario' && <CalendarioTab />}
             {tab === 'actividades' && <ActividadesTab />}
             {tab === 'categorias' && <CategoriasTab />}
             {tab === 'envio' && <EnvioMasivoTab />}
