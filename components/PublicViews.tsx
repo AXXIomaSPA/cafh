@@ -29,8 +29,8 @@ const DynamicResourcesGrid: React.FC<any> = ({ bgClass, paddingClass, containerC
         setResourcesContent([...contents, ...medias].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     }, []);
 
-    const filteredContent = filter === 'Todos' 
-        ? resourcesContent 
+    const filteredContent = filter === 'Todos'
+        ? resourcesContent
         : resourcesContent.filter(c => {
             if (filter === 'Article') return c.type === 'Article';
             if (filter === 'Resource') return c.type === 'document' || c.type === 'Resource';
@@ -58,7 +58,7 @@ const DynamicResourcesGrid: React.FC<any> = ({ bgClass, paddingClass, containerC
                         <div className="relative w-full max-w-4xl bg-white rounded-[2rem] overflow-hidden shadow-2xl animate-fade-in-up" onClick={e => e.stopPropagation()}>
                             <div className="flex justify-between items-center p-6 border-b border-slate-100">
                                 <h3 className="text-xl font-bold text-slate-800">{selectedResource.title}</h3>
-                                <button onClick={() => setSelectedResource(null)} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full"><Lucide.X size={20}/></button>
+                                <button onClick={() => setSelectedResource(null)} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full"><Lucide.X size={20} /></button>
                             </div>
                             <div className="p-6 bg-slate-50 min-h-[400px] flex flex-col items-center justify-center">
                                 {(selectedResource.type === 'video') ? (
@@ -74,7 +74,7 @@ const DynamicResourcesGrid: React.FC<any> = ({ bgClass, paddingClass, containerC
                                     selectedResource.url && selectedResource.url !== '#' ? (
                                         <iframe src={selectedResource.url} className="w-full h-[60vh] rounded-xl border border-slate-200" title="Document Viewer" />
                                     ) : (
-                                        <div className="text-center text-slate-500"><Lucide.BookOpen size={48} className="mx-auto mb-4 opacity-50"/> <p>El documento no tiene un archivo asignado.</p></div>
+                                        <div className="text-center text-slate-500"><Lucide.BookOpen size={48} className="mx-auto mb-4 opacity-50" /> <p>El documento no tiene un archivo asignado.</p></div>
                                     )
                                 ) : (
                                     <div className="text-center p-12 max-w-lg">
@@ -96,8 +96,8 @@ const DynamicResourcesGrid: React.FC<any> = ({ bgClass, paddingClass, containerC
                                 key={type}
                                 onClick={() => setFilter(type)}
                                 className={`px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-all ${filter === type
-                                        ? 'bg-cafh-indigo text-white shadow-md'
-                                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                                    ? 'bg-cafh-indigo text-white shadow-md'
+                                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                                     }`}
                             >
                                 {type === 'Todos' ? 'Todos' : type === 'Article' ? 'Artículos' : type === 'Resource' ? 'Descargas/PDF' : type === 'Video' ? 'Videos' : 'Audios'}
@@ -120,7 +120,7 @@ const DynamicResourcesGrid: React.FC<any> = ({ bgClass, paddingClass, containerC
                         <div key={item.id} onClick={() => handleResourceClick(item)} className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex flex-col h-full">
                             <div className="flex justify-between items-start mb-4">
                                 <div className={`p-3 rounded-2xl ${item.type === 'Article' ? 'bg-blue-50 text-blue-600' :
-                                        (item.type === 'Resource' || item.type === 'document') ? 'bg-green-50 text-green-600' :
+                                    (item.type === 'Resource' || item.type === 'document') ? 'bg-green-50 text-green-600' :
                                         item.type === 'audio' ? 'bg-purple-50 text-purple-600' :
                                             'bg-red-50 text-red-600'
                                     }`}>
@@ -591,29 +591,54 @@ export const DynamicPageView: React.FC<{ slug: string }> = ({ slug }) => {
 // --- LOGIN VIEW ---
 export const LoginView: React.FC = () => {
     const navigate = useNavigate();
+    const [mode, setMode] = useState<'login' | 'register' | 'forgot_password'>('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [name, setName] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError(null);
+        setSuccess(null);
 
-        // Simulate network delay
         setTimeout(() => {
-            const user = db.auth.login(email, password);
             setIsLoading(false);
-
-            if (user) {
-                if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN) {
-                    navigate('/admin');
+            if (mode === 'login') {
+                const user = db.auth.login(email, password);
+                if (user) {
+                    if (user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN) {
+                        navigate('/admin');
+                    } else {
+                        navigate('/member/dashboard');
+                    }
                 } else {
-                    navigate('/member/dashboard');
+                    setError('Credenciales inválidas. Intente nuevamente.');
                 }
-            } else {
-                setError('Credenciales inválidas. Intente nuevamente.');
+            } else if (mode === 'register') {
+                if (!name || password.length < 6) {
+                    setError('Completa tu nombre y usa una contraseña de al menos 6 caracteres.');
+                    return;
+                }
+                const newUser = db.auth.register(name, email);
+                if (newUser) {
+                    // Start session immediately
+                    db.auth.login(email, password);
+                    navigate('/member/dashboard');
+                } else {
+                    setError('El email ya está registrado.');
+                }
+            } else if (mode === 'forgot_password') {
+                const sent = db.auth.resetPassword(email);
+                if (sent) {
+                    setSuccess('Si el email existe en nuestro sistema, hemos enviado un enlace de recuperación. (Revisa la consola CRM Simulada)');
+                    setTimeout(() => setMode('login'), 3000);
+                } else {
+                    setError('No encontramos una cuenta con ese email.');
+                }
             }
         }, 1000);
     };
@@ -634,8 +659,12 @@ export const LoginView: React.FC = () => {
                     <div className="w-20 h-20 bg-cafh-indigo text-white rounded-[2rem] flex items-center justify-center text-4xl font-display mx-auto mb-6 shadow-lg shadow-cafh-indigo/30 rotate-3">
                         C
                     </div>
-                    <h2 className="text-3xl font-display font-bold text-slate-800">Bienvenido</h2>
-                    <p className="text-slate-500 mt-2">Ingresa a tu espacio personal</p>
+                    <h2 className="text-3xl font-display font-bold text-slate-800">
+                        {mode === 'login' ? 'Bienvenido' : mode === 'register' ? 'Crear Cuenta' : 'Recuperar Clave'}
+                    </h2>
+                    <p className="text-slate-500 mt-2">
+                        {mode === 'login' ? 'Ingresa a tu espacio personal' : mode === 'register' ? 'Únete a la comunidad' : 'Te enviaremos un enlace a tu email'}
+                    </p>
                 </div>
 
                 {error && (
@@ -644,8 +673,31 @@ export const LoginView: React.FC = () => {
                         {error}
                     </div>
                 )}
+                {success && (
+                    <div className="bg-emerald-50 text-emerald-600 p-4 rounded-xl mb-6 flex items-center gap-3 text-sm font-medium border border-emerald-100">
+                        <CheckCircle2 size={18} />
+                        {success}
+                    </div>
+                )}
 
-                <form onSubmit={handleLogin} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    {mode === 'register' && (
+                        <div className="space-y-2 animate-fade-in-up">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Nombre Completo</label>
+                            <div className="relative">
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
+                                    placeholder="Tu nombre"
+                                    required={mode === 'register'}
+                                />
+                            </div>
+                        </div>
+                    )}
+
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Email</label>
                         <div className="relative">
@@ -661,46 +713,73 @@ export const LoginView: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Contraseña</label>
-                        <div className="relative">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
-                                placeholder="••••••••"
-                                required
-                            />
+                    {mode !== 'forgot_password' && (
+                        <div className="space-y-2 animate-fade-in-up">
+                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Contraseña</label>
+                            <div className="relative">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
+                                    placeholder="••••••••"
+                                    required={mode !== 'forgot_password'}
+                                />
+                            </div>
                         </div>
-                    </div>
+                    )}
 
-                    <div className="flex justify-end">
-                        <a href="#" className="text-sm font-bold text-cafh-indigo hover:underline">¿Olvidaste tu contraseña?</a>
-                    </div>
+                    {mode === 'login' && (
+                        <div className="flex justify-end">
+                            <button type="button" onClick={() => { setMode('forgot_password'); setError(null); }} className="text-sm font-bold text-cafh-indigo hover:underline">¿Olvidaste tu contraseña?</button>
+                        </div>
+                    )}
 
                     <button
                         type="submit"
                         disabled={isLoading}
                         className="w-full bg-cafh-indigo text-white py-4 rounded-xl font-bold text-lg hover:bg-slate-800 transition-colors shadow-xl shadow-cafh-indigo/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        {isLoading ? <Loader2 size={24} className="animate-spin" /> : 'Iniciar Sesión'}
+                        {isLoading ? <Loader2 size={24} className="animate-spin" /> :
+                            mode === 'login' ? 'Iniciar Sesión' :
+                                mode === 'register' ? 'Crear Cuenta' :
+                                    'Enviar Enlace'}
                     </button>
+
+                    {mode === 'forgot_password' && (
+                        <button
+                            type="button"
+                            onClick={() => { setMode('login'); setError(null); }}
+                            className="w-full bg-white text-slate-600 border border-slate-200 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
+                        >
+                            Volver a Iniciar Sesión
+                        </button>
+                    )}
                 </form>
 
-                <div className="mt-8 text-center">
-                    <p className="text-slate-500 text-sm">
-                        ¿No tienes una cuenta? <a href="#" className="font-bold text-cafh-cyan hover:underline">Regístrate</a>
-                    </p>
-                </div>
+                {mode !== 'forgot_password' && (
+                    <div className="mt-8 text-center">
+                        <p className="text-slate-500 text-sm">
+                            {mode === 'login' ? '¿No tienes una cuenta? ' : '¿Ya tienes cuenta? '}
+                            <button
+                                onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(null); }}
+                                className="font-bold text-cafh-cyan hover:underline"
+                            >
+                                {mode === 'login' ? 'Regístrate' : 'Inicia Sesión'}
+                            </button>
+                        </p>
+                    </div>
+                )}
 
                 {/* DEV HINTS */}
-                <div className="mt-8 pt-6 border-t border-slate-100 text-xs text-slate-400 text-center space-y-1">
-                    <p className="font-bold uppercase tracking-widest text-slate-300">Credenciales Demo:</p>
-                    <p>Admin: <span className="font-mono bg-slate-100 px-1 rounded">admin@cafh.cl</span> / <span className="font-mono bg-slate-100 px-1 rounded">admin123</span></p>
-                    <p>Miembro: <span className="font-mono bg-slate-100 px-1 rounded">miembro@cafh.cl</span> / <span className="font-mono bg-slate-100 px-1 rounded">miembro123</span></p>
-                </div>
+                {mode === 'login' && (
+                    <div className="mt-8 pt-6 border-t border-slate-100 text-xs text-slate-400 text-center space-y-1">
+                        <p className="font-bold uppercase tracking-widest text-slate-300">Credenciales Demo:</p>
+                        <p>Admin: <span className="font-mono bg-slate-100 px-1 rounded">admin@cafh.cl</span> / <span className="font-mono bg-slate-100 px-1 rounded">admin123</span></p>
+                        <p>Miembro: <span className="font-mono bg-slate-100 px-1 rounded">miembro@cafh.cl</span> / <span className="font-mono bg-slate-100 px-1 rounded">miembro123</span></p>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -1087,197 +1166,197 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                             <X size={24} />
                         </button>
 
-                {/* State 1: Analyzing */}
-                {isAnalyzing && (
-                    <div className="flex flex-col items-center justify-center py-10">
-                        <div className="w-20 h-20 bg-cafh-light rounded-full flex items-center justify-center mb-6 relative">
-                            <Sparkles className="text-cafh-cyan w-10 h-10 absolute animate-pulse" />
-                            <Loader2 className="w-20 h-20 text-cafh-indigo animate-spin absolute opacity-30" />
-                        </div>
-                        <h3 className="text-2xl font-display font-bold text-cafh-indigo mb-2">Diseñando tu viaje...</h3>
-                        <p className="text-slate-500">Analizando tus respuestas para encontrar tu perfil ideal.</p>
-                    </div>
-                )}
-
-                {/* State 2: Results + Register Form */}
-                {!isAnalyzing && showResults && (
-                    <div>
-                        {!showRegForm ? (
-                            // 2a: Profile reveal
-                            <div className="text-center">
-                                {assignedProfile ? (
-                                    <>
-                                        <div
-                                            className="w-20 h-20 rounded-[1.5rem] flex items-center justify-center mx-auto mb-4 text-4xl shadow-lg"
-                                            style={{ backgroundColor: assignedProfile.color + '22', border: `2px solid ${assignedProfile.color}` }}
-                                        >
-                                            {assignedProfile.emoji}
-                                        </div>
-                                        <span className="text-xs font-bold uppercase tracking-widest mb-1 block" style={{ color: assignedProfile.color }}>
-                                            Tu perfil
-                                        </span>
-                                        <h3 className="text-3xl font-display font-bold text-slate-800 mb-3">
-                                            {assignedProfile.name}
-                                        </h3>
-                                        <p className="text-slate-500 mb-6 leading-relaxed">
-                                            {assignedProfile.description}
-                                        </p>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <Check size={32} />
-                                        </div>
-                                        <h3 className="text-3xl font-display font-bold text-slate-800 mb-3">¡Tu camino está listo!</h3>
-                                        <p className="text-slate-500 mb-6 leading-relaxed">
-                                            Hemos preparado una experiencia personalizada basada en tus respuestas.
-                                        </p>
-                                    </>
-                                )}
-
-                                {/* Kit Items */}
-                                {assignedProfile && assignedProfile.kitItems.length > 0 && (
-                                    <div className="bg-cafh-light p-6 rounded-2xl mb-6 border border-slate-100 text-left">
-                                        <span className="text-xs font-bold text-cafh-indigo uppercase tracking-widest mb-3 block">Tu Kit Inicial Incluye:</span>
-                                        <ul className="space-y-2">
-                                            {assignedProfile.kitItems.slice(0, 4).map(item => (
-                                                <li key={item.id} className="flex items-start gap-2 text-sm text-slate-700">
-                                                    <Check size={14} className="text-cafh-cyan mt-0.5 shrink-0" />
-                                                    <span><strong>{item.type}</strong>: {item.title}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-
-                                {!assignedProfile && (
-                                    <div className="bg-cafh-light p-6 rounded-2xl mb-6 border border-slate-100 text-left">
-                                        <span className="text-xs font-bold text-cafh-indigo uppercase tracking-widest mb-2 block">Tu Kit Inicial Incluye:</span>
-                                        <ul className="space-y-2">
-                                            <li className="flex items-center gap-2 text-sm text-slate-700"><Check size={14} className="text-cafh-cyan" /> Guía PDF: "Primeros Pasos"</li>
-                                            <li className="flex items-center gap-2 text-sm text-slate-700"><Check size={14} className="text-cafh-cyan" /> 3 Meditaciones guiadas (Audio)</li>
-                                            <li className="flex items-center gap-2 text-sm text-slate-700"><Check size={14} className="text-cafh-cyan" /> Acceso a Calendario de Eventos</li>
-                                        </ul>
-                                    </div>
-                                )}
-
-                                <button
-                                    onClick={() => setShowRegForm(true)}
-                                    className="w-full bg-cafh-indigo text-white py-4 rounded-xl font-bold text-lg hover:bg-slate-800 transition-colors shadow-xl shadow-cafh-indigo/20"
-                                >
-                                    Crear mi cuenta gratuita para acceder
-                                </button>
-                                <p className="text-xs text-slate-400 mt-3">¿Ya tienes cuenta? <button onClick={() => navigate('/login')} className="text-cafh-indigo font-bold hover:underline">Inicia sesión</button></p>
-                            </div>
-                        ) : (
-                            // 2b: Registration form
-                            <div>
-                                <button onClick={() => setShowRegForm(false)} className="flex items-center gap-2 text-slate-400 hover:text-slate-600 mb-6 text-sm font-medium transition-colors">
-                                    <ChevronRight size={16} className="rotate-180" /> Volver
-                                </button>
-                                <h3 className="text-2xl font-display font-bold text-slate-800 mb-1">Crea tu cuenta</h3>
-                                {assignedProfile && (
-                                    <p className="text-sm text-slate-500 mb-6">
-                                        Perfil asignado: <span className="font-bold" style={{ color: assignedProfile.color }}>{assignedProfile.emoji} {assignedProfile.name}</span>
-                                    </p>
-                                )}
-
-                                {regError && (
-                                    <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-5 flex items-center gap-3 text-sm font-medium border border-red-100">
-                                        <AlertCircle size={16} />
-                                        {regError}
-                                    </div>
-                                )}
-
-                                <form onSubmit={handleRegister} className="space-y-4">
-                                    <div>
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Nombre completo</label>
-                                        <div className="relative">
-                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                            <input
-                                                type="text"
-                                                value={regName}
-                                                onChange={e => setRegName(e.target.value)}
-                                                className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
-                                                placeholder="Tu nombre"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Email</label>
-                                        <div className="relative">
-                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                            <input
-                                                type="email"
-                                                value={regEmail}
-                                                onChange={e => setRegEmail(e.target.value)}
-                                                className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
-                                                placeholder="tu@email.com"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Contraseña</label>
-                                        <div className="relative">
-                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                            <input
-                                                type="password"
-                                                value={regPass}
-                                                onChange={e => setRegPass(e.target.value)}
-                                                className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
-                                                placeholder="Mínimo 6 caracteres"
-                                                minLength={6}
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="submit"
-                                        disabled={isRegistering}
-                                        className="w-full bg-cafh-indigo text-white py-4 rounded-xl font-bold text-lg hover:bg-slate-800 transition-colors shadow-xl shadow-cafh-indigo/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                                    >
-                                        {isRegistering ? <Loader2 size={22} className="animate-spin" /> : 'Acceder a mi espacio personalizado'}
-                                    </button>
-                                </form>
-                                <p className="text-xs text-slate-400 text-center mt-4">Al registrarte aceptas los términos y condiciones de Cafh.</p>
+                        {/* State 1: Analyzing */}
+                        {isAnalyzing && (
+                            <div className="flex flex-col items-center justify-center py-10">
+                                <div className="w-20 h-20 bg-cafh-light rounded-full flex items-center justify-center mb-6 relative">
+                                    <Sparkles className="text-cafh-cyan w-10 h-10 absolute animate-pulse" />
+                                    <Loader2 className="w-20 h-20 text-cafh-indigo animate-spin absolute opacity-30" />
+                                </div>
+                                <h3 className="text-2xl font-display font-bold text-cafh-indigo mb-2">Diseñando tu viaje...</h3>
+                                <p className="text-slate-500">Analizando tus respuestas para encontrar tu perfil ideal.</p>
                             </div>
                         )}
-                    </div>
-                )}
 
-                {/* State 3: Questions */}
-                {!isAnalyzing && !showResults && (
-                    <>
-                        <div className="mb-8">
-                            <span className="text-xs font-bold text-cafh-cyan uppercase tracking-widest">Paso {step + 1} de {totalSteps}</span>
-                            <div className="w-full h-2 bg-slate-100 rounded-full mt-2">
-                                <div
-                                    className="h-full bg-cafh-cyan rounded-full transition-all duration-500"
-                                    style={{ width: `${((step + 1) / totalSteps) * 100}%` }}
-                                ></div>
+                        {/* State 2: Results + Register Form */}
+                        {!isAnalyzing && showResults && (
+                            <div>
+                                {!showRegForm ? (
+                                    // 2a: Profile reveal
+                                    <div className="text-center">
+                                        {assignedProfile ? (
+                                            <>
+                                                <div
+                                                    className="w-20 h-20 rounded-[1.5rem] flex items-center justify-center mx-auto mb-4 text-4xl shadow-lg"
+                                                    style={{ backgroundColor: assignedProfile.color + '22', border: `2px solid ${assignedProfile.color}` }}
+                                                >
+                                                    {assignedProfile.emoji}
+                                                </div>
+                                                <span className="text-xs font-bold uppercase tracking-widest mb-1 block" style={{ color: assignedProfile.color }}>
+                                                    Tu perfil
+                                                </span>
+                                                <h3 className="text-3xl font-display font-bold text-slate-800 mb-3">
+                                                    {assignedProfile.name}
+                                                </h3>
+                                                <p className="text-slate-500 mb-6 leading-relaxed">
+                                                    {assignedProfile.description}
+                                                </p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                    <Check size={32} />
+                                                </div>
+                                                <h3 className="text-3xl font-display font-bold text-slate-800 mb-3">¡Tu camino está listo!</h3>
+                                                <p className="text-slate-500 mb-6 leading-relaxed">
+                                                    Hemos preparado una experiencia personalizada basada en tus respuestas.
+                                                </p>
+                                            </>
+                                        )}
+
+                                        {/* Kit Items */}
+                                        {assignedProfile && assignedProfile.kitItems.length > 0 && (
+                                            <div className="bg-cafh-light p-6 rounded-2xl mb-6 border border-slate-100 text-left">
+                                                <span className="text-xs font-bold text-cafh-indigo uppercase tracking-widest mb-3 block">Tu Kit Inicial Incluye:</span>
+                                                <ul className="space-y-2">
+                                                    {assignedProfile.kitItems.slice(0, 4).map(item => (
+                                                        <li key={item.id} className="flex items-start gap-2 text-sm text-slate-700">
+                                                            <Check size={14} className="text-cafh-cyan mt-0.5 shrink-0" />
+                                                            <span><strong>{item.type}</strong>: {item.title}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                        {!assignedProfile && (
+                                            <div className="bg-cafh-light p-6 rounded-2xl mb-6 border border-slate-100 text-left">
+                                                <span className="text-xs font-bold text-cafh-indigo uppercase tracking-widest mb-2 block">Tu Kit Inicial Incluye:</span>
+                                                <ul className="space-y-2">
+                                                    <li className="flex items-center gap-2 text-sm text-slate-700"><Check size={14} className="text-cafh-cyan" /> Guía PDF: "Primeros Pasos"</li>
+                                                    <li className="flex items-center gap-2 text-sm text-slate-700"><Check size={14} className="text-cafh-cyan" /> 3 Meditaciones guiadas (Audio)</li>
+                                                    <li className="flex items-center gap-2 text-sm text-slate-700"><Check size={14} className="text-cafh-cyan" /> Acceso a Calendario de Eventos</li>
+                                                </ul>
+                                            </div>
+                                        )}
+
+                                        <button
+                                            onClick={() => setShowRegForm(true)}
+                                            className="w-full bg-cafh-indigo text-white py-4 rounded-xl font-bold text-lg hover:bg-slate-800 transition-colors shadow-xl shadow-cafh-indigo/20"
+                                        >
+                                            Crear mi cuenta gratuita para acceder
+                                        </button>
+                                        <p className="text-xs text-slate-400 mt-3">¿Ya tienes cuenta? <button onClick={() => navigate('/login')} className="text-cafh-indigo font-bold hover:underline">Inicia sesión</button></p>
+                                    </div>
+                                ) : (
+                                    // 2b: Registration form
+                                    <div>
+                                        <button onClick={() => setShowRegForm(false)} className="flex items-center gap-2 text-slate-400 hover:text-slate-600 mb-6 text-sm font-medium transition-colors">
+                                            <ChevronRight size={16} className="rotate-180" /> Volver
+                                        </button>
+                                        <h3 className="text-2xl font-display font-bold text-slate-800 mb-1">Crea tu cuenta</h3>
+                                        {assignedProfile && (
+                                            <p className="text-sm text-slate-500 mb-6">
+                                                Perfil asignado: <span className="font-bold" style={{ color: assignedProfile.color }}>{assignedProfile.emoji} {assignedProfile.name}</span>
+                                            </p>
+                                        )}
+
+                                        {regError && (
+                                            <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-5 flex items-center gap-3 text-sm font-medium border border-red-100">
+                                                <AlertCircle size={16} />
+                                                {regError}
+                                            </div>
+                                        )}
+
+                                        <form onSubmit={handleRegister} className="space-y-4">
+                                            <div>
+                                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Nombre completo</label>
+                                                <div className="relative">
+                                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                                    <input
+                                                        type="text"
+                                                        value={regName}
+                                                        onChange={e => setRegName(e.target.value)}
+                                                        className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
+                                                        placeholder="Tu nombre"
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Email</label>
+                                                <div className="relative">
+                                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                                    <input
+                                                        type="email"
+                                                        value={regEmail}
+                                                        onChange={e => setRegEmail(e.target.value)}
+                                                        className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
+                                                        placeholder="tu@email.com"
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Contraseña</label>
+                                                <div className="relative">
+                                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                                    <input
+                                                        type="password"
+                                                        value={regPass}
+                                                        onChange={e => setRegPass(e.target.value)}
+                                                        className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
+                                                        placeholder="Mínimo 6 caracteres"
+                                                        minLength={6}
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="submit"
+                                                disabled={isRegistering}
+                                                className="w-full bg-cafh-indigo text-white py-4 rounded-xl font-bold text-lg hover:bg-slate-800 transition-colors shadow-xl shadow-cafh-indigo/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                                            >
+                                                {isRegistering ? <Loader2 size={22} className="animate-spin" /> : 'Acceder a mi espacio personalizado'}
+                                            </button>
+                                        </form>
+                                        <p className="text-xs text-slate-400 text-center mt-4">Al registrarte aceptas los términos y condiciones de Cafh.</p>
+                                    </div>
+                                )}
                             </div>
-                        </div>
+                        )}
 
-                        <h3 className="text-2xl md:text-4xl font-display font-bold text-slate-800 mb-8">
-                            {currentQ.question}
-                        </h3>
+                        {/* State 3: Questions */}
+                        {!isAnalyzing && !showResults && (
+                            <>
+                                <div className="mb-8">
+                                    <span className="text-xs font-bold text-cafh-cyan uppercase tracking-widest">Paso {step + 1} de {totalSteps}</span>
+                                    <div className="w-full h-2 bg-slate-100 rounded-full mt-2">
+                                        <div
+                                            className="h-full bg-cafh-cyan rounded-full transition-all duration-500"
+                                            style={{ width: `${((step + 1) / totalSteps) * 100}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
 
-                        <div className="space-y-3">
-                            {currentQ.options.map((option) => (
-                                <button
-                                    key={option.value}
-                                    onClick={() => handleSelect(option.value)}
-                                    className="w-full text-left p-5 rounded-xl border border-slate-200 hover:border-cafh-cyan hover:bg-cafh-light transition-all duration-200 flex items-center justify-between group"
-                                >
-                                    <span className="font-medium text-slate-700 group-hover:text-cafh-indigo text-lg">{option.label}</span>
-                                    <ChevronRight size={20} className="text-slate-300 group-hover:text-cafh-cyan opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" />
-                                </button>
-                            ))}
-                        </div>
-                    </>
-                )}
+                                <h3 className="text-2xl md:text-4xl font-display font-bold text-slate-800 mb-8">
+                                    {currentQ.question}
+                                </h3>
+
+                                <div className="space-y-3">
+                                    {currentQ.options.map((option) => (
+                                        <button
+                                            key={option.value}
+                                            onClick={() => handleSelect(option.value)}
+                                            className="w-full text-left p-5 rounded-xl border border-slate-200 hover:border-cafh-cyan hover:bg-cafh-light transition-all duration-200 flex items-center justify-between group"
+                                        >
+                                            <span className="font-medium text-slate-700 group-hover:text-cafh-indigo text-lg">{option.label}</span>
+                                            <ChevronRight size={20} className="text-slate-300 group-hover:text-cafh-cyan opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" />
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
                     </div>
                 )}
             </div>
@@ -1394,7 +1473,7 @@ export const HomeView: React.FC = () => {
                         </div>
 
                         <div className={`relative z-30 max-w-5xl px-4 md:px-6 flex flex-col ${homeConfig.hero.textAlignment === 'center' ? 'items-center text-center' :
-                                homeConfig.hero.textAlignment === 'right' ? 'items-end text-right' : 'items-start text-left'
+                            homeConfig.hero.textAlignment === 'right' ? 'items-end text-right' : 'items-start text-left'
                             }`}>
                             <div className="mb-6 md:mb-8 p-1 pr-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 animate-fade-in-up flex items-center gap-3">
                                 <div className="bg-cafh-cyan rounded-full p-2 text-cafh-indigo"><Sparkles size={16} /></div>
@@ -1478,10 +1557,10 @@ export const HomeView: React.FC = () => {
                                     const IconComponent = (Lucide as any)[col.icon] || Lucide.HelpCircle;
                                     return (
                                         <div key={idx} className={`space-y-4 ${col.alignment === 'center' ? 'text-center' :
-                                                col.alignment === 'right' ? 'text-right' : 'text-left'
+                                            col.alignment === 'right' ? 'text-right' : 'text-left'
                                             }`}>
                                             <div className={`flex ${col.alignment === 'center' ? 'justify-center' :
-                                                    col.alignment === 'right' ? 'justify-end' : 'justify-start'
+                                                col.alignment === 'right' ? 'justify-end' : 'justify-start'
                                                 } mb-6`}>
                                                 <div className="w-16 h-16 bg-cafh-light rounded-2xl flex items-center justify-center text-cafh-indigo shadow-sm">
                                                     <IconComponent size={32} strokeWidth={1.5} />

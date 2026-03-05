@@ -571,7 +571,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
 
                             {/* Dropdown Panel */}
                             {isProfileOpen && (
-                                <div className="absolute right-0 top-full mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-50 animate-fade-in-up">
+                                <div className="absolute right-0 top-full mt-3 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-40 animate-fade-in-up">
                                     {/* User info header */}
                                     <div className="px-5 py-4 bg-slate-50 border-b border-slate-100">
                                         <div className="w-12 h-12 bg-cafh-indigo rounded-xl flex items-center justify-center text-white mb-3">

@@ -34,6 +34,7 @@ const KEYS = {
     // --- MÓDULO 2: Calendario de Actividades ---
     ACTIVITY_EVENTS: 'cafh_activity_events_v1',
     ACTIVITY_CATS: 'cafh_activity_cats_v1',
+    USERS: 'cafh_users_v1',
 };
 
 // MOCK USERS FOR AUTHENTICATION
@@ -115,6 +116,7 @@ export const db = {
         initStorage(KEYS.MEDIA, MOCK_MEDIA);
         initStorage(KEYS.EMAIL_LOGS, MOCK_EMAIL_LOGS);
         initStorage(KEYS.EMAIL_METRICS, MOCK_EMAIL_METRICS);
+        initStorage(KEYS.USERS, MOCK_USERS);
 
         // New CMS Initializers
         initStorage(KEYS.HOME_CONFIG, DEFAULT_HOME_CONFIG);
@@ -302,23 +304,78 @@ export const db = {
     // AUTHENTICATION MODULE
     auth: {
         login: (email: string, pass: string): User | null => {
-            // Simulated password check (In real app, hash check)
-            // Hardcoded Logic for Prototype:
-            // admin@cafh.cl / admin123
-            // miembro@cafh.cl / miembro123
+            const allUsers: User[] = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
 
-            let user = null;
-            if (email === 'admin@cafh.cl' && pass === 'admin123') {
-                user = MOCK_USERS[0];
-            } else if (email === 'miembro@cafh.cl' && pass === 'miembro123') {
-                user = MOCK_USERS[1];
-            }
+            // Allow login if email exists (prototype bypasses strict real hash pass logic)
+            // For mock demo, if it's admin@cafh.cl, pass must be admin123.
+            // For miembro@cafh.cl, pass must be miembro123.
+            // For newly registered users, accepting any password >= 6 length.
+            const user = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
 
             if (user) {
-                localStorage.setItem(KEYS.SESSION, JSON.stringify(user));
-                return user;
+                const isMockUser = user.email === 'admin@cafh.cl' || user.email === 'miembro@cafh.cl';
+                const passValid = isMockUser
+                    ? (user.email === 'admin@cafh.cl' && pass === 'admin123') || (user.email === 'miembro@cafh.cl' && pass === 'miembro123')
+                    : pass.length >= 6; // for newly registered users
+
+                if (passValid) {
+                    localStorage.setItem(KEYS.SESSION, JSON.stringify(user));
+                    return user;
+                }
             }
             return null;
+        },
+        register: (name: string, email: string): User | null => {
+            const allUsers: User[] = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
+            if (allUsers.find(u => u.email.toLowerCase() === email.toLowerCase())) {
+                return null; // Already exists
+            }
+
+            const newUser: User = {
+                id: `u_${Date.now()}`,
+                name: name.trim(),
+                email: email.trim().toLowerCase(),
+                role: UserRole.MEMBER,
+                avatarUrl: '',
+                tenantId: 't_santiago_01',
+                interests: [],
+                joinedDate: new Date().toISOString().split('T')[0]
+            };
+
+            // Save to Users table
+            allUsers.push(newUser);
+            localStorage.setItem(KEYS.USERS, JSON.stringify(allUsers));
+
+            // Automatically map/create CRM Contact
+            const allContacts = db.crm.getAll();
+            if (!allContacts.find(c => c.email.toLowerCase() === newUser.email)) {
+                db.crm.add({
+                    name: newUser.name,
+                    email: newUser.email,
+                    phone: '',
+                    role: 'Member',
+                    status: 'Subscribed',
+                    lastContact: new Date().toISOString().split('T')[0],
+                    tags: ['web_registration']
+                });
+            }
+
+            return newUser;
+        },
+        resetPassword: (email: string): boolean => {
+            const allUsers: User[] = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
+            const user = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+            if (user) {
+                // Find contact to simulate mail sending
+                const allContacts = db.crm.getAll();
+                const contact = allContacts.find(c => c.email.toLowerCase() === email.toLowerCase());
+
+                if (contact) {
+                    db.emails.send(contact.id, 'Recuperación de contraseña', `<p>Hola ${user.name}, haz click aquí para restablecer tu contraseña.</p>`);
+                }
+                return true;
+            }
+            return false;
         },
         logout: () => {
             localStorage.removeItem(KEYS.SESSION);
@@ -331,14 +388,27 @@ export const db = {
                 return null;
             }
         },
-        getAllUsers: (): User[] => MOCK_USERS,
+        getAllUsers: (): User[] => {
+            return JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
+        },
         updateCurrentUser: (updates: Partial<User>): User | null => {
             try {
                 const session = localStorage.getItem(KEYS.SESSION);
                 if (session) {
                     const current = JSON.parse(session);
                     const updated = { ...current, ...updates };
+
+                    // Update session
                     localStorage.setItem(KEYS.SESSION, JSON.stringify(updated));
+
+                    // Update user in USERS array
+                    const allUsers: User[] = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
+                    const idx = allUsers.findIndex(u => u.id === updated.id);
+                    if (idx !== -1) {
+                        allUsers[idx] = updated;
+                        localStorage.setItem(KEYS.USERS, JSON.stringify(allUsers));
+                    }
+
                     return updated;
                 }
             } catch {

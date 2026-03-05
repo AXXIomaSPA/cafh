@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../storage'; // Now using DB
-import { Calendar, Clock, BookOpen, Star, ArrowRight, User, Settings, LogOut, CheckCircle2, Video, ExternalLink, Mic, MicOff, Camera, CameraOff, MonitorUp, MoreVertical, PhoneOff, Copy, Check, Users, Shield, MessageSquare, Image as ImageIcon, Edit3, FileText, Download, List, Info, Play, Feather, X, Heart, Grid, Save } from 'lucide-react';
+import { Calendar, Clock, BookOpen, Star, ArrowRight, User, Settings, LogOut, CheckCircle2, Video, ExternalLink, Mic, MicOff, Camera, CameraOff, MonitorUp, MoreVertical, PhoneOff, Copy, Check, Users, Shield, MessageSquare, Image as ImageIcon, Edit3, FileText, Download, List, Info, Play, Feather, X, Heart, Grid, Save, Sparkles } from 'lucide-react';
 import { UserActivity, ContentItem, CalendarEvent, User as UserType, UserWizardProfile, BlogPost } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { ZoomWidget } from './MeetingsMemberView';
@@ -414,13 +414,11 @@ export const MemberDashboard: React.FC = () => {
 
             {/* Content Container */}
             <div className="max-w-7xl mx-auto px-6 relative z-20">
-                {activeTab === 'resumen' && (
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        {/* LEFT COLUMN: Main Content */}
-                        <div className="lg:col-span-8 space-y-8">
-                            {/* Personalized Recommendations */}
-
-                            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {/* LEFT COLUMN: Main Content based on Tab */}
+                    <div className="lg:col-span-8 space-y-8">
+                        {activeTab === 'resumen' && (
+                            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 h-full">
                                 <div className="flex items-center justify-between mb-6">
                                     <h2 className="text-2xl font-display font-bold text-slate-800 flex items-center gap-2">
                                         <Star className="text-cafh-peach fill-current" />
@@ -450,128 +448,139 @@ export const MemberDashboard: React.FC = () => {
                                     )}
                                 </div>
                             </div>
-                        </div>
+                        )}
 
-                        {/* RIGHT COLUMN: Sidebar Tools */}
-                        <div className="lg:col-span-4 space-y-8">
-
-                            {/* Zoom Widget — Módulo 1 Fase 3 */}
-                            <ZoomWidget
-                                event={nextEvent}
-                                userId={currentUser?.id || ''}
-                                userName={currentUser?.name || 'Miembro'}
-                            />
-
-                            {/* Blog Feed / News */}
-                            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
-                                <h3 className="text-lg font-bold text-slate-800 mb-4">Novedades para ti</h3>
-                                <div className="space-y-4">
-                                    {recentBlogPosts.length > 0 ? recentBlogPosts.map(post => (
-                                        <div key={post.id} className="flex gap-4 items-center group cursor-pointer">
-                                            <div className="w-16 h-16 bg-slate-200 rounded-xl overflow-hidden shrink-0">
-                                                <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform" referrerPolicy="no-referrer" />
-                                            </div>
-                                            <div>
-                                                <h5 className="font-bold text-slate-700 text-sm leading-tight group-hover:text-cafh-indigo line-clamp-2">{post.title}</h5>
-                                                <span className="text-xs text-slate-400">{post.date} • {post.author}</span>
+                        {activeTab === 'historial' && (
+                            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 h-full">
+                                <h2 className="text-2xl font-display font-bold text-slate-800 mb-6 flex items-center gap-2">
+                                    <Clock className="text-cafh-turquoise" />
+                                    Tu Historial Completo
+                                </h2>
+                                <div className="relative border-l-2 border-slate-100 ml-3 space-y-8 pl-8 py-2">
+                                    {history.length > 0 ? history.map(activity => (
+                                        <div key={activity.id} className="relative">
+                                            <div className="absolute -left-[41px] top-1 w-6 h-6 bg-white border-4 border-cafh-indigo rounded-full"></div>
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                                <div>
+                                                    <h4 className="font-bold text-slate-800 text-lg">{activity.title}</h4>
+                                                    <span className="text-sm text-slate-500">{activity.type} • {activity.date}</span>
+                                                </div>
+                                                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold flex items-center gap-1 w-fit mt-2 sm:mt-0">
+                                                    <CheckCircle2 size={12} /> Completado
+                                                </span>
                                             </div>
                                         </div>
                                     )) : (
-                                        <p className="text-slate-400 text-sm italic">No hay novedades recientes.</p>
+                                        <p className="text-slate-400 italic">No hay registros de actividad todavía.</p>
                                     )}
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                )}
+                        )}
 
-                {activeTab === 'historial' && (
-                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 max-w-4xl">
-                        <h2 className="text-2xl font-display font-bold text-slate-800 mb-6 flex items-center gap-2">
-                            <Clock className="text-cafh-turquoise" />
-                            Tu Historial Completo
-                        </h2>
-                        <div className="relative border-l-2 border-slate-100 ml-3 space-y-8 pl-8 py-2">
-                            {history.length > 0 ? history.map(activity => (
-                                <div key={activity.id} className="relative">
-                                    <div className="absolute -left-[41px] top-1 w-6 h-6 bg-white border-4 border-cafh-indigo rounded-full"></div>
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                        <div>
-                                            <h4 className="font-bold text-slate-800 text-lg">{activity.title}</h4>
-                                            <span className="text-sm text-slate-500">{activity.type} • {activity.date}</span>
-                                        </div>
-                                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold flex items-center gap-1 w-fit mt-2 sm:mt-0">
-                                            <CheckCircle2 size={12} /> Completado
-                                        </span>
+                        {activeTab === 'perfil' && (
+                            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 h-full">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="w-12 h-12 bg-cafh-indigo/10 rounded-2xl flex items-center justify-center text-cafh-indigo">
+                                        <User size={24} />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-slate-800 font-display">Editar Mi Perfil</h2>
+                                        <p className="text-sm text-slate-500">Actualiza tus datos y preferencias personales.</p>
                                     </div>
                                 </div>
-                            )) : (
-                                <p className="text-slate-400 italic">No hay registros de actividad todavía.</p>
-                            )}
-                        </div>
-                    </div>
-                )}
 
-                {activeTab === 'perfil' && (
-                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 max-w-2xl">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 bg-cafh-indigo/10 rounded-2xl flex items-center justify-center text-cafh-indigo">
-                                <User size={24} />
-                            </div>
-                            <div>
-                                <h2 className="text-2xl font-bold text-slate-800 font-display">Editar Mi Perfil</h2>
-                                <p className="text-sm text-slate-500">Actualiza tus datos y preferencias.</p>
-                            </div>
-                        </div>
+                                <div className="space-y-5">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 mb-1.5 ml-1">Nombre Completo</label>
+                                        <input
+                                            type="text"
+                                            value={profileForm.name}
+                                            onChange={e => setProfileForm(f => ({ ...f, name: e.target.value }))}
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cafh-indigo/50 focus:border-cafh-indigo transition-all font-medium text-slate-700"
+                                        />
+                                    </div>
 
-                        <div className="space-y-5">
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-1.5 ml-1">Nombre Completo</label>
-                                <input
-                                    type="text"
-                                    value={profileForm.name}
-                                    onChange={e => setProfileForm(f => ({ ...f, name: e.target.value }))}
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cafh-indigo/50 focus:border-cafh-indigo transition-all font-medium text-slate-700"
-                                />
-                            </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-1.5 ml-1">Teléfono Móvil</label>
+                                            <input
+                                                type="tel"
+                                                value={profileForm.phone}
+                                                onChange={e => setProfileForm(f => ({ ...f, phone: e.target.value }))}
+                                                placeholder="+56 9 1234 5678"
+                                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cafh-indigo/50 focus:border-cafh-indigo transition-all font-medium text-slate-700"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 mb-1.5 ml-1">Ciudad de Residencia</label>
+                                            <input
+                                                type="text"
+                                                value={profileForm.city}
+                                                onChange={e => setProfileForm(f => ({ ...f, city: e.target.value }))}
+                                                placeholder="Ej: Santiago, Buenos Aires"
+                                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cafh-indigo/50 focus:border-cafh-indigo transition-all font-medium text-slate-700"
+                                            />
+                                        </div>
+                                    </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1.5 ml-1">Teléfono Móvil</label>
-                                    <input
-                                        type="tel"
-                                        value={profileForm.phone}
-                                        onChange={e => setProfileForm(f => ({ ...f, phone: e.target.value }))}
-                                        placeholder="+56 9 1234 5678"
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cafh-indigo/50 focus:border-cafh-indigo transition-all font-medium text-slate-700"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-1.5 ml-1">Ciudad de Residencia</label>
-                                    <input
-                                        type="text"
-                                        value={profileForm.city}
-                                        onChange={e => setProfileForm(f => ({ ...f, city: e.target.value }))}
-                                        placeholder="Ej: Santiago, Buenos Aires"
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cafh-indigo/50 focus:border-cafh-indigo transition-all font-medium text-slate-700"
-                                    />
+                                    <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
+                                        <span className="text-xs text-slate-400">Datos vinculados a tu cuenta de acceso y CRM.</span>
+                                        <button
+                                            onClick={handleSaveProfile}
+                                            disabled={isSaving}
+                                            className="px-6 py-3 bg-cafh-indigo text-white rounded-xl font-bold text-sm shadow-xl shadow-cafh-indigo/20 flex items-center gap-2 hover:bg-blue-800 transition-colors disabled:opacity-50"
+                                        >
+                                            {isSaving ? <MoreVertical size={16} className="animate-spin" /> : <Save size={16} />}
+                                            {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
+                        )}
+                    </div>
 
-                            <div className="pt-6 border-t border-slate-100 flex items-center justify-between">
-                                <span className="text-xs text-slate-400">Los cambios se aplican automáticamente en tu sesión.</span>
-                                <button
-                                    onClick={handleSaveProfile}
-                                    disabled={isSaving}
-                                    className="px-6 py-3 bg-cafh-indigo text-white rounded-xl font-bold text-sm shadow-xl shadow-cafh-indigo/20 flex items-center gap-2 hover:bg-blue-800 transition-colors disabled:opacity-50"
-                                >
-                                    {isSaving ? <MoreVertical size={16} className="animate-spin" /> : <Save size={16} />}
-                                    {isSaving ? 'Guardando...' : 'Guardar Cambios'}
-                                </button>
+                    {/* RIGHT COLUMN: Sidebar Tools (Always Visible) */}
+                    <div className="lg:col-span-4 space-y-8">
+                        {/* Zoom Widget */}
+                        <ZoomWidget
+                            event={nextEvent}
+                            userId={currentUser?.id || ''}
+                            userName={currentUser?.name || 'Miembro'}
+                        />
+
+                        {/* News Feed */}
+                        <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                            <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                                <Sparkles className="text-cafh-peach" size={18} />
+                                Novedades para ti
+                            </h3>
+                            <div className="space-y-4">
+                                {recentBlogPosts.length > 0 ? recentBlogPosts.map(post => (
+                                    <div key={post.id} className="flex gap-4 items-center group cursor-pointer border-b border-slate-50 pb-4 last:border-0 last:pb-0">
+                                        <div className="w-16 h-16 bg-slate-200 rounded-xl overflow-hidden shrink-0 shadow-sm">
+                                            <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform" referrerPolicy="no-referrer" />
+                                        </div>
+                                        <div>
+                                            <h5 className="font-bold text-slate-700 text-sm leading-tight group-hover:text-cafh-indigo line-clamp-2 transition-colors">{post.title}</h5>
+                                            <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-wider">{post.date} • {post.author}</p>
+                                        </div>
+                                    </div>
+                                )) : (
+                                    <p className="text-slate-400 text-sm italic">No hay novedades recientes para mostrar.</p>
+                                )}
                             </div>
                         </div>
+
+                        {/* Community Link / Quick Action */}
+                        <div className="p-6 bg-gradient-to-br from-cafh-indigo to-blue-900 rounded-3xl text-white shadow-xl shadow-blue-900/10">
+                            <h4 className="font-bold mb-2">Comunidad Cafh</h4>
+                            <p className="text-xs text-blue-100/70 leading-relaxed mb-4">¿Tienes dudas o quieres contactar con tu acompañante? Estamos para asistirte.</p>
+                            <button className="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-xs font-bold transition-all">
+                                ENVIAR MENSAJE
+                            </button>
+                        </div>
                     </div>
-                )}
+                </div>
             </div>
 
             {/* MODALS */}
