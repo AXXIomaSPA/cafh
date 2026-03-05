@@ -401,8 +401,8 @@ export const MemberDashboard: React.FC = () => {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as any)}
                             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === tab.id
-                                    ? 'bg-slate-50 text-cafh-indigo shadow-sm'
-                                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
+                                ? 'bg-slate-50 text-cafh-indigo shadow-sm'
+                                : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
                                 }`}
                         >
                             <tab.icon size={16} />
@@ -450,7 +450,37 @@ export const MemberDashboard: React.FC = () => {
                                     )}
                                 </div>
                             </div>
+                        </div>
 
+                        {/* RIGHT COLUMN: Sidebar Tools */}
+                        <div className="lg:col-span-4 space-y-8">
+
+                            {/* Zoom Widget — Módulo 1 Fase 3 */}
+                            <ZoomWidget
+                                event={nextEvent}
+                                userId={currentUser?.id || ''}
+                                userName={currentUser?.name || 'Miembro'}
+                            />
+
+                            {/* Blog Feed / News */}
+                            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                                <h3 className="text-lg font-bold text-slate-800 mb-4">Novedades para ti</h3>
+                                <div className="space-y-4">
+                                    {recentBlogPosts.length > 0 ? recentBlogPosts.map(post => (
+                                        <div key={post.id} className="flex gap-4 items-center group cursor-pointer">
+                                            <div className="w-16 h-16 bg-slate-200 rounded-xl overflow-hidden shrink-0">
+                                                <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform" referrerPolicy="no-referrer" />
+                                            </div>
+                                            <div>
+                                                <h5 className="font-bold text-slate-700 text-sm leading-tight group-hover:text-cafh-indigo line-clamp-2">{post.title}</h5>
+                                                <span className="text-xs text-slate-400">{post.date} • {post.author}</span>
+                                            </div>
+                                        </div>
+                                    )) : (
+                                        <p className="text-slate-400 text-sm italic">No hay novedades recientes.</p>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -459,7 +489,7 @@ export const MemberDashboard: React.FC = () => {
                     <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 max-w-4xl">
                         <h2 className="text-2xl font-display font-bold text-slate-800 mb-6 flex items-center gap-2">
                             <Clock className="text-cafh-turquoise" />
-                            Tu Historial Compelto
+                            Tu Historial Completo
                         </h2>
                         <div className="relative border-l-2 border-slate-100 ml-3 space-y-8 pl-8 py-2">
                             {history.length > 0 ? history.map(activity => (
@@ -552,4 +582,4 @@ export const MemberDashboard: React.FC = () => {
             />
         </div>
     );
-}
+};
