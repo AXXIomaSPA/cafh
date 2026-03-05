@@ -41,6 +41,7 @@ export const DashboardView: React.FC = () => {
     // --- KPI calculations (Live Data) ---
     const totalContacts = contacts.length;
     const subscribedContacts = contacts.filter(c => c.status === 'Subscribed').length;
+    const pendingCount = contacts.filter(c => c.status === 'Pending' || c.status === 'new').length;
     const totalEmailsSent = emailLogs.length;
     const openedEmails = emailLogs.filter(l => l.status === 'Opened' || l.status === 'Clicked').length;
     const openRate = totalEmailsSent > 0 ? Math.round((openedEmails / totalEmailsSent) * 100) : 0;
@@ -81,6 +82,15 @@ export const DashboardView: React.FC = () => {
     };
 
     const kpis = [
+        {
+            label: 'Cuentas Pendientes',
+            value: pendingCount.toLocaleString(),
+            sub: 'Aceptación de Admin requerida',
+            icon: AlertTriangle,
+            gradient: 'from-amber-500 to-orange-600',
+            ring: 'ring-amber-200',
+            textColor: 'text-white'
+        },
         {
             label: 'Total Contactos CRM',
             value: totalContacts.toLocaleString(),
@@ -128,7 +138,7 @@ export const DashboardView: React.FC = () => {
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
                 {kpis.map((kpi, i) => {
                     const Icon = kpi.icon;
                     return (

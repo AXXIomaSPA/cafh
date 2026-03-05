@@ -314,6 +314,33 @@ export const MemberDashboard: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20">
+            {/* Modal de Espera para Cuentas Pendientes */}
+            {currentUser?.status === 'Pending' && createPortal(
+                <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 bg-slate-900/60 backdrop-blur-xl animate-in fade-in duration-500">
+                    <div className="w-full max-w-lg bg-white/10 backdrop-blur-md rounded-[3rem] p-10 md:p-14 shadow-2xl border border-white/20 text-center relative overflow-hidden">
+                        <div className="absolute -top-24 -right-24 w-64 h-64 bg-cafh-cyan rounded-full mix-blend-screen opacity-20 blur-3xl"></div>
+                        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-cafh-peach rounded-full mix-blend-screen opacity-20 blur-3xl"></div>
+
+                        <div className="relative z-10 flex flex-col items-center">
+                            <h2 className="text-4xl font-sans font-bold text-white tracking-widest mb-8">Cafh</h2>
+                            <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center text-white mb-6 border border-white/10 shadow-lg">
+                                <Sparkles size={36} />
+                            </div>
+                            <h3 className="text-2xl md:text-3xl font-display font-bold text-white mb-4">¡Gracias por registrarte!</h3>
+                            <p className="text-blue-50 text-base md:text-lg font-light leading-relaxed mb-8">
+                                Hemos recibido tus datos. Nuestro equipo está confirmando tu identidad y membresía en la comunidad.
+                                <br /><br />
+                                <strong className="font-bold">Te enviaremos un correo electrónico</strong> cuando tu cuenta esté validada y lista para acceder a la Zona de Miembros.
+                            </p>
+                            <button onClick={handleLogout} className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-full font-bold transition-all text-sm tracking-wide border border-white/20 flex items-center gap-2">
+                                <LogOut size={16} /> Cerrar sesión y Volver
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
             {/* Modal Popup Viewer */}
             {selectedResource && createPortal(
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm" onClick={() => setSelectedResource(null)}>
