@@ -1,5 +1,5 @@
 import { MOCK_BLOG_POSTS, MOCK_EVENTS, MOCK_CONTENT, MOCK_CONTACTS, MOCK_USER_HISTORY, HERO_CONFIG, BLOG_CONFIG_DEFAULT, MOCK_MEDIA, MOCK_EMAIL_LOGS, MOCK_EMAIL_METRICS, DEFAULT_HOME_CONFIG, PUBLIC_NAV_STRUCTURE } from './constants';
-import { BlogPost, CalendarEvent, ContentItem, Contact, ContactList, UserActivity, ContentInteraction, HeroConfig, BlogConfig, User, UserRole, MediaAsset, EmailLog, EmailMetrics, ChangeLog, HomeConfig, CustomPage, MegaMenuItem, FooterConfig, SMTPConfig, Campaign, AutomationRule, AutomationExecution, AutomationNode, SendEmailNode, WaitNode, ConditionNode, UpdateTagNode, MoveToListNode } from './types';
+import { BlogPost, CalendarEvent, ContentItem, Contact, ContactList, UserActivity, ContentInteraction, HeroConfig, BlogConfig, User, UserRole, MediaAsset, EmailLog, EmailMetrics, ChangeLog, HomeConfig, CustomPage, MegaMenuItem, FooterConfig, SMTPConfig, Campaign, AutomationRule, AutomationExecution, AutomationNode, SendEmailNode, WaitNode, ConditionNode, UpdateTagNode, MoveToListNode, MeetingAgendaItem, MeetingMediaRef, ZoomWidgetConfig, FeedbackQuestion, FeedbackResponse, MemberBadge, BadgeType, ParticipationRecord, ActivityEvent, ActivityCategory } from './types';
 
 // STORAGE KEYS
 const KEYS = {
@@ -25,6 +25,15 @@ const KEYS = {
     CAMPAIGNS: 'cafh_campaigns_v1',
     AUTOMATIONS: 'cafh_automations_v1',
     AUTOMATION_EXECUTIONS: 'cafh_automation_executions_v1',
+    // --- MÓDULO 1: Sala Virtual Zoom ---
+    FEEDBACK_QUESTIONS: 'cafh_feedback_q_v1',
+    FEEDBACK_RESPONSES: 'cafh_feedback_r_v1',
+    MEMBER_BADGES: 'cafh_badges_v1',
+    PARTICIPATION: 'cafh_participation_v1',
+    ZOOM_WIDGET: 'cafh_zoom_widget_v1',
+    // --- MÓDULO 2: Calendario de Actividades ---
+    ACTIVITY_EVENTS: 'cafh_activity_events_v1',
+    ACTIVITY_CATS: 'cafh_activity_cats_v1',
 };
 
 // MOCK USERS FOR AUTHENTICATION
@@ -65,6 +74,31 @@ const initStorage = <T>(key: string, initialData: T): T => {
         return initialData;
     }
 };
+
+// ============================================================
+// --- DEFAULT DATA FOR NEW MODULES (must be before db object) ---
+// ============================================================
+
+const defaultZoomWidgetConfig: ZoomWidgetConfig = {
+    subtitle: 'Reunión Virtual CAFH',
+    activityName: 'Encuentro semanal de meditación',
+    joinButtonText: 'Unirse a la Sala',
+    zoomUrl: '',
+};
+
+const defaultFeedbackQuestions: FeedbackQuestion[] = [
+    { id: 'fq_1', order: 1, text: '¿Cómo evaluarías la calidad general de la sesión?', type: 'rating', isActive: true },
+    { id: 'fq_2', order: 2, text: '¿Qué aspecto te resultó más valioso?', type: 'multiple_choice', options: ['La temática', 'La dinámica grupal', 'El material de apoyo', 'La conducción'], isActive: true },
+    { id: 'fq_3', order: 3, text: 'Comparte algún comentario o sugerencia (opcional)', type: 'text', isActive: true },
+];
+
+const defaultActivityCategories: ActivityCategory[] = [
+    { id: 'cat_1', name: 'Meditación', color: '#6366f1', icon: 'Feather' },
+    { id: 'cat_2', name: 'Estudio', color: '#0891b2', icon: 'BookOpen' },
+    { id: 'cat_3', name: 'Retiro', color: '#059669', icon: 'Map' },
+    { id: 'cat_4', name: 'Charla', color: '#d97706', icon: 'Mic' },
+    { id: 'cat_5', name: 'Comunidad', color: '#db2777', icon: 'Users' },
+];
 
 // DATABASE API
 export const db = {
@@ -252,6 +286,16 @@ export const db = {
         initStorage(KEYS.MEGA_MENU, PUBLIC_NAV_STRUCTURE);
         initStorage(KEYS.CHANGE_LOG, []);
 
+        // Módulo 1 — nuevos stores
+        initStorage(KEYS.FEEDBACK_QUESTIONS, defaultFeedbackQuestions);
+        initStorage(KEYS.FEEDBACK_RESPONSES, []);
+        initStorage(KEYS.MEMBER_BADGES, []);
+        initStorage(KEYS.PARTICIPATION, []);
+        initStorage(KEYS.ZOOM_WIDGET, defaultZoomWidgetConfig);
+        // Módulo 2 — nuevos stores
+        initStorage(KEYS.ACTIVITY_EVENTS, []);
+        initStorage(KEYS.ACTIVITY_CATS, defaultActivityCategories);
+
         console.log("Cafh Local Memory System: Initialized (Simulated 200MB Persistence)");
     },
 
@@ -385,7 +429,7 @@ export const db = {
                     localStorage.setItem(KEYS.CONTENT, JSON.stringify(currentContent));
                 }
             }
-            
+
             return newInteraction;
         },
         getInteractions: (): ContentInteraction[] => {
@@ -1054,7 +1098,198 @@ export const db = {
             }
             return { count: targets.length, executions };
         }
-    }
+    },
+
+    // ============================================================
+    // --- MÓDULO 1: SALA VIRTUAL ZOOM ---
+    // ============================================================
+    meetings: {
+        getAll: (): CalendarEvent[] => JSON.parse(localStorage.getItem(KEYS.EVENTS) || '[]'),
+        getById: (id: string): CalendarEvent | undefined =>
+            (JSON.parse(localStorage.getItem(KEYS.EVENTS) || '[]') as CalendarEvent[]).find(e => e.id === id),
+        save: (event: CalendarEvent): CalendarEvent => {
+            const all: CalendarEvent[] = JSON.parse(localStorage.getItem(KEYS.EVENTS) || '[]');
+            const idx = all.findIndex(e => e.id === event.id);
+            if (idx !== -1) all[idx] = event; else all.push(event);
+            localStorage.setItem(KEYS.EVENTS, JSON.stringify(all));
+            return event;
+        },
+        delete: (id: string): void => {
+            const updated = (JSON.parse(localStorage.getItem(KEYS.EVENTS) || '[]') as CalendarEvent[]).filter(e => e.id !== id);
+            localStorage.setItem(KEYS.EVENTS, JSON.stringify(updated));
+        },
+        create: (data: Omit<CalendarEvent, 'id'>): CalendarEvent => {
+            const event: CalendarEvent = { ...data, id: `ev_${Date.now()}` };
+            const all: CalendarEvent[] = JSON.parse(localStorage.getItem(KEYS.EVENTS) || '[]');
+            all.push(event);
+            localStorage.setItem(KEYS.EVENTS, JSON.stringify(all));
+            return event;
+        },
+        getZoomConfig: (): ZoomWidgetConfig => {
+            try { return JSON.parse(localStorage.getItem(KEYS.ZOOM_WIDGET) || JSON.stringify(defaultZoomWidgetConfig)); }
+            catch { return defaultZoomWidgetConfig; }
+        },
+        updateZoomConfig: (cfg: ZoomWidgetConfig): ZoomWidgetConfig => {
+            localStorage.setItem(KEYS.ZOOM_WIDGET, JSON.stringify(cfg));
+            return cfg;
+        },
+    },
+
+    // ============================================================
+    // --- MÓDULO 1: FEEDBACK POST-SESIÓN ---
+    // ============================================================
+    feedback: {
+        getQuestions: (): FeedbackQuestion[] => {
+            try { return JSON.parse(localStorage.getItem(KEYS.FEEDBACK_QUESTIONS) || JSON.stringify(defaultFeedbackQuestions)); }
+            catch { return defaultFeedbackQuestions; }
+        },
+        saveQuestions: (questions: FeedbackQuestion[]): FeedbackQuestion[] => {
+            localStorage.setItem(KEYS.FEEDBACK_QUESTIONS, JSON.stringify(questions));
+            return questions;
+        },
+        getResponses: (eventId?: string): FeedbackResponse[] => {
+            try {
+                const all: FeedbackResponse[] = JSON.parse(localStorage.getItem(KEYS.FEEDBACK_RESPONSES) || '[]');
+                return eventId ? all.filter(r => r.eventId === eventId) : all;
+            } catch { return []; }
+        },
+        submitResponse: (data: Omit<FeedbackResponse, 'id'>): FeedbackResponse => {
+            const all: FeedbackResponse[] = JSON.parse(localStorage.getItem(KEYS.FEEDBACK_RESPONSES) || '[]');
+            const response: FeedbackResponse = { ...data, id: `fr_${Date.now()}` };
+            all.unshift(response);
+            localStorage.setItem(KEYS.FEEDBACK_RESPONSES, JSON.stringify(all));
+            // Marcar participación como respondida
+            const partAll: ParticipationRecord[] = JSON.parse(localStorage.getItem(KEYS.PARTICIPATION) || '[]');
+            const rec = partAll.find(p => p.userId === data.userId && p.eventId === data.eventId);
+            if (rec) { rec.feedbackSubmitted = true; rec.feedbackBlocksNext = false; localStorage.setItem(KEYS.PARTICIPATION, JSON.stringify(partAll)); }
+            return response;
+        },
+        hasBlockingFeedback: (userId: string): boolean => {
+            const all: ParticipationRecord[] = JSON.parse(localStorage.getItem(KEYS.PARTICIPATION) || '[]');
+            return all.filter(p => p.userId === userId).some(p => p.feedbackBlocksNext === true);
+        },
+    },
+
+    // ============================================================
+    // --- MÓDULO 1: GAMIFICACIÓN ---
+    // ============================================================
+    gamification: {
+        getBadges: (userId?: string): MemberBadge[] => {
+            try {
+                const all: MemberBadge[] = JSON.parse(localStorage.getItem(KEYS.MEMBER_BADGES) || '[]');
+                return userId ? all.filter(b => b.userId === userId) : all;
+            } catch { return []; }
+        },
+        awardBadge: (data: Omit<MemberBadge, 'id'>): MemberBadge => {
+            const all: MemberBadge[] = JSON.parse(localStorage.getItem(KEYS.MEMBER_BADGES) || '[]');
+            const badge: MemberBadge = { ...data, id: `badge_${Date.now()}` };
+            all.unshift(badge);
+            localStorage.setItem(KEYS.MEMBER_BADGES, JSON.stringify(all));
+            return badge;
+        },
+        removeBadge: (id: string): void => {
+            const updated = (JSON.parse(localStorage.getItem(KEYS.MEMBER_BADGES) || '[]') as MemberBadge[]).filter(b => b.id !== id);
+            localStorage.setItem(KEYS.MEMBER_BADGES, JSON.stringify(updated));
+        },
+        getParticipation: (userId?: string): ParticipationRecord[] => {
+            try {
+                const all: ParticipationRecord[] = JSON.parse(localStorage.getItem(KEYS.PARTICIPATION) || '[]');
+                return userId ? all.filter(p => p.userId === userId) : all;
+            } catch { return []; }
+        },
+        recordParticipation: (data: Omit<ParticipationRecord, 'id'>): ParticipationRecord => {
+            const all: ParticipationRecord[] = JSON.parse(localStorage.getItem(KEYS.PARTICIPATION) || '[]');
+            const record: ParticipationRecord = { ...data, id: `part_${Date.now()}` };
+            all.unshift(record);
+            localStorage.setItem(KEYS.PARTICIPATION, JSON.stringify(all));
+            return record;
+        },
+        updateParticipationRecord: (id: string, updates: Partial<ParticipationRecord>): void => {
+            const all: ParticipationRecord[] = JSON.parse(localStorage.getItem(KEYS.PARTICIPATION) || '[]');
+            const idx = all.findIndex(p => p.id === id);
+            if (idx !== -1) { all[idx] = { ...all[idx], ...updates }; localStorage.setItem(KEYS.PARTICIPATION, JSON.stringify(all)); }
+        },
+        getRanking: (): { userId: string; userName: string; points: number; badges: number; participations: number }[] => {
+            const allPart: ParticipationRecord[] = JSON.parse(localStorage.getItem(KEYS.PARTICIPATION) || '[]');
+            const allBadges: MemberBadge[] = JSON.parse(localStorage.getItem(KEYS.MEMBER_BADGES) || '[]');
+            const map: Record<string, { userId: string; userName: string; points: number; badges: number; participations: number }> = {};
+            allPart.forEach(p => {
+                if (!map[p.userId]) map[p.userId] = { userId: p.userId, userName: p.userId, points: 0, badges: 0, participations: 0 };
+                map[p.userId].participations++;
+                map[p.userId].points += p.feedbackSubmitted ? 10 : 5;
+            });
+            allBadges.forEach(b => {
+                if (!map[b.userId]) map[b.userId] = { userId: b.userId, userName: b.userId, points: 0, badges: 0, participations: 0 };
+                map[b.userId].badges++;
+                map[b.userId].points += 20;
+            });
+            return Object.values(map).sort((a, b) => b.points - a.points);
+        },
+    },
+
+    // ============================================================
+    // --- MÓDULO 2: CALENDARIO DE ACTIVIDADES ---
+    // ============================================================
+    activities: {
+        getAll: (): ActivityEvent[] => {
+            try { return JSON.parse(localStorage.getItem(KEYS.ACTIVITY_EVENTS) || '[]'); }
+            catch { return []; }
+        },
+        getById: (id: string): ActivityEvent | undefined =>
+            (JSON.parse(localStorage.getItem(KEYS.ACTIVITY_EVENTS) || '[]') as ActivityEvent[]).find(a => a.id === id),
+        save(activity: ActivityEvent): ActivityEvent {
+            const all: ActivityEvent[] = JSON.parse(localStorage.getItem(KEYS.ACTIVITY_EVENTS) || '[]');
+            const updated = { ...activity, updatedAt: new Date().toISOString() };
+            const idx = all.findIndex(a => a.id === activity.id);
+            if (idx !== -1) all[idx] = updated; else all.unshift(updated);
+            localStorage.setItem(KEYS.ACTIVITY_EVENTS, JSON.stringify(all));
+            if (activity.modality === 'Virtual' && activity.zoomUrl) this._syncToMeetings(updated);
+            return updated;
+        },
+        create(data: Omit<ActivityEvent, 'id' | 'createdAt' | 'updatedAt'>): ActivityEvent {
+            const now = new Date().toISOString();
+            return this.save({ ...data, id: `act_${Date.now()}`, createdAt: now, updatedAt: now });
+        },
+        delete: (id: string): void => {
+            const updated = (JSON.parse(localStorage.getItem(KEYS.ACTIVITY_EVENTS) || '[]') as ActivityEvent[]).filter(a => a.id !== id);
+            localStorage.setItem(KEYS.ACTIVITY_EVENTS, JSON.stringify(updated));
+        },
+        _syncToMeetings(activity: ActivityEvent): void {
+            if (activity.modality !== 'Virtual') return;
+            const allEvents: CalendarEvent[] = JSON.parse(localStorage.getItem(KEYS.EVENTS) || '[]');
+            const existing = activity.linkedMeetingId ? allEvents.find(e => e.id === activity.linkedMeetingId) : undefined;
+            const calEvent: CalendarEvent = {
+                id: existing?.id || `ev_${Date.now()}`,
+                title: activity.title,
+                date: activity.startDate,
+                day: new Date(activity.startDate + 'T12:00:00').getDate().toString(),
+                month: new Date(activity.startDate + 'T12:00:00').toLocaleDateString('es-CL', { month: 'short' }),
+                time: activity.startTime, location: 'Online', type: 'Online', color: '#4f46e5',
+                platform: 'Zoom', meetingUrl: activity.zoomUrl, eventStatus: 'Programada', linkedActivityId: activity.id,
+            };
+            const eIdx = allEvents.findIndex(e => e.id === calEvent.id);
+            if (eIdx !== -1) allEvents[eIdx] = calEvent; else allEvents.push(calEvent);
+            localStorage.setItem(KEYS.EVENTS, JSON.stringify(allEvents));
+            // Guardar linkedMeetingId si es nuevo
+            if (!activity.linkedMeetingId) {
+                const actAll: ActivityEvent[] = JSON.parse(localStorage.getItem(KEYS.ACTIVITY_EVENTS) || '[]');
+                const aIdx = actAll.findIndex(a => a.id === activity.id);
+                if (aIdx !== -1) { actAll[aIdx].linkedMeetingId = calEvent.id; localStorage.setItem(KEYS.ACTIVITY_EVENTS, JSON.stringify(actAll)); }
+            }
+        },
+        getCategories: (): ActivityCategory[] => {
+            try { return JSON.parse(localStorage.getItem(KEYS.ACTIVITY_CATS) || JSON.stringify(defaultActivityCategories)); }
+            catch { return defaultActivityCategories; }
+        },
+        saveCategories: (cats: ActivityCategory[]): ActivityCategory[] => {
+            localStorage.setItem(KEYS.ACTIVITY_CATS, JSON.stringify(cats));
+            return cats;
+        },
+        getFeatured: (): ActivityEvent[] =>
+            (JSON.parse(localStorage.getItem(KEYS.ACTIVITY_EVENTS) || '[]') as ActivityEvent[])
+                .filter(a => a.status === 'Publicado' && a.featuredInDashboard)
+                .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()),
+    },
 };
 
 // Immediately initialize to ensure data exists before any UI renders

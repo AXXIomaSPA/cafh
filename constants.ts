@@ -181,7 +181,7 @@ export const MOCK_EVENTS: CalendarEvent[] = [
         type: 'Online',
         color: 'bg-cafh-peach',
         meetingUrl: 'https://meet.google.com/abc-defg-hij',
-        platform: 'Google Meet',
+        platform: 'Zoom',
         // MEET LOBBY CONFIGURATION
         agenda: [
             "19:50 - Apertura de Sala de Espera",
@@ -217,7 +217,7 @@ export const MOCK_EVENTS: CalendarEvent[] = [
         type: 'Híbrido',
         color: 'bg-cafh-clay',
         meetingUrl: 'https://meet.google.com/xyz-uvwx-yz1',
-        platform: 'Google Meet',
+        platform: 'Zoom',
         agenda: [
             "18:30 - Lectura del Reglamento",
             "18:45 - Estudio del Capítulo 4",

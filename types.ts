@@ -231,10 +231,17 @@ export interface CalendarEvent {
   meetingUrl?: string;
   zoomId?: string;
   zoomPassword?: string;
-  platform?: 'Google Meet' | 'Zoom' | 'Teams';
-  agenda?: string[];
-  resources?: EventResource[];
+  platform?: 'Zoom';          // Solo Zoom — regla de negocio
+  agenda?: string[];          // Mantenido por compatibilidad
+  resources?: EventResource[]; // Mantenido por compatibilidad
   seo?: SEOConfig;
+  // --- Campos nuevos Módulo 1 (todos opcionales, sin romper nada) ---
+  organizerContactId?: string;  // ID en db.crm
+  mediaRefs?: MeetingMediaRef[];      // Refs a Biblioteca de Medios (solo lectura)
+  agendaItems?: MeetingAgendaItem[];  // Agenda estructurada
+  zoomWidgetConfig?: ZoomWidgetConfig;
+  eventStatus?: 'Programada' | 'En curso' | 'Finalizada';
+  linkedActivityId?: string;   // ID en ActivityEvent (sync M2→M1)
 }
 
 // HERO MEDIA
@@ -611,4 +618,117 @@ export interface SiteSettings {
   notifyOnBounce: boolean;
   notifyOnAutomationFail: boolean;
   weeklyDigest: boolean;
+}
+
+// ============================================================
+// --- MÓDULO 1: SALA DE REUNIONES VIRTUALES (Zoom) ---
+// ============================================================
+
+/** Punto de agenda con duración estimada */
+export interface MeetingAgendaItem {
+  id: string;
+  order: number;
+  title: string;
+  description?: string;
+  durationMinutes: number;
+}
+
+/** Referencia a un asset de la Biblioteca de Medios. NUNCA se duplica ni modifica. */
+export interface MeetingMediaRef {
+  mediaAssetId: string;
+  label?: string;
+}
+
+/** Configuración del widget Zoom visible en el perfil del miembro */
+export interface ZoomWidgetConfig {
+  subtitle: string;
+  activityName: string;
+  joinButtonText: string;
+  zoomUrl: string;
+}
+
+/** Pregunta del cuestionario de feedback post-sesión */
+export interface FeedbackQuestion {
+  id: string;
+  order: number;
+  text: string;
+  type: 'rating' | 'multiple_choice' | 'text';
+  options?: string[];   // Solo para tipo multiple_choice
+  isActive: boolean;
+}
+
+/** Respuesta de un miembro a un cuestionario post-sesión */
+export interface FeedbackResponse {
+  id: string;
+  eventId: string;
+  userId: string;
+  userName: string;
+  submittedAt: string;
+  answers: {
+    questionId: string;
+    questionText: string;
+    value: string | number;
+  }[];
+  overallRating: number;   // Promedio 1-5 para analytics
+}
+
+/** Tipos de reconocimiento en el sistema de gamificación */
+export type BadgeType = 'estrella' | 'medalla_bronce' | 'medalla_plata' | 'medalla_oro' | 'especial';
+
+/** Medalla/reconocimiento asignado a un miembro */
+export interface MemberBadge {
+  id: string;
+  userId: string;
+  type: BadgeType;
+  label: string;
+  reason: string;
+  awardedAt: string;
+  awardedBy: string;   // userId del admin que lo asignó
+}
+
+/** Registro de participación de un miembro en una actividad */
+export interface ParticipationRecord {
+  id: string;
+  userId: string;
+  eventId: string;
+  eventTitle: string;
+  participatedAt: string;
+  feedbackSubmitted: boolean;
+  feedbackBlocksNext: boolean;  // true si NO respondió → bloquea próxima actividad
+}
+
+// ============================================================
+// --- MÓDULO 2: CALENDARIO DE ACTIVIDADES ---
+// ============================================================
+
+/** Categoría de actividad configurable desde admin */
+export interface ActivityCategory {
+  id: string;
+  name: string;
+  color: string;   // hex
+  icon: string;    // nombre de ícono Lucide
+}
+
+/** Evento del calendario de actividades */
+export interface ActivityEvent {
+  id: string;
+  title: string;
+  description: string;       // HTML del editor rico del sistema
+  category: string;          // ID de ActivityCategory
+  tags: string[];
+  startDate: string;         // YYYY-MM-DD
+  endDate: string;
+  startTime: string;         // HH:MM
+  endTime: string;
+  modality: 'Virtual' | 'Presencial' | 'Híbrida';
+  organizerContactId?: string;
+  status: 'Borrador' | 'Publicado' | 'Archivado';
+  imageUrl?: string;
+  seo?: SEOConfig;
+  featuredInDashboard: boolean;  // Replica en "Novedades para Ti"
+  // Sync bidireccional con Módulo 1 (solo si modality === 'Virtual')
+  linkedMeetingId?: string;   // ID del CalendarEvent sincronizado
+  zoomUrl?: string;
+  createdAt: string;
+  updatedAt: string;
 }
