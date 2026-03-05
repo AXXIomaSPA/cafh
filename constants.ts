@@ -3,7 +3,7 @@ import { Tenant, Contact, AutomationWorkflow, ContentItem, HeroConfig, BlogConfi
 import {
     LayoutDashboard, Users, FileText, Settings, BookOpen, MessageCircle, BarChart3,
     Heart, Sun, Cloud, Anchor, Feather, Compass, Map, Coffee, Book, Video, Calendar, Sparkles,
-    Image as ImageIcon, File, Music, Film, Mail, Send, AlertTriangle, CheckCircle, BarChart, Zap
+    Image as ImageIcon, File, Music, Film, Mail, Send, AlertTriangle, CheckCircle, BarChart, Zap, CalendarDays
 } from 'lucide-react';
 
 export const CURRENT_TENANT: Tenant = {
@@ -528,6 +528,8 @@ export const ADMIN_NAV_ITEMS = [
     { icon: FileText, label: 'CMS & Contenidos', path: '/admin/cms' },
     { icon: ImageIcon, label: 'Biblioteca Medios', path: '/admin/media' },
     { icon: BarChart3, label: 'Analítica', path: '/admin/analytics' },
+    { icon: Video, label: 'Sala Virtual', path: '/admin/meetings' },
+    { icon: CalendarDays, label: 'Calendario', path: '/admin/activities' },
     { icon: Compass, label: 'Viaje Cafh', path: '/admin/journey' },
     { icon: Settings, label: 'Configuración', path: '/admin/settings' },
 ];
