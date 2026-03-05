@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown, Bell, Search, User as UserIcon, LogOut, Globe, ChevronRight, FileText, KeyRound } from 'lucide-react';
+import { Menu, X, ChevronDown, Bell, Search, User as UserIcon, LogOut, Globe, ChevronRight, FileText, KeyRound, HelpCircle } from 'lucide-react';
+import * as Lucide from 'lucide-react';
 import { PUBLIC_NAV_STRUCTURE, ADMIN_NAV_ITEMS, CURRENT_TENANT } from '../constants';
 import { db } from '../storage';
 import { User, UserRole } from '../types';
@@ -72,7 +73,6 @@ const MegaMenuOverlay: React.FC<{ activeLabel: string | null, close: () => void 
                             </h4>
                             <ul className="space-y-4">
                                 {col.items.map((subItem) => {
-                                    const Icon = subItem.icon;
                                     return (
                                         <li key={subItem.path}>
                                             <NavLink
@@ -80,9 +80,14 @@ const MegaMenuOverlay: React.FC<{ activeLabel: string | null, close: () => void 
                                                 onClick={close}
                                                 className="group flex items-start gap-4 p-3 -mx-3 rounded-2xl hover:bg-white hover:shadow-lg hover:shadow-slate-100/50 transition-all duration-300"
                                             >
-                                                <div className="w-12 h-12 rounded-2xl bg-cafh-light group-hover:bg-cafh-indigo group-hover:text-white flex items-center justify-center text-cafh-indigo transition-colors duration-300 shrink-0 shadow-sm border border-white">
-                                                    <Icon size={22} strokeWidth={1.5} />
-                                                </div>
+                                                {(() => {
+                                                    const IconComponent = (Lucide as any)[subItem.icon || ''] || HelpCircle;
+                                                    return (
+                                                        <div className="w-12 h-12 rounded-2xl bg-cafh-light group-hover:bg-cafh-indigo group-hover:text-white flex items-center justify-center text-cafh-indigo transition-colors duration-300 shrink-0 shadow-sm border border-white">
+                                                            <IconComponent size={22} strokeWidth={1.5} />
+                                                        </div>
+                                                    );
+                                                })()}
                                                 <div>
                                                     <span className="block text-base font-bold text-slate-700 group-hover:text-cafh-indigo transition-colors">{subItem.label}</span>
                                                     <span className="block text-sm text-slate-500 leading-snug mt-1 group-hover:text-slate-600">{subItem.desc}</span>
@@ -114,7 +119,7 @@ export const PublicHeader: React.FC = () => {
         setDynamicPages(pages.map(p => ({
             label: p.title,
             path: `/p/${p.slug}`,
-            icon: FileText,
+            icon: 'FileText',
             desc: p.seo.description || 'Página personalizada.'
         })));
     }, []);
@@ -125,7 +130,7 @@ export const PublicHeader: React.FC = () => {
                 ...item,
                 columns: [{
                     title: 'Contenidos Publicados',
-                    items: dynamicPages.length > 0 ? dynamicPages : [{ label: 'Próximamente', path: '#', icon: FileText, desc: 'Aún no hay páginas publicadas.' }]
+                    items: dynamicPages.length > 0 ? dynamicPages : [{ label: 'Próximamente', path: '#', icon: 'FileText', desc: 'Aún no hay páginas publicadas.' }]
                 }]
             };
         }
@@ -493,7 +498,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
 
                 <nav className="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto">
                     {ADMIN_NAV_ITEMS.map((item) => {
-                        const Icon = item.icon;
+                        const IconComponent = (Lucide as any)[item.icon] || Lucide.HelpCircle;
                         const isActive = location.pathname === item.path;
                         return (
                             <div
@@ -507,7 +512,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
                                     : 'hover:bg-slate-800 hover:text-white'
                                     }`}
                             >
-                                <Icon size={20} className={isActive ? 'text-cafh-cyan' : 'opacity-70'} />
+                                <IconComponent size={20} className={isActive ? 'text-cafh-cyan' : 'opacity-70'} />
                                 <span className="text-sm font-medium">{item.label}</span>
                             </div>
                         );

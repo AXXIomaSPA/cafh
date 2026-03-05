@@ -294,15 +294,15 @@ export const PUBLIC_NAV_STRUCTURE = [
             {
                 title: 'Pilares',
                 items: [
-                    { label: 'Vida Interior', path: '/method/inner-life', icon: Heart, desc: 'El cultivo del ser.' },
-                    { label: 'Mística del Corazón', path: '/method/mystic', icon: Sparkles, desc: 'Conexión profunda.' },
+                    { label: 'Vida Interior', path: '/method/inner-life', icon: 'Heart', desc: 'El cultivo del ser.' },
+                    { label: 'Mística del Corazón', path: '/method/mystic', icon: 'Sparkles', desc: 'Conexión profunda.' },
                 ]
             },
             {
                 title: 'Prácticas',
                 items: [
-                    { label: 'Meditación', path: '/method/meditation', icon: Cloud, desc: 'Silencio y encuentro.' },
-                    { label: 'Estudio', path: '/method/study', icon: Book, desc: 'Expansión de la conciencia.' },
+                    { label: 'Meditación', path: '/method/meditation', icon: 'Cloud', desc: 'Silencio y encuentro.' },
+                    { label: 'Estudio', path: '/method/study', icon: 'Book', desc: 'Expansión de la conciencia.' },
                 ]
             }
         ]
@@ -315,15 +315,15 @@ export const PUBLIC_NAV_STRUCTURE = [
             {
                 title: 'Formatos',
                 items: [
-                    { label: 'Biblioteca Digital', path: '/resources/library', icon: BookOpen, desc: 'Textos y documentos.' },
-                    { label: 'Videos y Charlas', path: '/resources/videos', icon: Video, desc: 'Contenido audiovisual.' },
+                    { label: 'Biblioteca Digital', path: '/resources/library', icon: 'BookOpen', desc: 'Textos y documentos.' },
+                    { label: 'Videos y Charlas', path: '/resources/videos', icon: 'Video', desc: 'Contenido audiovisual.' },
                 ]
             },
             {
                 title: 'Inspiración',
                 items: [
-                    { label: 'Blog', path: '/resources/blog', icon: Feather, desc: 'Reflexiones semanales.' },
-                    { label: 'Podcast', path: '/resources/podcast', icon: MessageCircle, desc: 'Escucha en el camino.' },
+                    { label: 'Blog', path: '/resources/blog', icon: 'Feather', desc: 'Reflexiones semanales.' },
+                    { label: 'Podcast', path: '/resources/podcast', icon: 'MessageCircle', desc: 'Escucha en el camino.' },
                 ]
             }
         ]
@@ -336,14 +336,14 @@ export const PUBLIC_NAV_STRUCTURE = [
             {
                 title: 'Eventos',
                 items: [
-                    { label: 'Calendario', path: '/activities/calendar', icon: Calendar, desc: 'Próximos encuentros.' },
-                    { label: 'Retiros', path: '/activities/retreats', icon: Sun, desc: 'Espacios de silencio.' },
+                    { label: 'Calendario', path: '/activities/calendar', icon: 'Calendar', desc: 'Próximos encuentros.' },
+                    { label: 'Retiros', path: '/activities/retreats', icon: 'Sun', desc: 'Espacios de silencio.' },
                 ]
             },
             {
                 title: 'Grupos',
                 items: [
-                    { label: 'Reuniones', path: '/activities/meetings', icon: Coffee, desc: 'Diálogos con sentido.' },
+                    { label: 'Reuniones', path: '/activities/meetings', icon: 'Coffee', desc: 'Diálogos con sentido.' },
                 ]
             }
         ]
@@ -522,14 +522,14 @@ export const MOCK_MEDIA: MediaAsset[] = [
 ];
 
 export const ADMIN_NAV_ITEMS = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/admin' },
-    { icon: Users, label: 'CRM & Contactos', path: '/admin/crm' },
-    { icon: MessageCircle, label: 'Automatizaciones', path: '/admin/automations' },
-    { icon: FileText, label: 'CMS & Contenidos', path: '/admin/cms' },
-    { icon: ImageIcon, label: 'Biblioteca Medios', path: '/admin/media' },
-    { icon: BarChart3, label: 'Analítica', path: '/admin/analytics' },
-    { icon: Video, label: 'Sala Virtual', path: '/admin/meetings' },
-    { icon: CalendarDays, label: 'Calendario', path: '/admin/activities' },
-    { icon: Compass, label: 'Viaje Cafh', path: '/admin/journey' },
-    { icon: Settings, label: 'Configuración', path: '/admin/settings' },
+    { icon: 'LayoutDashboard', label: 'Dashboard', path: '/admin' },
+    { icon: 'Users', label: 'CRM & Contactos', path: '/admin/crm' },
+    { icon: 'MessageCircle', label: 'Automatizaciones', path: '/admin/automations' },
+    { icon: 'FileText', label: 'CMS & Contenidos', path: '/admin/cms' },
+    { icon: 'Image', label: 'Biblioteca Medios', path: '/admin/media' },
+    { icon: 'BarChart3', label: 'Analítica', path: '/admin/analytics' },
+    { icon: 'Video', label: 'Sala Virtual', path: '/admin/meetings' },
+    { icon: 'CalendarDays', label: 'Calendario', path: '/admin/activities' },
+    { icon: 'Compass', label: 'Viaje Cafh', path: '/admin/journey' },
+    { icon: 'Settings', label: 'Configuración', path: '/admin/settings' },
 ];

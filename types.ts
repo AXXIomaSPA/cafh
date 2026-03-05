@@ -32,6 +32,7 @@ export interface User {
   coverUrl?: string;
   phone?: string;
   city?: string;
+  status?: 'Active' | 'Pending' | 'Blocked';
 }
 
 export interface UserActivity {

@@ -178,7 +178,7 @@ export const MemberDashboard: React.FC = () => {
             const raw = localStorage.getItem('cafh_user_wizard_profiles_v1');
             if (raw && user) {
                 const allProfiles: UserWizardProfile[] = JSON.parse(raw);
-                userWizardProfile = allProfiles.find(p => p.userId === user.id) || allProfiles[allProfiles.length - 1] || null;
+                userWizardProfile = allProfiles.find(p => p.userId === user.id) || null;
             }
         } catch { /* ignore parse errors */ }
         setWizardProfile(userWizardProfile);
@@ -202,9 +202,9 @@ export const MemberDashboard: React.FC = () => {
 
         const allEvents = db.events.getAll();
 
-        const recommendations = [...contents, ...medias].filter(c =>
+        const recommendations = userWizardProfile ? [...contents, ...medias].filter(c =>
             c.tags.some((tag: string) => userInterests.includes(tag))
-        ).slice(0, 6); // Limit to 6 recommendations
+        ).slice(0, 6) : []; // No contents until wizard is done
 
         // 5. Load real blog posts (latest 2)
         const allBlogPosts = db.blog.getAll();
@@ -419,12 +419,41 @@ export const MemberDashboard: React.FC = () => {
                     <div className="lg:col-span-8 space-y-8">
                         {activeTab === 'resumen' && (
                             <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 h-full">
+                                {/* Journey Banner - Shown only if no profile */}
+                                {!wizardProfile && (
+                                    <div className="mb-10 p-1 relative overflow-hidden group rounded-[2rem] animate-fade-in-up">
+                                        <div className="absolute inset-0 bg-gradient-to-r from-cafh-indigo to-blue-900 opacity-90 group-hover:opacity-100 transition-opacity"></div>
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-cafh-cyan/20 blur-3xl -mr-16 -mt-16"></div>
+                                        <div className="relative z-10 p-8 flex flex-col md:flex-row items-center justify-between gap-8 text-white text-center md:text-left">
+                                            <div className="flex-1">
+                                                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest mb-4 border border-white/20">
+                                                    <Sparkles size={14} className="text-cafh-cyan" />
+                                                    Personalización
+                                                </div>
+                                                <h3 className="text-3xl font-display font-bold mb-2">Comienza tu Viaje de Autoconocimiento</h3>
+                                                <p className="text-blue-100/70 text-sm max-w-md leading-relaxed">
+                                                    Al completar tu perfil, prepararemos una experiencia personalizada con contenidos, actividades y guías exclusivas basadas en tu momento actual.
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() => navigate('/?wizard=open')}
+                                                className="px-8 py-4 bg-cafh-cyan text-cafh-indigo rounded-2xl font-bold hover:bg-white hover:scale-105 transition-all shadow-xl shadow-cafh-cyan/20 shrink-0 flex items-center gap-2 group/btn"
+                                            >
+                                                <span>Iniciar mi Viaje</span>
+                                                <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="flex items-center justify-between mb-6">
                                     <h2 className="text-2xl font-display font-bold text-slate-800 flex items-center gap-2">
                                         <Star className="text-cafh-peach fill-current" />
                                         Tu Biblioteca Personalizada
                                     </h2>
-                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden md:block">Basado en tus intereses</span>
+                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden md:block">
+                                        {wizardProfile ? 'Basado en tu perfil' : 'Contenidos destacados'}
+                                    </span>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -444,7 +473,13 @@ export const MemberDashboard: React.FC = () => {
                                             </div>
                                         </div>
                                     )) : (
-                                        <p className="text-slate-500 italic">Completa "Comenzar el Viaje" o añade tags a tu perfil para ver recomendaciones.</p>
+                                        <div className="col-span-1 md:col-span-2 py-20 text-center bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
+                                            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-slate-300 mx-auto mb-4 shadow-sm">
+                                                <Sparkles size={30} className="text-cafh-cyan/50" />
+                                            </div>
+                                            <p className="text-slate-500 font-medium">No hay contenidos hasta que realices tu viaje</p>
+                                            <p className="text-slate-400 text-sm mt-2">Personaliza tu experiencia completando el asistente.</p>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -478,18 +513,47 @@ export const MemberDashboard: React.FC = () => {
                         )}
 
                         {activeTab === 'perfil' && (
-                            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 h-full">
-                                <div className="flex items-center gap-3 mb-6">
+                            <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 h-full relative overflow-hidden">
+                                {/* Profile Badge Overlay - Only if wizard completed */}
+                                {wizardProfile && (
+                                    <div className="absolute top-8 right-8 flex flex-col items-center animate-fade-in-up">
+                                        <div className="w-16 h-16 bg-cafh-light rounded-[1.2rem] flex items-center justify-center text-3xl shadow-sm border border-slate-100 mb-2">
+                                            {wizardProfile.profileTypeName === 'Contemplativo' ? '🌿' :
+                                                wizardProfile.profileTypeName === 'Comunitario' ? '🤝' :
+                                                    wizardProfile.profileTypeName === 'Explorador' ? '📚' :
+                                                        wizardProfile.profileTypeName === 'Buscador Profundo' ? '🏔️' : '✨'}
+                                        </div>
+                                        <span className="text-[10px] font-bold text-cafh-indigo uppercase tracking-wider bg-cafh-indigo/10 px-2 py-0.5 rounded-full">Mi Perfil</span>
+                                    </div>
+                                )}
+
+                                <div className="flex items-center gap-3 mb-8">
                                     <div className="w-12 h-12 bg-cafh-indigo/10 rounded-2xl flex items-center justify-center text-cafh-indigo">
                                         <User size={24} />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-bold text-slate-800 font-display">Editar Mi Perfil</h2>
-                                        <p className="text-sm text-slate-500">Actualiza tus datos y preferencias personales.</p>
+                                        <h2 className="text-2xl font-bold text-slate-800 font-display">
+                                            {wizardProfile ? wizardProfile.profileTypeName : 'Mi Información'}
+                                        </h2>
+                                        <p className="text-sm text-slate-500">
+                                            {wizardProfile ? 'Perfil basado en tu Viaje de Autoconocimiento' : 'Aún no has definido tu perfil.'}
+                                        </p>
                                     </div>
                                 </div>
 
-                                <div className="space-y-5">
+                                <div className="space-y-6">
+                                    {/* Action button if no profile */}
+                                    {!wizardProfile && (
+                                        <div className="p-5 bg-cafh-peach/10 border border-cafh-peach/20 rounded-2xl flex items-center justify-between gap-4">
+                                            <p className="text-sm text-cafh-peach font-medium">Define tu perfil para una mejor experiencia.</p>
+                                            <button
+                                                onClick={() => navigate('/?wizard=open')}
+                                                className="px-4 py-2 bg-cafh-peach text-white rounded-xl text-xs font-bold shadow-sm"
+                                            >
+                                                Comenzar Viaje
+                                            </button>
+                                        </div>
+                                    )}
                                     <div>
                                         <label className="block text-sm font-bold text-slate-700 mb-1.5 ml-1">Nombre Completo</label>
                                         <input

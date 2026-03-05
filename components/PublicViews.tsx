@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as Lucide from 'lucide-react';
-import { Play, ArrowRight, Heart, Users, BookOpen, MapPin, Mail, ChevronRight, Flower2, Sparkles, Wind, Sun, X, Loader2, Check, Calendar, Mic, FileText, User, Headphones, Activity, Clock, Lock, ArrowLeft, AlertCircle, ChevronLeft, ChevronDown } from 'lucide-react';
+import { Play, ArrowRight, Heart, Users, BookOpen, MapPin, Mail, ChevronRight, Flower2, Sparkles, Wind, Sun, X, Loader2, Check, Calendar, Mic, FileText, User, Headphones, Activity, Clock, Lock, ArrowLeft, AlertCircle, ChevronLeft, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { MOCK_WIZARD_STEPS, MOCK_EVENTS } from '../constants';
 import { db } from '../storage';
@@ -675,7 +675,7 @@ export const LoginView: React.FC = () => {
                 )}
                 {success && (
                     <div className="bg-emerald-50 text-emerald-600 p-4 rounded-xl mb-6 flex items-center gap-3 text-sm font-medium border border-emerald-100">
-                        <CheckCircle2 size={18} />
+                        <Lucide.CheckCircle2 size={18} />
                         {success}
                     </div>
                 )}
@@ -724,7 +724,7 @@ export const LoginView: React.FC = () => {
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
                                     placeholder="••••••••"
-                                    required={mode !== 'forgot_password'}
+                                    required={mode === 'login' || mode === 'register'}
                                 />
                             </div>
                         </div>
@@ -910,10 +910,15 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
     const [derivedTags, setDerivedTags] = useState<string[]>([]);
 
     // Registration form state
+    const [currentUser] = useState(() => {
+        const raw = localStorage.getItem('cafh_user_session_v1');
+        return raw ? JSON.parse(raw) : null;
+    });
+
     const [showRegForm, setShowRegForm] = useState(false);
-    const [regName, setRegName] = useState('');
-    const [regEmail, setRegEmail] = useState('');
-    const [regPass, setRegPass] = useState('');
+    const [regName, setRegName] = useState(currentUser?.name || '');
+    const [regEmail, setRegEmail] = useState(currentUser?.email || '');
+    const [regPass, setRegPass] = useState(currentUser ? '******' : ''); // Dummy pass for existing
     const [regError, setRegError] = useState<string | null>(null);
     const [isRegistering, setIsRegistering] = useState(false);
 
@@ -997,7 +1002,7 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
         e.preventDefault();
         setRegError(null);
 
-        if (!regName.trim() || !regEmail.trim() || regPass.length < 6) {
+        if (!currentUser && (!regName.trim() || !regEmail.trim() || regPass.length < 6)) {
             setRegError('Completa todos los campos. La contraseña debe tener al menos 6 caracteres.');
             return;
         }
@@ -1006,25 +1011,42 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
 
         setTimeout(() => {
             try {
-                // 1. Create the user session (simulate registration)
-                const userId = `u_${Date.now()}`;
-                const newUser = {
-                    id: userId,
-                    name: regName.trim(),
-                    email: regEmail.trim().toLowerCase(),
-                    role: 'MEMBER' as any,
-                    avatarUrl: '',
-                    tenantId: 't_santiago_01',
-                    interests: derivedTags,
-                    joinedDate: new Date().toISOString().split('T')[0]
-                };
+                let userId = currentUser?.id;
+                let finalUser = currentUser;
 
-                // 2. Save session
-                localStorage.setItem('cafh_user_session_v1', JSON.stringify(newUser));
+                if (!currentUser) {
+                    // 1. Create the user session (simulate registration)
+                    userId = `u_${Date.now()}`;
+                    finalUser = {
+                        id: userId,
+                        name: regName.trim(),
+                        email: regEmail.trim().toLowerCase(),
+                        role: 'MEMBER' as any,
+                        avatarUrl: '',
+                        tenantId: 't_santiago_01',
+                        interests: derivedTags,
+                        joinedDate: new Date().toISOString().split('T')[0],
+                        status: 'Pending' // Initial status requires admin validation
+                    };
+                    // Save session
+                    localStorage.setItem('cafh_user_session_v1', JSON.stringify(finalUser));
 
-                // 3. Save UserWizardProfile
+                    // Also save to all users list in DB
+                    const allUsers = JSON.parse(localStorage.getItem('cafh_users_v1') || '[]');
+                    allUsers.push({ ...finalUser, password: regPass }); // Store pass for mock login
+                    localStorage.setItem('cafh_users_v1', JSON.stringify(allUsers));
+                } else {
+                    // Update existing user interests
+                    finalUser = {
+                        ...currentUser,
+                        interests: Array.from(new Set([...(currentUser.interests || []), ...derivedTags]))
+                    };
+                    localStorage.setItem('cafh_user_session_v1', JSON.stringify(finalUser));
+                }
+
+                // 2. Save UserWizardProfile (Update or Create)
                 const wizardProfile: UserWizardProfile = {
-                    userId,
+                    userId: userId!,
                     profileTypeId: assignedProfile?.id || 'default',
                     profileTypeName: assignedProfile?.name || 'Viajero',
                     wizardAnswers: Object.fromEntries(
@@ -1036,31 +1058,46 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                     derivedTags,
                     completedAt: new Date().toISOString()
                 };
+
                 const existingProfiles: UserWizardProfile[] = JSON.parse(
                     localStorage.getItem('cafh_user_wizard_profiles_v1') || '[]'
                 );
-                existingProfiles.push(wizardProfile);
-                localStorage.setItem('cafh_user_wizard_profiles_v1', JSON.stringify(existingProfiles));
 
-                // 4. Create CRM contact with profile tags
+                // Replace if exists, otherwise push
+                const otherProfiles = existingProfiles.filter(p => p.userId !== userId);
+                otherProfiles.push(wizardProfile);
+                localStorage.setItem('cafh_user_wizard_profiles_v1', JSON.stringify(otherProfiles));
+
+                // 3. Update CRM contact with profile tags
                 const crmTags = [
-                    'wizard_registration',
+                    'wizard_update',
                     ...(assignedProfile ? [assignedProfile.crmTag] : []),
                     ...derivedTags
                 ].filter(Boolean);
 
-                db.crm.add({
-                    name: regName.trim(),
-                    email: regEmail.trim().toLowerCase(),
-                    phone: '',
-                    role: 'Member',
-                    status: 'Subscribed',
-                    lastContact: new Date().toISOString().split('T')[0],
-                    tags: crmTags,
-                    notes: `Registrado vía wizard. Perfil: ${assignedProfile?.name || 'Sin perfil'}`,
-                    createdAt: new Date().toISOString().split('T')[0],
-                    ...(assignedProfile?.crmListId ? { listIds: [assignedProfile.crmListId] } : {})
-                });
+                const existingContact = db.crm.getAll().find(c => c.email.toLowerCase() === finalUser.email.toLowerCase());
+
+                if (existingContact) {
+                    db.crm.update({
+                        ...existingContact,
+                        tags: Array.from(new Set([...(existingContact.tags || []), ...crmTags])),
+                        notes: (existingContact.notes || '') + `\nViaje completado el ${new Date().toLocaleDateString()}. Perfil: ${assignedProfile?.name || 'Sin perfil'}`,
+                        ...(assignedProfile?.crmListId ? { listIds: Array.from(new Set([...(existingContact.listIds || []), assignedProfile.crmListId])) } : {})
+                    });
+                } else if (!currentUser) {
+                    db.crm.add({
+                        name: regName.trim(),
+                        email: regEmail.trim().toLowerCase(),
+                        phone: '',
+                        role: 'Member',
+                        status: 'Pending',
+                        lastContact: new Date().toISOString().split('T')[0],
+                        tags: crmTags,
+                        notes: `Registrado vía wizard. Perfil: ${assignedProfile?.name || 'Sin perfil'}`,
+                        createdAt: new Date().toISOString().split('T')[0],
+                        ...(assignedProfile?.crmListId ? { listIds: [assignedProfile.crmListId] } : {})
+                    });
+                }
 
                 // 5. Show splash instead of direct navigate
                 setIsRegistering(false);
@@ -1244,7 +1281,7 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                                             onClick={() => setShowRegForm(true)}
                                             className="w-full bg-cafh-indigo text-white py-4 rounded-xl font-bold text-lg hover:bg-slate-800 transition-colors shadow-xl shadow-cafh-indigo/20"
                                         >
-                                            Crear mi cuenta gratuita para acceder
+                                            {currentUser ? 'Continuar para actualizar mi cuenta' : 'Crear mi cuenta gratuita para acceder'}
                                         </button>
                                         <p className="text-xs text-slate-400 mt-3">¿Ya tienes cuenta? <button onClick={() => navigate('/login')} className="text-cafh-indigo font-bold hover:underline">Inicia sesión</button></p>
                                     </div>
@@ -1317,7 +1354,8 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                                                 disabled={isRegistering}
                                                 className="w-full bg-cafh-indigo text-white py-4 rounded-xl font-bold text-lg hover:bg-slate-800 transition-colors shadow-xl shadow-cafh-indigo/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                                             >
-                                                {isRegistering ? <Loader2 size={22} className="animate-spin" /> : 'Acceder a mi espacio personalizado'}
+                                                {isRegistering ? <Loader2 size={22} className="animate-spin" /> :
+                                                    currentUser ? 'Finalizar y actualizar mi perfil' : 'Acceder a mi espacio personalizado'}
                                             </button>
                                         </form>
                                         <p className="text-xs text-slate-400 text-center mt-4">Al registrarte aceptas los términos y condiciones de Cafh.</p>

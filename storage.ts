@@ -339,7 +339,8 @@ export const db = {
                 avatarUrl: '',
                 tenantId: 't_santiago_01',
                 interests: [],
-                joinedDate: new Date().toISOString().split('T')[0]
+                joinedDate: new Date().toISOString().split('T')[0],
+                status: 'Pending'
             };
 
             // Save to Users table
@@ -354,7 +355,7 @@ export const db = {
                     email: newUser.email,
                     phone: '',
                     role: 'Member',
-                    status: 'Subscribed',
+                    status: 'Pending',
                     lastContact: new Date().toISOString().split('T')[0],
                     tags: ['web_registration']
                 });
