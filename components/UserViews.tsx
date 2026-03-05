@@ -231,9 +231,23 @@ export const MemberDashboard: React.FC = () => {
         setRecentBlogPosts(combinedNews as any);
 
         // 6. Find the next online or hybrid event that has a meeting URL
-        const upcomingEvent = allEvents.find(e =>
-            (e.type === 'Online' || e.type === 'Híbrido') && e.meetingUrl
-        );
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        const upcomingEvent = allEvents
+            .filter(e => {
+                if ((e.type !== 'Online' && e.type !== 'Híbrido') || !e.meetingUrl) return false;
+                const eventDate = new Date(`${e.date}T00:00:00`);
+                return isNaN(eventDate.getTime()) || eventDate >= now;
+            })
+            .sort((a, b) => {
+                const da = new Date(`${a.date}T00:00:00`).getTime();
+                const db = new Date(`${b.date}T00:00:00`).getTime();
+                if (isNaN(da) && isNaN(db)) return 0;
+                if (isNaN(da)) return 1;
+                if (isNaN(db)) return -1;
+                return da - db;
+            })[0];
 
         setHistory(db.user.getHistory());
         setRecommendedContent(recommendations);
