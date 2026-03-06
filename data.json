@@ -1,0 +1,24 @@
+{
+  "queue": [
+    {
+      "id": "z3o3rujbt",
+      "to": "admin@cafh.cl",
+      "subject": "¡Bienvenido a la Comunidad Cafh!",
+      "content": "<h1>Hola victor 3 test!</h1><p>Tu cuenta ha sido activada exitosamente por nuestro equipo administrativo. Ya puedes acceder a todos los contenidos exclusivos para miembros.</p><p>Que tu camino de desenvolvimiento sea pleno.</p>",
+      "status": "sent",
+      "createdAt": "2026-03-06T00:46:14.643Z",
+      "sentAt": "2026-03-06T00:46:20.287Z"
+    },
+    {
+      "id": "urf8f23nk",
+      "to": "test@test.cl",
+      "subject": "¡Bienvenido a la Comunidad Cafh!",
+      "content": "<h1>Hola guillermo palma!</h1><p>Tu cuenta ha sido activada exitosamente por nuestro equipo administrativo. Ya puedes acceder a todos los contenidos exclusivos para miembros.</p><p>Que tu camino de desenvolvimiento sea pleno.</p>",
+      "status": "sent",
+      "createdAt": "2026-03-06T00:46:19.593Z",
+      "sentAt": "2026-03-06T00:46:20.288Z"
+    }
+  ],
+  "sentCountThisHour": 2,
+  "lastResetTime": "2026-03-06T00:46:14.642Z"
+}
