@@ -596,6 +596,7 @@ export const LoginView: React.FC = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -624,13 +625,14 @@ export const LoginView: React.FC = () => {
                     setError('Completa tu nombre y usa una contraseña de al menos 6 caracteres.');
                     return;
                 }
-                const newUser = db.auth.register(name, email);
-                if (newUser) {
-                    // Start session immediately
+                const result = db.auth.register(name, email, phone);
+                if (result?.error) {
+                    setError(result.error);
+                } else if (result?.user) {
                     db.auth.login(email, password);
                     navigate('/member/dashboard');
                 } else {
-                    setError('El email ya está registrado.');
+                    setError('Ocurrió un error inesperado.');
                 }
             } else if (mode === 'forgot_password') {
                 const sent = db.auth.resetPassword(email);
@@ -683,20 +685,41 @@ export const LoginView: React.FC = () => {
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     {mode === 'register' && (
-                        <div className="space-y-2 animate-fade-in-up">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Nombre Completo</label>
-                            <div className="relative">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                                <input
-                                    type="text"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
-                                    placeholder="Tu nombre"
-                                    required={mode === 'register'}
-                                />
+                        <>
+                            <div className="space-y-2 animate-fade-in-up">
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Nombre Completo</label>
+                                <div className="relative">
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                                    <input
+                                        type="text"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
+                                        placeholder="Tu nombre"
+                                        required={mode === 'register'}
+                                        pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"
+                                        title="Solo se permiten letras y espacios"
+                                    />
+                                </div>
                             </div>
-                        </div>
+
+                            <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Teléfono Móvil</label>
+                                <div className="relative">
+                                    <Lucide.Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                                    <input
+                                        type="tel"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
+                                        placeholder="+56 9 1234 5678"
+                                        required={mode === 'register'}
+                                        pattern="^\+?[0-9\s]+$"
+                                        title="Solo números y símbolo + al inicio"
+                                    />
+                                </div>
+                            </div>
+                        </>
                     )}
 
                     <div className="space-y-2">
@@ -710,6 +733,8 @@ export const LoginView: React.FC = () => {
                                 className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
                                 placeholder="nombre@ejemplo.com"
                                 required
+                                pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+                                title="Ingresa un formato de email válido (ej: nombre@dominio.com)"
                             />
                         </div>
                     </div>
@@ -920,6 +945,7 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
     const [showRegForm, setShowRegForm] = useState(false);
     const [regName, setRegName] = useState(currentUser?.name || '');
     const [regEmail, setRegEmail] = useState(currentUser?.email || '');
+    const [regPhone, setRegPhone] = useState('');
     const [regPass, setRegPass] = useState(currentUser ? '******' : ''); // Dummy pass for existing
     const [regError, setRegError] = useState<string | null>(null);
     const [isRegistering, setIsRegistering] = useState(false);
@@ -1004,7 +1030,7 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
         e.preventDefault();
         setRegError(null);
 
-        if (!currentUser && (!regName.trim() || !regEmail.trim() || regPass.length < 6)) {
+        if (!currentUser && (!regName.trim() || !regEmail.trim() || !regPhone.trim() || regPass.length < 6)) {
             setRegError('Completa todos los campos. La contraseña debe tener al menos 6 caracteres.');
             return;
         }
@@ -1017,26 +1043,27 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                 let finalUser = currentUser;
 
                 if (!currentUser) {
-                    // 1. Create the user session (simulate registration)
-                    userId = `u_${Date.now()}`;
-                    finalUser = {
-                        id: userId,
-                        name: regName.trim(),
-                        email: regEmail.trim().toLowerCase(),
-                        role: 'MEMBER' as any,
-                        avatarUrl: '',
-                        tenantId: 't_santiago_01',
-                        interests: derivedTags,
-                        joinedDate: new Date().toISOString().split('T')[0],
-                        status: 'Pending' // Initial status requires admin validation
-                    };
-                    // Save session
+                    const result = db.auth.register(regName, regEmail, regPhone);
+                    if (result?.error) {
+                        setRegError(result.error);
+                        setIsRegistering(false);
+                        return;
+                    }
+
+                    userId = result.user!.id;
+                    finalUser = { ...result.user!, interests: derivedTags };
+
+                    // Actualizar sesión con los interests
                     localStorage.setItem('cafh_user_session_v1', JSON.stringify(finalUser));
 
-                    // Also save to all users list in DB
+                    // Store password manually for mock login simulation
                     const allUsers = JSON.parse(localStorage.getItem('cafh_users_v1') || '[]');
-                    allUsers.push({ ...finalUser, password: regPass }); // Store pass for mock login
-                    localStorage.setItem('cafh_users_v1', JSON.stringify(allUsers));
+                    const userIndex = allUsers.findIndex((u: any) => u.id === userId);
+                    if (userIndex >= 0) {
+                        allUsers[userIndex].password = regPass;
+                        allUsers[userIndex].interests = derivedTags;
+                        localStorage.setItem('cafh_users_v1', JSON.stringify(allUsers));
+                    }
                 } else {
                     // Update existing user interests
                     finalUser = {
@@ -1085,19 +1112,21 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                 if (existingContact) {
                     db.crm.update({
                         ...existingContact,
+                        phone: existingContact.phone || regPhone.trim(),
                         tags: Array.from(new Set([...(existingContact.tags || []), ...crmTags])),
                         notes: (existingContact.notes || '') + `\nViaje completado el ${new Date().toLocaleDateString()}. Perfil: ${assignedProfile?.name || 'Sin perfil'}`,
                         ...(assignedProfile?.crmListId ? { listIds: Array.from(new Set([...(existingContact.listIds || []), assignedProfile.crmListId])) } : {})
                     });
                 } else if (!currentUser) {
+                    // Fallback in case auth.register didn't map a CRM via unusual flow
                     db.crm.add({
                         name: regName.trim(),
                         email: regEmail.trim().toLowerCase(),
-                        phone: '',
+                        phone: regPhone.trim(),
                         role: 'Member',
                         status: 'Pending',
                         lastContact: new Date().toISOString().split('T')[0],
-                        tags: crmTags,
+                        tags: ['web_registration', ...crmTags],
                         notes: `Registrado vía wizard. Perfil: ${assignedProfile?.name || 'Sin perfil'}`,
                         createdAt: new Date().toISOString().split('T')[0],
                         ...(assignedProfile?.crmListId ? { listIds: [assignedProfile.crmListId] } : {})
@@ -1322,6 +1351,24 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                                                         className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
                                                         placeholder="Tu nombre"
                                                         required
+                                                        pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"
+                                                        title="Solo se permiten letras y espacios"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Teléfono Móvil</label>
+                                                <div className="relative">
+                                                    <Lucide.Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                                    <input
+                                                        type="tel"
+                                                        value={regPhone}
+                                                        onChange={e => setRegPhone(e.target.value)}
+                                                        className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
+                                                        placeholder="+56 9 1234 5678"
+                                                        required
+                                                        pattern="^\+?[0-9\s]+$"
+                                                        title="Solo números y símbolo + al inicio"
                                                     />
                                                 </div>
                                             </div>
@@ -1336,6 +1383,8 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                                                         className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-cafh-cyan focus:ring-2 focus:ring-cafh-cyan/20 transition-all font-medium text-slate-700"
                                                         placeholder="tu@email.com"
                                                         required
+                                                        pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+                                                        title="Ingresa un formato de email válido (ej: nombre@dominio.com)"
                                                     />
                                                 </div>
                                             </div>

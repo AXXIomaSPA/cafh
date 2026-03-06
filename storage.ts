@@ -340,17 +340,23 @@ export const db = {
             }
             return null;
         },
-        register: (name: string, email: string): User | null => {
+        register: (name: string, email: string, phone: string = ''): { user?: User; error?: string } => {
             const allUsers: User[] = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
+            const allContacts = db.crm.getAll();
+
             if (allUsers.find(u => u.email.toLowerCase() === email.toLowerCase())) {
-                return null; // Already exists
+                return { error: 'El email ya está registrado en nuestra plataforma.' };
+            }
+
+            if (phone && allContacts.find(c => c.phone === phone)) {
+                return { error: 'El número de teléfono ya se encuentra en uso.' };
             }
 
             const newUser: User = {
                 id: `u_${Date.now()}`,
                 name: name.trim(),
                 email: email.trim().toLowerCase(),
-                role: UserRole.MEMBER,
+                role: UserRole.MEMBER, // Jamás admin por defecto
                 avatarUrl: '',
                 tenantId: 't_santiago_01',
                 interests: [],
@@ -363,12 +369,11 @@ export const db = {
             localStorage.setItem(KEYS.USERS, JSON.stringify(allUsers));
 
             // Automatically map/create CRM Contact
-            const allContacts = db.crm.getAll();
             if (!allContacts.find(c => c.email.toLowerCase() === newUser.email)) {
                 db.crm.add({
                     name: newUser.name,
                     email: newUser.email,
-                    phone: '',
+                    phone: phone.trim(),
                     role: 'Member',
                     status: 'Pending',
                     lastContact: new Date().toISOString().split('T')[0],
@@ -376,7 +381,7 @@ export const db = {
                 });
             }
 
-            return newUser;
+            return { user: newUser };
         },
         resetPassword: (email: string): boolean => {
             const allUsers: User[] = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
