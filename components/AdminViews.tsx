@@ -32,24 +32,43 @@ const LUCIDE_ICONS: Record<string, any> = {
 };
 
 const DynamicIcon: React.FC<{ name: string; size?: number; className?: string }> = ({ name, size = 20, className }) => {
+    if (name?.startsWith('http') || name?.startsWith('/')) {
+        return <img src={name} alt="icon" style={{ width: size, height: size, objectFit: 'contain' }} className={className} />;
+    }
     const Icon = LUCIDE_ICONS[name] || Globe;
     return <Icon size={size} className={className} />;
 };
 
-const IconPickerModal: React.FC<{
+const AssetPickerModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
-    onSelect: (iconName: string) => void;
-}> = ({ isOpen, onClose, onSelect }) => {
+    onSelect: (val: string, type?: string) => void;
+    title?: string;
+    description?: string;
+    allowedTabs?: ('system' | 'media')[];
+    initialTab?: 'system' | 'media';
+    allowedMediaTypes?: ('image' | 'video' | 'document' | 'audio')[];
+}> = ({ isOpen, onClose, onSelect, title, description, allowedTabs = ['system', 'media'], initialTab = 'system', allowedMediaTypes = ['image', 'video'] }) => {
     const [search, setSearch] = useState('');
-    const [activeTab, setActiveTab] = useState<'system' | 'media'>('system');
+    const [activeTab, setActiveTab] = useState<'system' | 'media' | 'external'>(initialTab as any || 'system');
+    const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
+    const [externalUrl, setExternalUrl] = useState('');
     const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([]);
 
     useEffect(() => {
-        if (isOpen && activeTab === 'media') {
-            setMediaAssets(db.media.search('', 'image'));
+        if (isOpen) {
+            setActiveTab(initialTab as any || 'system');
+            setSearch('');
+            setExternalUrl('');
+            setMediaType(allowedMediaTypes.includes('image') ? 'image' : 'video');
         }
-    }, [isOpen, activeTab]);
+    }, [isOpen, initialTab, allowedMediaTypes.join(',')]);
+
+    useEffect(() => {
+        if (isOpen && activeTab === 'media') {
+            setMediaAssets(db.media.search(search, mediaType));
+        }
+    }, [isOpen, activeTab, mediaType, search]);
 
     if (!isOpen) return null;
 
@@ -63,8 +82,8 @@ const IconPickerModal: React.FC<{
             <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl h-[80vh] relative overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
                 <div className="p-8 pb-4 border-b border-slate-100 flex items-center justify-between">
                     <div>
-                        <h3 className="text-2xl font-bold">Selector de Iconos</h3>
-                        <p className="text-slate-500 text-sm">Elige un icono del sistema o de tu biblioteca.</p>
+                        <h3 className="text-2xl font-bold">{title || 'Selector de Activos'}</h3>
+                        <p className="text-slate-500 text-sm">{description || 'Selecciona el contenido adecuado para esta sección.'}</p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors">
                         <X size={24} />
@@ -72,36 +91,105 @@ const IconPickerModal: React.FC<{
                 </div>
 
                 <div className="px-8 pt-4 flex gap-4 border-b border-slate-100">
+                    {allowedTabs.includes('system') && (
+                        <button
+                            onClick={() => setActiveTab('system')}
+                            className={`pb-3 px-2 text-sm font-bold border-b-2 transition-all ${activeTab === 'system' ? 'border-cafh-indigo text-cafh-indigo' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                        >
+                            Iconos del Sistema
+                        </button>
+                    )}
+                    {allowedTabs.includes('media') && (
+                        <button
+                            onClick={() => setActiveTab('media')}
+                            className={`pb-3 px-2 text-sm font-bold border-b-2 transition-all ${activeTab === 'media' ? 'border-cafh-indigo text-cafh-indigo' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                        >
+                            Biblioteca de Medios
+                        </button>
+                    )}
                     <button
-                        onClick={() => setActiveTab('system')}
-                        className={`pb-3 px-2 text-sm font-bold border-b-2 transition-all ${activeTab === 'system' ? 'border-cafh-indigo text-cafh-indigo' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                        onClick={() => setActiveTab('external')}
+                        className={`pb-3 px-2 text-sm font-bold border-b-2 transition-all ${activeTab === 'external' ? 'border-cafh-indigo text-cafh-indigo' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
                     >
-                        Iconos del Sistema
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('media')}
-                        className={`pb-3 px-2 text-sm font-bold border-b-2 transition-all ${activeTab === 'media' ? 'border-cafh-indigo text-cafh-indigo' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
-                    >
-                        Desde Biblioteca
+                        URL Externa
                     </button>
                 </div>
 
-                <div className="p-6 pb-2">
-                    <div className="relative">
-                        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                        <input
-                            autoFocus
-                            type="text"
-                            placeholder="Buscar icono por nombre..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm transition-all"
-                        />
-                    </div>
+                <div className="p-6 pb-2 space-y-4">
+                    {activeTab !== 'external' && (
+                        <div className="relative">
+                            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                            <input
+                                autoFocus
+                                type="text"
+                                placeholder="Buscar..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm transition-all"
+                            />
+                        </div>
+                    )}
+                    {activeTab === 'media' && (
+                        <div className="flex gap-2">
+                            {allowedMediaTypes.includes('image') && (
+                                <button
+                                    onClick={() => setMediaType('image')}
+                                    className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${mediaType === 'image' ? 'bg-cafh-indigo text-white' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                                >
+                                    Imágenes
+                                </button>
+                            )}
+                            {allowedMediaTypes.includes('video') && (
+                                <button
+                                    onClick={() => setMediaType('video')}
+                                    className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${mediaType === 'video' ? 'bg-cafh-indigo text-white' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                                >
+                                    Videos
+                                </button>
+                            )}
+                            {allowedMediaTypes.includes('document') && (
+                                <button
+                                    onClick={() => setMediaType('image')} // Map to document if needed, reusing image for simplicity here
+                                    className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-400"
+                                >
+                                    Documentos
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-8 pt-2 custom-scrollbar">
-                    {activeTab === 'system' ? (
+                    {activeTab === 'external' ? (
+                        <div className="space-y-6 flex flex-col items-center justify-center h-full max-w-md mx-auto text-center">
+                            <div className="w-20 h-20 bg-cafh-indigo/5 rounded-full flex items-center justify-center text-cafh-indigo mb-2">
+                                <Link2 size={32} />
+                            </div>
+                            <div>
+                                <h4 className="text-lg font-bold">Vincular Recurso Externo</h4>
+                                <p className="text-slate-500 text-sm">Pega la URL directa de la imagen o video (mp4, webm, etc.)</p>
+                            </div>
+                            <div className="w-full space-y-4">
+                                <input
+                                    type="url"
+                                    placeholder="https://ejemplo.com/video.mp4"
+                                    value={externalUrl}
+                                    onChange={(e) => setExternalUrl(e.target.value)}
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-3 focus:ring-cafh-indigo outline-none transition-all"
+                                />
+                                <button
+                                    disabled={!externalUrl}
+                                    onClick={() => {
+                                        onSelect(externalUrl, externalUrl.toLowerCase().includes('video') || ['.mp4', '.webm', '.ogg', '.3gp', '.mov'].some(ext => externalUrl.toLowerCase().endsWith(ext)) ? 'video' : 'image');
+                                        onClose();
+                                    }}
+                                    className="w-full py-4 bg-cafh-indigo text-white rounded-full font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-200 transition-all"
+                                >
+                                    Confirmar y Seleccionar
+                                </button>
+                            </div>
+                        </div>
+                    ) : activeTab === 'system' ? (
                         <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-4">
                             {filteredIcons.map(name => {
                                 const Icon = LUCIDE_ICONS[name];
@@ -109,7 +197,7 @@ const IconPickerModal: React.FC<{
                                     <button
                                         key={name}
                                         onClick={() => {
-                                            onSelect(name);
+                                            onSelect(name, 'icon');
                                             onClose();
                                         }}
                                         className="aspect-square flex flex-col items-center justify-center p-2 rounded-2xl hover:bg-cafh-indigo/5 hover:text-cafh-indigo group transition-all"
@@ -128,28 +216,79 @@ const IconPickerModal: React.FC<{
                         </div>
                     ) : (
                         <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-4">
-                            {mediaAssets.filter(a => a.name.toLowerCase().includes(search.toLowerCase())).map(asset => (
+                            {mediaAssets.map(asset => (
                                 <button
                                     key={asset.id}
                                     onClick={() => {
-                                        onSelect(asset.url);
+                                        onSelect(asset.url, asset.type);
                                         onClose();
                                     }}
                                     className="aspect-square bg-slate-50 border border-slate-100 rounded-2xl overflow-hidden group relative hover:border-cafh-indigo hover:shadow-lg transition-all"
                                 >
-                                    <img src={asset.url} alt={asset.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                    {asset.type === 'video' ? (
+                                        <div className="w-full h-full bg-slate-900 flex items-center justify-center">
+                                            <Video className="text-white/20" size={32} />
+                                            <video src={asset.url} className="absolute inset-0 w-full h-full object-cover opacity-50" />
+                                        </div>
+                                    ) : (
+                                        <img src={asset.url} alt={asset.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                    )}
                                     <div className="absolute inset-0 bg-cafh-indigo/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
                                         <p className="text-[8px] bg-white px-1.5 py-0.5 rounded font-bold text-slate-800 truncate w-full">{asset.name}</p>
                                     </div>
                                 </button>
                             ))}
-                            <button
-                                onClick={() => { /* Proyect trigger for media library would go here */ }}
-                                className="aspect-square border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-slate-400 hover:border-cafh-indigo hover:text-cafh-indigo transition-all font-bold text-[10px]"
-                            >
+                            <label className="aspect-square border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-slate-400 hover:border-cafh-indigo hover:text-cafh-indigo transition-all font-bold text-[10px] cursor-pointer hover:bg-slate-50">
                                 <Plus size={24} className="mb-1" />
-                                SUBIR MAS
-                            </button>
+                                SUBIR RECURSO
+                                <input
+                                    type="file"
+                                    className="hidden"
+                                    accept={allowedMediaTypes.map(t => {
+                                        if (t === 'image') return 'image/*,image/webp,image/avif,image/svg+xml';
+                                        if (t === 'video') return 'video/*,video/webm,video/ogg,application/ogg,video/3gpp,audio/3gpp,.3gp';
+                                        return '*/*';
+                                    }).join(',')}
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            const isVideo = file.type.startsWith('video') || file.type.includes('ogg') || file.type.includes('3gp') || file.name.toLowerCase().endsWith('.3gp');
+                                            const uploadedType = isVideo ? 'video' : file.type.startsWith('image') ? 'image' : 'document';
+
+                                            // Lógica de resguardo anti-ruptura para la memoria local. 
+                                            // Archivos pequeños se guardan nativamente, videos o assets pesados utilizan Blob temporal.
+                                            const canSafelyPersist = file.size <= 500 * 1024 && !isVideo; // Limite 500kb max en Base64
+
+                                            const finalizeUploadAndSave = (url: string) => {
+                                                const newAsset = {
+                                                    name: file.name,
+                                                    type: uploadedType as 'image' | 'video' | 'document' | 'audio',
+                                                    url: url,
+                                                    size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+                                                    tags: ['upload local']
+                                                };
+
+                                                try {
+                                                    db.media.add(newAsset); // Mock DB persistence
+                                                } catch (err) {
+                                                    console.warn('Local Storage limit protection bypassed');
+                                                }
+                                                // Responde al flujo natural de selección visual
+                                                onSelect(url, uploadedType);
+                                                onClose();
+                                            };
+
+                                            if (canSafelyPersist) {
+                                                const reader = new FileReader();
+                                                reader.onload = (event) => finalizeUploadAndSave(event.target?.result as string);
+                                                reader.readAsDataURL(file);
+                                            } else {
+                                                finalizeUploadAndSave(URL.createObjectURL(file));
+                                            }
+                                        }
+                                    }}
+                                />
+                            </label>
                         </div>
                     )}
                 </div>
@@ -157,6 +296,7 @@ const IconPickerModal: React.FC<{
         </div>
     );
 };
+
 const PagePickerModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -3535,9 +3675,10 @@ export const CMSView: React.FC = () => {
 const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) => void }> = ({ config, onSave }) => {
     const [localConfig, setLocalConfig] = useState<HomeConfig>(config);
     const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
-    const [activeSelector, setActiveSelector] = useState<{ type: 'search' | 'columns' | 'social'; index: number } | null>(null);
+    const [isAssetPickerOpen, setIsAssetPickerOpen] = useState(false);
+    const [activeSelector, setActiveSelector] = useState<{ type: 'search' | 'columns' | 'social' | 'hero'; index: number } | null>(null);
 
-    const handleIconSelect = (iconName: string) => {
+    const handleIconSelect = (iconName: string, assetType?: string) => {
         if (!activeSelector) return;
         const { type, index } = activeSelector;
         if (type === 'search') {
@@ -3555,9 +3696,44 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
         }
     };
 
+    const handleAssetSelect = (assetUrl: string, assetType?: string) => {
+        if (!activeSelector) return;
+        const { type, index } = activeSelector;
+        if (type === 'hero') {
+            const newBgs = [...localConfig.hero.backgrounds];
+            // Robust video detection including new formats and blobs
+            const videoExtensions = ['.mp4', '.webm', '.ogg', '.3gp', '.mov'];
+            const isVideo = assetType === 'video' ||
+                videoExtensions.some(ext => assetUrl.toLowerCase().endsWith(ext)) ||
+                assetUrl.startsWith('blob:') ||
+                assetUrl.includes('video');
+
+            if (index === -1) {
+                newBgs.push({
+                    id: Math.random().toString(36).substr(2, 9),
+                    url: assetUrl,
+                    type: isVideo ? 'video' : 'image'
+                });
+            } else {
+                newBgs[index] = {
+                    ...newBgs[index],
+                    url: assetUrl,
+                    type: isVideo ? 'video' : 'image'
+                };
+            }
+            setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, backgrounds: newBgs } });
+        }
+    };
+
     const handleSave = () => {
-        onSave(localConfig);
-        alert('Configuración de Home guardada exitosamente.');
+        console.log('Iniciando guardado de configuración:', localConfig);
+        try {
+            onSave(localConfig);
+            alert('✅ Configuración de Home guardada exitosamente.');
+        } catch (err) {
+            console.error('Error al guardar:', err);
+            alert('❌ Error al guardar los cambios. Revisa la consola para más detalles.');
+        }
     };
 
     const moveSection = (index: number, direction: 'up' | 'down') => {
@@ -3663,27 +3839,56 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                             </div>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Fondos (Imágenes/Videos)</label>
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest">Fondos (Imágenes/Videos)</label>
+                                <span className="text-[9px] font-bold text-slate-400 italic">Nota: Las subidas locales son temporales para esta sesión.</span>
+                            </div>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 {localConfig.hero.backgrounds.map((bg, idx) => (
-                                    <div key={idx} className="relative group aspect-video rounded-xl overflow-hidden border border-slate-100">
-                                        <img src={bg.url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                    <div key={idx} className="relative group aspect-video rounded-xl overflow-hidden border border-slate-100 bg-slate-100 flex items-center justify-center">
+                                        {bg.type === 'video' ? (
+                                            <div className="w-full h-full bg-slate-900 flex items-center justify-center">
+                                                <Video className="text-white/20" size={32} />
+                                                <video src={bg.url} className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+                                            </div>
+                                        ) : bg.url ? (
+                                            <img src={bg.url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                        ) : (
+                                            <ImageIcon className="text-slate-300" size={32} />
+                                        )}
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    setActiveSelector({ type: 'hero', index: idx });
+                                                    setIsAssetPickerOpen(true);
+                                                }}
+                                                className="p-2 bg-white text-slate-800 rounded-lg shadow-lg hover:scale-110 transition-transform"
+                                                title="Cambiar fondo"
+                                            >
+                                                <RefreshCw size={14} />
+                                            </button>
                                             <button
                                                 onClick={() => {
                                                     const newBgs = localConfig.hero.backgrounds.filter((_, i) => i !== idx);
                                                     setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, backgrounds: newBgs } });
                                                 }}
-                                                className="p-2 bg-red-500 text-white rounded-lg"
+                                                className="p-2 bg-red-500 text-white rounded-lg shadow-lg hover:scale-110 transition-transform"
+                                                title="Eliminar"
                                             >
                                                 <Trash2 size={14} />
                                             </button>
                                         </div>
                                     </div>
                                 ))}
-                                <button className="aspect-video rounded-xl border-2 border-dashed border-slate-100 flex flex-col items-center justify-center text-slate-400 hover:bg-slate-50 transition-all">
-                                    <Plus size={20} />
-                                    <span className="text-[10px] font-bold mt-1 uppercase">Añadir Fondo</span>
+                                <button
+                                    onClick={() => {
+                                        setActiveSelector({ type: 'hero', index: -1 });
+                                        setIsAssetPickerOpen(true);
+                                    }}
+                                    className="aspect-video rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 hover:bg-slate-50 hover:border-cafh-indigo hover:text-cafh-indigo transition-all group"
+                                >
+                                    <Plus size={24} className="group-hover:scale-125 transition-transform" />
+                                    <span className="text-[10px] font-black mt-2 uppercase tracking-widest">Añadir Fondo</span>
                                 </button>
                             </div>
                         </div>
@@ -4244,10 +4449,23 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                 </div>
             </div>
 
-            <IconPickerModal
+            <AssetPickerModal
                 isOpen={isIconPickerOpen}
                 onClose={() => setIsIconPickerOpen(false)}
                 onSelect={handleIconSelect}
+                initialTab="system"
+                title="Seleccionar Ícono o Recurso"
+                description="Busca un ícono del sistema o selecciona una imagen/video."
+            />
+
+            <AssetPickerModal
+                isOpen={isAssetPickerOpen}
+                onClose={() => setIsAssetPickerOpen(false)}
+                onSelect={handleAssetSelect}
+                initialTab="media"
+                allowedMediaTypes={['image', 'video']}
+                title="Seleccionar Fondo o Recurso"
+                description="Elige una imagen o video para el fondo, o un ícono del sistema si lo prefieres."
             />
         </div>
     );
@@ -4808,7 +5026,7 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
         setAllPages(db.cms.getPages());
     }, []);
 
-    const handleIconSelect = (iconName: string) => {
+    const handleIconSelect = (iconName: string, assetType?: string) => {
         if (!activeSelector) return;
         const { sectionIdx, itemIdx, field } = activeSelector;
         const newSections = [...localPage.sections];
@@ -5937,10 +6155,13 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                     </div>
                 </div>
             </div >
-            <IconPickerModal
+            <AssetPickerModal
                 isOpen={isIconPickerOpen}
                 onClose={() => setIsIconPickerOpen(false)}
                 onSelect={handleIconSelect}
+                initialTab="system"
+                title="Seleccionar Ícono o Recurso"
+                description="Busca un ícono del sistema o selecciona una imagen/video."
             />
             <PagePickerModal
                 isOpen={isPagePickerOpen}

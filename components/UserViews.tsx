@@ -206,14 +206,24 @@ export const MemberDashboard: React.FC = () => {
                 id: `m_${m.id}`, originalId: m.id, title: m.name, type: m.type, tags: m.tags || [], date: m.uploadedAt, url: m.url, source: 'media'
             }));
 
-        const allEvents = db.events.getAll();
+        const featuredActivities = db.activities.getFeatured().map((a: any) => ({
+            id: `act_${a.id}`,
+            originalId: a.id,
+            title: a.title,
+            type: 'Event',
+            tags: a.tags || [],
+            date: a.startDate,
+            url: a.imageUrl || 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600&auto=format&fit=crop',
+            source: 'activity'
+        }));
 
         const recommendations = (userWizardProfile || (user && user.interests && user.interests.length > 0)) ? [...contents, ...medias].filter(c =>
             c.tags.some((tag: string) => userInterests.includes(tag))
-        ).slice(0, 6) : []; // No contents until wizard is done or interests exist
+        ).slice(0, 6) : [];
 
         // 5. Load real blog posts and upcoming Presencial events (for "Novedades para ti")
         const allBlogPosts = db.blog.getAll();
+        const allEvents = db.events.getAll();
 
         const upcomingPresencial = allEvents
             .filter(e => e.type === 'Presencial')
@@ -227,7 +237,17 @@ export const MemberDashboard: React.FC = () => {
                 tags: ['Evento']
             })) as any[];
 
-        const combinedNews = [...upcomingPresencial, ...allBlogPosts].slice(0, 3);
+        // Activities from the Activities Module (Featured)
+        const activityNews = db.activities.getFeatured().map(a => ({
+            id: `news_act_${a.id}`,
+            title: a.title,
+            imageUrl: a.imageUrl || 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=600&auto=format&fit=crop',
+            date: a.startDate,
+            author: a.modality,
+            tags: a.tags
+        }));
+
+        const combinedNews = [...activityNews, ...allBlogPosts, ...upcomingPresencial].slice(0, 3);
         setRecentBlogPosts(combinedNews as any);
 
         // 6. Find the next online or hybrid event that has a meeting URL
@@ -268,6 +288,10 @@ export const MemberDashboard: React.FC = () => {
     };
 
     const handleResourceClick = (res: any) => {
+        if (res.source === 'activity' || res.type === 'Event') {
+            navigate('/activities');
+            return;
+        }
         db.analytics.trackConsumption({
             assetId: res.originalId,
             assetName: res.title,
@@ -524,9 +548,10 @@ export const MemberDashboard: React.FC = () => {
                                             <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${item.type === 'Article' ? 'bg-blue-50 text-blue-600' :
                                                 (item.type === 'Resource' || item.type === 'document') ? 'bg-green-50 text-green-600' :
                                                     item.type === 'audio' ? 'bg-purple-50 text-purple-600' :
-                                                        'bg-red-50 text-red-600'
+                                                        item.type === 'Event' ? 'bg-orange-50 text-orange-600' :
+                                                            'bg-red-50 text-red-600'
                                                 }`}>
-                                                {item.type === 'Article' ? <Feather size={20} /> : (item.type === 'Resource' || item.type === 'document') ? <Download size={20} /> : item.type === 'audio' ? <Play size={20} /> : <Video size={20} />}
+                                                {item.type === 'Article' ? <Feather size={20} /> : (item.type === 'Resource' || item.type === 'document') ? <Download size={20} /> : item.type === 'audio' ? <Play size={20} /> : item.type === 'Event' ? <Calendar size={20} /> : <Video size={20} />}
                                             </div>
                                             <div>
                                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white border border-slate-200 px-2 py-0.5 rounded-full">{item.type}</span>

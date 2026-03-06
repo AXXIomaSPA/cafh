@@ -35,6 +35,7 @@ const KEYS = {
     ACTIVITY_EVENTS: 'cafh_activity_events_v1',
     ACTIVITY_CATS: 'cafh_activity_cats_v1',
     USERS: 'cafh_users_v1',
+    SEED_VERSION: 'cafh_seed_version', // Version control for initial data
 };
 
 // MOCK USERS FOR AUTHENTICATION
@@ -65,16 +66,19 @@ const MOCK_USERS: User[] = [
 const initStorage = <T>(key: string, initialData: T): T => {
     try {
         const stored = localStorage.getItem(key);
-        if (!stored) {
+        if (!stored || stored === 'undefined' || stored === 'null') {
             localStorage.setItem(key, JSON.stringify(initialData));
             return initialData;
         }
         return JSON.parse(stored);
     } catch (e) {
         console.error(`Error accessing storage for ${key}`, e);
+        // If parsing fails due to corruption, try to reset to initial
+        try { localStorage.setItem(key, JSON.stringify(initialData)); } catch { }
         return initialData;
     }
 };
+
 
 // ============================================================
 // --- DEFAULT DATA FOR NEW MODULES (must be before db object) ---
@@ -101,6 +105,135 @@ const defaultActivityCategories: ActivityCategory[] = [
     { id: 'cat_5', name: 'Comunidad', color: '#db2777', icon: 'Users' },
 ];
 
+// SEED VERSION CONTROL
+const SEED_VERSION_VALUE = "1.0.9"; // Incrementar para forzar actualizaciones de la data inicial
+
+const SEED_DATA = {
+    pages: [
+        {
+            id: 'p_historia_01',
+            title: 'Quiénes Somos',
+            slug: 'quienes-somos',
+            status: 'Published',
+            sections: [
+                {
+                    id: 's_hero_about',
+                    type: 'Hero',
+                    order: 0,
+                    content: {
+                        title: 'Quiénes Somos',
+                        subtitle: 'Una comunidad global dedicada al desenvolvimiento espiritual y al servicio de la humanidad.',
+                        imageUrl: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2000&auto=format&fit=crop',
+                        ctaText: 'Ver Sedes',
+                        ctaLink: '/about/locations'
+                    }
+                },
+                {
+                    id: 's_text_about_1',
+                    type: 'Text',
+                    order: 1,
+                    content: {
+                        text: '## Un legado de sabiduría viva\n\nFundada hace más de 80 años, Cafh nació como una respuesta a la necesidad humana de encontrar un sentido trascendente. A lo largo de las décadas, hemos evolucionado manteniendo intacta nuestra esencia: el método de vida.'
+                    }
+                },
+                { id: 's_stats_about', type: 'Stats', order: 2, content: { items: [{ label: 'Año de Fundación', value: '1937', icon: 'Calendar' }, { label: 'Países con presencia', value: '20+', icon: 'Globe' }] } },
+                { id: 's_timeline_about', type: 'Timeline', order: 3, content: {} },
+                {
+                    id: 's_cta_mission',
+                    type: 'CTA',
+                    order: 3,
+                    content: {
+                        title: 'Nuestra Misión',
+                        text: '"Fomentar el desenvolvimiento espiritual de sus miembros para que, a través de su propio trabajo interior, contribuyan al bien de la sociedad y del mundo entero."',
+                        buttonText: 'Saber más',
+                        buttonLink: '/about'
+                    }
+                }
+            ],
+            seo: { title: 'Quiénes Somos | Cafh', description: 'Conoce la historia y misión de Cafh.', keywords: ['historia', 'misión', 'cafh'] }
+        },
+        {
+            id: 'p_metodo_01',
+            title: 'El Método',
+            slug: 'el-metodo',
+            status: 'Published',
+            sections: [
+                {
+                    id: 's_hero_method',
+                    type: 'Hero',
+                    order: 0,
+                    content: {
+                        title: 'El Método',
+                        subtitle: 'Un camino práctico para integrar la espiritualidad en la vida cotidiana.',
+                        imageUrl: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=2000&auto=format&fit=crop',
+                        ctaText: 'Empezar ahora',
+                        ctaLink: '/login'
+                    }
+                },
+                { id: 's_pillars_method', type: 'MethodPillars', order: 1, content: {} },
+                {
+                    id: 's_cta_meditation',
+                    type: 'CTA',
+                    order: 2,
+                    content: {
+                        title: 'Meditación Discursiva',
+                        text: 'Nuestro método principal de meditación. No solo busca calmar la mente, sino transformar la conducta a través de la reflexión profunda.',
+                        buttonText: 'Aprender a Meditar',
+                        buttonLink: '/resources'
+                    }
+                }
+            ],
+            seo: { title: 'El Método | Cafh', description: 'Descubre el método de vida de Cafh.', keywords: ['meditación', 'espiritualidad', 'método'] }
+        },
+        {
+            id: 'p_recursos_01',
+            title: 'Biblioteca de Recursos',
+            slug: 'biblioteca-recursos',
+            status: 'Published',
+            sections: [
+                {
+                    id: 's_hero_resources',
+                    type: 'Hero',
+                    order: 0,
+                    content: {
+                        title: 'Biblioteca de Recursos',
+                        subtitle: 'Explora documentos, videos y audios para nutrir tu camino.',
+                        imageUrl: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=2000&auto=format&fit=crop',
+                        ctaText: 'Ver Todo',
+                        ctaLink: '/resources'
+                    }
+                },
+                { id: 's_text_resources', type: 'Text', order: 1, content: { text: '### Contenido para tu crecimiento\n\nEn esta sección encontrarás una selección de materiales diseñados para acompañar tu proceso de desenvolvimiento espiritual.' } },
+                { id: 's_grid_resources', type: 'ResourcesGrid', order: 2, content: {} }
+            ],
+            seo: { title: 'Recursos | Cafh', description: 'Biblioteca de recursos espirituales.', keywords: ['libros', 'videos', 'meditaciones'] }
+        },
+        {
+            id: 'p_actividades_01',
+            title: 'Actividades y Retiros',
+            slug: 'actividades-retiros',
+            status: 'Published',
+            sections: [
+                {
+                    id: 's_hero_activities',
+                    type: 'Hero',
+                    order: 0,
+                    content: {
+                        title: 'Actividades y Retiros',
+                        subtitle: 'Participa de nuestros encuentros. Espacios diseñados para el aprendizaje y la vivencia espiritual.',
+                        imageUrl: 'https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?q=80&w=2000&auto=format&fit=crop',
+                        ctaText: 'Ver Calendario',
+                        ctaLink: '/about'
+                    }
+                },
+                { id: 's_cta_retreats', type: 'CTA', order: 1, content: { title: '¿Buscas un retiro?', text: 'Desconecta del ruido y reconecta contigo mismo en nuestros centros de retiro.', buttonText: 'Ver opciones', buttonLink: '/activities' } },
+                { id: 's_calendar', type: 'EventsCalendar', order: 2, content: {} }
+            ],
+            seo: { title: 'Actividades | Cafh', description: 'Calendario de actividades y retiros.', keywords: ['retiros', 'eventos', 'cafh'] }
+        }
+    ]
+};
+
 // MULTI-TENANT CONTEXT FILTER
 const filterByTenant = <T extends { tenantId?: string }>(items: T[]): T[] => {
     try {
@@ -120,198 +253,50 @@ const filterByTenant = <T extends { tenantId?: string }>(items: T[]): T[] => {
 export const db = {
     // Initializer (Run on App mount)
     init: () => {
-        initStorage(KEYS.BLOG, MOCK_BLOG_POSTS);
-        initStorage(KEYS.BLOG_CONFIG, BLOG_CONFIG_DEFAULT);
-        initStorage(KEYS.EVENTS, MOCK_EVENTS);
-        initStorage(KEYS.CONTENT, MOCK_CONTENT);
-        initStorage(KEYS.CONTACTS, MOCK_CONTACTS);
-        initStorage(KEYS.HISTORY, MOCK_USER_HISTORY);
-        initStorage(KEYS.HERO, HERO_CONFIG);
-        initStorage(KEYS.USER_PREFS, { theme: 'light', notifications: true });
-        initStorage(KEYS.MEDIA, MOCK_MEDIA);
-        initStorage(KEYS.EMAIL_LOGS, MOCK_EMAIL_LOGS);
-        initStorage(KEYS.EMAIL_METRICS, MOCK_EMAIL_METRICS);
-        initStorage(KEYS.USERS, MOCK_USERS);
+        const currentVersion = localStorage.getItem(KEYS.SEED_VERSION);
+        const needsSeed = currentVersion !== SEED_VERSION_VALUE;
 
-        // New CMS Initializers
-        initStorage(KEYS.HOME_CONFIG, DEFAULT_HOME_CONFIG);
-        const existingPages = initStorage(KEYS.CUSTOM_PAGES, []);
-        if (existingPages.length === 0) {
-            const defaultPages = [
-                {
-                    id: 'p_historia_01',
-                    title: 'Quiénes Somos',
-                    slug: 'quienes-somos',
-                    status: 'Published',
-                    sections: [
-                        {
-                            id: 's_hero_about',
-                            type: 'Hero',
-                            order: 0,
-                            content: {
-                                title: 'Quiénes Somos',
-                                subtitle: 'Una comunidad global dedicada al desenvolvimiento espiritual y al servicio de la humanidad.',
-                                imageUrl: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2000&auto=format&fit=crop',
-                                ctaText: 'Ver Sedes',
-                                ctaLink: '/about/locations'
-                            }
-                        },
-                        {
-                            id: 's_text_about_1',
-                            type: 'Text',
-                            order: 1,
-                            content: {
-                                text: '## Un legado de sabiduría viva\n\nFundada hace más de 80 años, Cafh nació como una respuesta a la necesidad humana de encontrar un sentido trascendente. A lo largo de las décadas, hemos evolucionado manteniendo intacta nuestra esencia: el método de vida.'
-                            }
-                        },
-                        { id: 's_stats_about', type: 'Stats', order: 2, content: { items: [{ label: 'Año de Fundación', value: '1937', icon: 'Calendar' }, { label: 'Países con presencia', value: '20+', icon: 'Globe' }] } },
-                        { id: 's_timeline_about', type: 'Timeline', order: 3, content: {} },
-                        {
-                            id: 's_cta_mission',
-                            type: 'CTA',
-                            order: 3,
-                            content: {
-                                title: 'Nuestra Misión',
-                                text: '"Fomentar el desenvolvimiento espiritual de sus miembros para que, a través de su propio trabajo interior, contribuyan al bien de la sociedad y del mundo entero."',
-                                buttonText: 'Saber más',
-                                buttonLink: '/about'
-                            }
-                        }
-                    ],
-                    seo: { title: 'Quiénes Somos | Cafh', description: 'Conoce la historia y misión de Cafh.', keywords: ['historia', 'misión', 'cafh'] }
-                },
-                {
-                    id: 'p_metodo_01',
-                    title: 'El Método',
-                    slug: 'el-metodo',
-                    status: 'Published',
-                    sections: [
-                        {
-                            id: 's_hero_method',
-                            type: 'Hero',
-                            order: 0,
-                            content: {
-                                title: 'El Método',
-                                subtitle: 'Un camino práctico para integrar la espiritualidad en la vida cotidiana.',
-                                imageUrl: 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=2000&auto=format&fit=crop',
-                                ctaText: 'Empezar ahora',
-                                ctaLink: '/login'
-                            }
-                        },
-                        { id: 's_pillars_method', type: 'MethodPillars', order: 1, content: {} },
-                        {
-                            id: 's_cta_meditation',
-                            type: 'CTA',
-                            order: 2,
-                            content: {
-                                title: 'Meditación Discursiva',
-                                text: 'Nuestro método principal de meditación. No solo busca calmar la mente, sino transformar la conducta a través de la reflexión profunda.',
-                                buttonText: 'Aprender a Meditar',
-                                buttonLink: '/resources'
-                            }
-                        }
-                    ],
-                    seo: { title: 'El Método | Cafh', description: 'Descubre el método de vida de Cafh.', keywords: ['meditación', 'espiritualidad', 'método'] }
-                },
-                {
-                    id: 'p_recursos_01',
-                    title: 'Biblioteca de Recursos',
-                    slug: 'biblioteca-recursos',
-                    status: 'Published',
-                    sections: [
-                        {
-                            id: 's_hero_resources',
-                            type: 'Hero',
-                            order: 0,
-                            content: {
-                                title: 'Biblioteca de Recursos',
-                                subtitle: 'Explora documentos, videos y audios para nutrir tu camino.',
-                                imageUrl: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=2000&auto=format&fit=crop',
-                                ctaText: 'Ver Todo',
-                                ctaLink: '/resources'
-                            }
-                        },
-                        { id: 's_text_resources', type: 'Text', order: 1, content: { text: '### Contenido para tu crecimiento\n\nEn esta sección encontrarás una selección de materiales diseñados para acompañar tu proceso de desenvolvimiento espiritual.' } },
-                        { id: 's_grid_resources', type: 'ResourcesGrid', order: 2, content: {} }
-                    ],
-                    seo: { title: 'Recursos | Cafh', description: 'Biblioteca de recursos espirituales.', keywords: ['libros', 'videos', 'meditaciones'] }
-                },
-                {
-                    id: 'p_actividades_01',
-                    title: 'Actividades y Retiros',
-                    slug: 'actividades-retiros',
-                    status: 'Published',
-                    sections: [
-                        {
-                            id: 's_hero_activities',
-                            type: 'Hero',
-                            order: 0,
-                            content: {
-                                title: 'Actividades y Retiros',
-                                subtitle: 'Participa de nuestros encuentros. Espacios diseñados para el aprendizaje y la vivencia espiritual.',
-                                imageUrl: 'https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?q=80&w=2000&auto=format&fit=crop',
-                                ctaText: 'Ver Calendario',
-                                ctaLink: '/activities'
-                            }
-                        },
-                        { id: 's_cta_retreats', type: 'CTA', order: 1, content: { title: '¿Buscas un retiro?', text: 'Desconecta del ruido y reconecta contigo mismo en nuestros centros de retiro.', buttonText: 'Ver opciones', buttonLink: '/activities' } },
-                        { id: 's_calendar', type: 'EventsCalendar', order: 2, content: {} }
-                    ],
-                    seo: { title: 'Actividades | Cafh', description: 'Calendario de actividades y retiros.', keywords: ['retiros', 'eventos', 'cafh'] }
-                },
-                {
-                    id: 'p_historia_sub',
-                    title: 'Nuestra Historia',
-                    slug: 'nuestra-historia',
-                    status: 'Published',
-                    sections: [
-                        {
-                            id: 's_hero_hist',
-                            type: 'Hero',
-                            order: 0,
-                            content: {
-                                title: 'Nuestra Historia',
-                                subtitle: 'Un recorrido por los hitos que marcaron nuestro camino.',
-                                imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=2000&auto=format&fit=crop'
-                            }
-                        }
-                    ],
-                    seo: { title: 'Historia | Cafh', description: 'Historia de Cafh.', keywords: ['historia', 'cafh'] }
-                },
-                {
-                    id: 'p_mision_sub',
-                    title: 'Misión y Visión',
-                    slug: 'mision-y-vision',
-                    status: 'Published',
-                    sections: [
-                        {
-                            id: 's_hero_mision',
-                            type: 'Hero',
-                            order: 0,
-                            content: {
-                                title: 'Misión y Visión',
-                                subtitle: 'El propósito que nos impulsa y el futuro que construimos.',
-                                imageUrl: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2000&auto=format&fit=crop'
-                            }
-                        }
-                    ],
-                    seo: { title: 'Misión | Cafh', description: 'Misión y visión de Cafh.', keywords: ['misión', 'visión'] }
+        if (needsSeed || !localStorage.getItem(KEYS.CUSTOM_PAGES)) {
+            console.log(`[SEED] Sincronizando base de datos local v${SEED_VERSION_VALUE}...`);
+
+            // Core inits
+            initStorage(KEYS.BLOG, MOCK_BLOG_POSTS);
+            initStorage(KEYS.BLOG_CONFIG, BLOG_CONFIG_DEFAULT);
+            initStorage(KEYS.EVENTS, MOCK_EVENTS);
+            initStorage(KEYS.CONTENT, MOCK_CONTENT);
+            initStorage(KEYS.CONTACTS, MOCK_CONTACTS);
+            initStorage(KEYS.HISTORY, MOCK_USER_HISTORY);
+            initStorage(KEYS.HERO, HERO_CONFIG);
+            initStorage(KEYS.USER_PREFS, { theme: 'light', notifications: true });
+            initStorage(KEYS.MEDIA, MOCK_MEDIA);
+            initStorage(KEYS.EMAIL_LOGS, MOCK_EMAIL_LOGS);
+            initStorage(KEYS.EMAIL_METRICS, MOCK_EMAIL_METRICS);
+            initStorage(KEYS.USERS, MOCK_USERS);
+            initStorage(KEYS.HOME_CONFIG, DEFAULT_HOME_CONFIG);
+            initStorage(KEYS.MEGA_MENU, PUBLIC_NAV_STRUCTURE);
+            initStorage(KEYS.ACTIVITY_EVENTS, []);
+
+            // Specific Page Seeding
+            const storedPagesStr = localStorage.getItem(KEYS.CUSTOM_PAGES);
+            const existingPages = (storedPagesStr && storedPagesStr !== '[]') ? JSON.parse(storedPagesStr) : [];
+
+            const mergedPages = Array.isArray(existingPages) ? [...existingPages] : [];
+            SEED_DATA.pages.forEach(seedPage => {
+                if (!mergedPages.find(p => p.slug === seedPage.slug)) {
+                    mergedPages.push(seedPage);
                 }
-            ];
-            localStorage.setItem(KEYS.CUSTOM_PAGES, JSON.stringify(defaultPages));
+            });
+            localStorage.setItem(KEYS.CUSTOM_PAGES, JSON.stringify(mergedPages));
+            localStorage.setItem(KEYS.SEED_VERSION, SEED_VERSION_VALUE);
+        } else {
+            initStorage(KEYS.BLOG, MOCK_BLOG_POSTS);
+            initStorage(KEYS.HOME_CONFIG, DEFAULT_HOME_CONFIG);
         }
-        initStorage(KEYS.MEGA_MENU, PUBLIC_NAV_STRUCTURE);
-        initStorage(KEYS.CHANGE_LOG, []);
 
-        // Módulo 1 — nuevos stores
-        initStorage(KEYS.FEEDBACK_QUESTIONS, defaultFeedbackQuestions);
-        initStorage(KEYS.FEEDBACK_RESPONSES, []);
-        initStorage(KEYS.MEMBER_BADGES, []);
-        initStorage(KEYS.PARTICIPATION, []);
         initStorage(KEYS.ZOOM_WIDGET, defaultZoomWidgetConfig);
-        // Módulo 2 — nuevos stores
-        initStorage(KEYS.ACTIVITY_EVENTS, []);
+        initStorage(KEYS.FEEDBACK_QUESTIONS, defaultFeedbackQuestions);
         initStorage(KEYS.ACTIVITY_CATS, defaultActivityCategories);
+        initStorage(KEYS.ACTIVITY_EVENTS, []);
 
         console.log("Cafh Local Memory System: Initialized (Simulated 200MB Persistence)");
     },
@@ -551,6 +536,14 @@ export const db = {
         logChange: (section: string, action: ChangeLog['action'], details: string, previousState?: any) => {
             const user = db.auth.getCurrentUser();
             const logs: ChangeLog[] = JSON.parse(localStorage.getItem(KEYS.CHANGE_LOG) || '[]');
+
+            // Optimization: Don't store massive previous states in logs to avoid QuotaExceededError
+            let optimizedPrev = undefined;
+            if (previousState) {
+                const str = JSON.stringify(previousState);
+                optimizedPrev = str.length > 2000 ? { info: "Objeto demasiado grande para bitácora", size: str.length } : str;
+            }
+
             const newLog: ChangeLog = {
                 id: Math.random().toString(36).substr(2, 9),
                 userId: user?.id || 'system',
@@ -559,10 +552,14 @@ export const db = {
                 action,
                 timestamp: new Date().toISOString(),
                 details,
-                previousState: previousState ? JSON.stringify(previousState) : undefined
+                previousState: optimizedPrev
             };
             logs.unshift(newLog);
-            localStorage.setItem(KEYS.CHANGE_LOG, JSON.stringify(logs.slice(0, 100))); // Keep last 100
+            try {
+                localStorage.setItem(KEYS.CHANGE_LOG, JSON.stringify(logs.slice(0, 50))); // Reduced to 50 for safety
+            } catch (e) {
+                localStorage.setItem(KEYS.CHANGE_LOG, JSON.stringify(logs.slice(0, 5))); // Emergency fallback
+            }
             return newLog;
         },
         getChangeLogs: (): ChangeLog[] => {
@@ -609,7 +606,12 @@ export const db = {
         },
         updateHomeConfig: (config: HomeConfig) => {
             const prev = db.cms.getHomeConfig();
-            localStorage.setItem(KEYS.HOME_CONFIG, JSON.stringify(config));
+            try {
+                localStorage.setItem(KEYS.HOME_CONFIG, JSON.stringify(config));
+            } catch (err) {
+                console.error('CRITICAL: LocalStorage is full. Changes NOT saved permanently.', err);
+                alert("⚠️ Error: El almacenamiento del navegador está lleno. Los cambios se perderán al recargar. Por favor, elimina recursos pesados o limpia tu caché.");
+            }
             db.cms.logChange('Home', 'Update', 'Actualización de configuración de Home', prev);
             return config;
         },
@@ -630,7 +632,12 @@ export const db = {
             if (index !== -1) pages[index] = page;
             else pages.push(page);
 
-            localStorage.setItem(KEYS.CUSTOM_PAGES, JSON.stringify(pages));
+            try {
+                localStorage.setItem(KEYS.CUSTOM_PAGES, JSON.stringify(pages));
+            } catch (e) {
+                console.error("Storage full saving page", e);
+                alert("⚠️ Error: No hay espacio para guardar la página.");
+            }
             db.cms.logChange(`Página: ${page.title}`, prev ? 'Update' : 'Create', `Guardado de página ${page.slug}`, prev);
             return pages;
         },

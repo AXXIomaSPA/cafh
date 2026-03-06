@@ -304,9 +304,7 @@ export const JourneyView: React.FC = () => {
                             }}
                         >
                             {splashConfig.bgType === 'video' && splashConfig.bgVideoUrl && (
-                                <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-70">
-                                    <source src={splashConfig.bgVideoUrl} type="video/mp4" />
-                                </video>
+                                <video src={splashConfig.bgVideoUrl} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-70"></video>
                             )}
                             {/* Overlay */}
                             <div className="absolute inset-0 bg-black/20" />

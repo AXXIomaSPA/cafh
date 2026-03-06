@@ -1312,9 +1312,7 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                     >
                         {/* Video background */}
                         {splashConfig.bgType === 'video' && splashConfig.bgVideoUrl && (
-                            <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover">
-                                <source src={splashConfig.bgVideoUrl} type="video/mp4" />
-                            </video>
+                            <video src={splashConfig.bgVideoUrl} autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover"></video>
                         )}
                         {/* Dark overlay for readability */}
                         <div className="absolute inset-0 bg-black/30" />
@@ -1696,9 +1694,7 @@ export const HomeView: React.FC = () => {
                                     className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentBgIndex ? 'opacity-100' : 'opacity-0'}`}
                                 >
                                     {media.type === 'video' ? (
-                                        <video autoPlay loop muted playsInline className="w-full h-full object-cover">
-                                            <source src={media.url} type="video/mp4" />
-                                        </video>
+                                        <video src={media.url} autoPlay loop muted playsInline className="w-full h-full object-cover"></video>
                                     ) : (
                                         <img src={media.url} alt="Background" className="w-full h-full object-cover mix-blend-soft-light" referrerPolicy="no-referrer" />
                                     )}
@@ -1706,6 +1702,32 @@ export const HomeView: React.FC = () => {
                             ))}
                             <div className="absolute inset-0 bg-gradient-to-t from-cafh-indigo via-transparent to-cafh-indigo/30 z-10"></div>
                             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-cafh-indigo/60 z-10"></div>
+
+                            {/* Slider Navigation Arrows */}
+                            {homeConfig.hero.backgrounds.length > 1 && (
+                                <>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setCurrentBgIndex((prev) => (prev - 1 + homeConfig.hero.backgrounds.length) % homeConfig.hero.backgrounds.length);
+                                        }}
+                                        className="absolute left-6 top-1/2 -translate-y-1/2 z-40 p-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all group shadow-xl"
+                                        aria-label="Previous slide"
+                                    >
+                                        <ChevronLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setCurrentBgIndex((prev) => (prev + 1) % homeConfig.hero.backgrounds.length);
+                                        }}
+                                        className="absolute right-6 top-1/2 -translate-y-1/2 z-40 p-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all group shadow-xl"
+                                        aria-label="Next slide"
+                                    >
+                                        <ChevronRight size={24} className="group-hover:translate-x-1 transition-transform" />
+                                    </button>
+                                </>
+                            )}
                         </div>
 
                         <div className={`relative z-30 max-w-5xl px-4 md:px-6 flex flex-col ${homeConfig.hero.textAlignment === 'center' ? 'items-center text-center' :
