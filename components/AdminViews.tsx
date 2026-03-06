@@ -16,8 +16,143 @@ import {
     Layout, Type, Image, Layers, Video, Sparkles, Edit, ArrowLeft,
     GripVertical, ArrowUp, ArrowDown, Compass, BookOpen, TrendingUp,
     Hash, Activity, Play, MousePointer, ChevronDown, ChevronUp, Database, UploadCloud, Settings, Eye, Target, Percent, Zap, Pause,
-    Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter
+    Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter, Heart, Sun, Cloud, Anchor, Feather, Coffee, Book, Headphones, Mic, LogOut, Check, ChevronLeft, Minus, Info, Settings2, Trash
 } from 'lucide-react';
+
+const LUCIDE_ICONS: Record<string, any> = {
+    MoreHorizontal, Filter, Plus, Mail, ArrowUpRight, CheckCircle2,
+    AlertCircle, Clock, FileText, Calendar: CalendarIcon, MapPin,
+    X, Send, Phone, Globe, User, Users, Shield, BarChart2, RefreshCw,
+    ChevronRight, ExternalLink, Trash2, Download, Search: SearchIcon,
+    Grid, List, Film, Music, ImageIcon, File, Instagram, Youtube,
+    Layout, Type, Image, Layers, Video, Sparkles, Edit, ArrowLeft,
+    GripVertical, ArrowUp, ArrowDown, Compass, BookOpen, TrendingUp,
+    Hash, Activity, Play, MousePointer, ChevronDown, ChevronUp, Database, UploadCloud, Settings, Eye, Target, Percent, Zap, Pause,
+    Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter, Heart, Sun, Cloud, Anchor, Feather, Coffee, Book, Headphones, Mic, LogOut, Check, ChevronLeft, Minus, Info, Settings2, Trash
+};
+
+const IconPickerModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onSelect: (iconName: string) => void;
+}> = ({ isOpen, onClose, onSelect }) => {
+    const [search, setSearch] = useState('');
+    const [activeTab, setActiveTab] = useState<'system' | 'media'>('system');
+    const [mediaAssets, setMediaAssets] = useState<MediaAsset[]>([]);
+
+    useEffect(() => {
+        if (isOpen && activeTab === 'media') {
+            setMediaAssets(db.media.search('', 'image'));
+        }
+    }, [isOpen, activeTab]);
+
+    if (!isOpen) return null;
+
+    const filteredIcons = Object.keys(LUCIDE_ICONS).filter(name =>
+        name.toLowerCase().includes(search.toLowerCase())
+    );
+
+    return (
+        <div className="fixed inset-0 flex items-center justify-center z-[200] p-4 text-slate-800">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
+            <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl h-[80vh] relative overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+                <div className="p-8 pb-4 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 className="text-2xl font-bold">Selector de Iconos</h3>
+                        <p className="text-slate-500 text-sm">Elige un icono del sistema o de tu biblioteca.</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors">
+                        <X size={24} />
+                    </button>
+                </div>
+
+                <div className="px-8 pt-4 flex gap-4 border-b border-slate-100">
+                    <button
+                        onClick={() => setActiveTab('system')}
+                        className={`pb-3 px-2 text-sm font-bold border-b-2 transition-all ${activeTab === 'system' ? 'border-cafh-indigo text-cafh-indigo' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                    >
+                        Iconos del Sistema
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('media')}
+                        className={`pb-3 px-2 text-sm font-bold border-b-2 transition-all ${activeTab === 'media' ? 'border-cafh-indigo text-cafh-indigo' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                    >
+                        Desde Biblioteca
+                    </button>
+                </div>
+
+                <div className="p-6 pb-2">
+                    <div className="relative">
+                        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <input
+                            autoFocus
+                            type="text"
+                            placeholder="Buscar icono por nombre..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm transition-all"
+                        />
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-8 pt-2 custom-scrollbar">
+                    {activeTab === 'system' ? (
+                        <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-4">
+                            {filteredIcons.map(name => {
+                                const Icon = LUCIDE_ICONS[name];
+                                return (
+                                    <button
+                                        key={name}
+                                        onClick={() => {
+                                            onSelect(name);
+                                            onClose();
+                                        }}
+                                        className="aspect-square flex flex-col items-center justify-center p-2 rounded-2xl hover:bg-cafh-indigo/5 hover:text-cafh-indigo group transition-all"
+                                        title={name}
+                                    >
+                                        <div className="w-10 h-10 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
+                                            <Icon size={24} />
+                                        </div>
+                                        <span className="text-[8px] font-bold uppercase tracking-tighter truncate w-full text-center text-slate-400 group-hover:text-cafh-indigo">{name}</span>
+                                    </button>
+                                );
+                            })}
+                            {filteredIcons.length === 0 && (
+                                <div className="col-span-full py-12 text-center text-slate-400 italic">No se encontraron iconos.</div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-4">
+                            {mediaAssets.filter(a => a.name.toLowerCase().includes(search.toLowerCase())).map(asset => (
+                                <button
+                                    key={asset.id}
+                                    onClick={() => {
+                                        onSelect(asset.url);
+                                        onClose();
+                                    }}
+                                    className="aspect-square bg-slate-50 border border-slate-100 rounded-2xl overflow-hidden group relative hover:border-cafh-indigo hover:shadow-lg transition-all"
+                                >
+                                    <img src={asset.url} alt={asset.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                    <div className="absolute inset-0 bg-cafh-indigo/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+                                        <p className="text-[8px] bg-white px-1.5 py-0.5 rounded font-bold text-slate-800 truncate w-full">{asset.name}</p>
+                                    </div>
+                                </button>
+                            ))}
+                            <button
+                                onClick={() => { /* Proyect trigger for media library would go here */ }}
+                                className="aspect-square border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-slate-400 hover:border-cafh-indigo hover:text-cafh-indigo transition-all font-bold text-[10px]"
+                            >
+                                <Plus size={24} className="mb-1" />
+                                SUBIR MAS
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 import { db } from '../storage';
 import { AutomationFlowBuilder } from './AutomationFlowBuilder';
 export { JourneyView, SettingsView } from './JourneyAndSettings';
@@ -3309,6 +3444,22 @@ export const CMSView: React.FC = () => {
 
 const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) => void }> = ({ config, onSave }) => {
     const [localConfig, setLocalConfig] = useState<HomeConfig>(config);
+    const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
+    const [activeSelector, setActiveSelector] = useState<{ type: 'search' | 'columns'; index: number } | null>(null);
+
+    const handleIconSelect = (iconName: string) => {
+        if (!activeSelector) return;
+        const { type, index } = activeSelector;
+        if (type === 'search') {
+            const newItems = [...localConfig.searchItems];
+            newItems[index].icon = iconName;
+            setLocalConfig({ ...localConfig, searchItems: newItems });
+        } else if (type === 'columns') {
+            const newCols = [...localConfig.threeColumns];
+            newCols[index].icon = iconName;
+            setLocalConfig({ ...localConfig, threeColumns: newCols });
+        }
+    };
 
     const handleSave = () => {
         onSave(localConfig);
@@ -3491,19 +3642,30 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                                     setLocalConfig({ ...localConfig, searchItems: newItems });
                                                 }}
                                                 placeholder="Etiqueta"
-                                                className="w-full px-3 py-2 bg-white border border-slate-100 rounded-xl text-xs outline-none"
+                                                className="w-full px-3 py-2 bg-white border border-slate-100 rounded-xl text-xs outline-none focus:ring-2 focus:ring-cafh-indigo"
                                             />
-                                            <input
-                                                type="text"
-                                                value={item.icon}
-                                                onChange={e => {
-                                                    const newItems = [...localConfig.searchItems];
-                                                    newItems[idx].icon = e.target.value;
-                                                    setLocalConfig({ ...localConfig, searchItems: newItems });
-                                                }}
-                                                placeholder="Icono (Lucide)"
-                                                className="w-full px-3 py-2 bg-white border border-slate-100 rounded-xl text-xs outline-none"
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    value={item.icon}
+                                                    onChange={e => {
+                                                        const newItems = [...localConfig.searchItems];
+                                                        newItems[idx].icon = e.target.value;
+                                                        setLocalConfig({ ...localConfig, searchItems: newItems });
+                                                    }}
+                                                    placeholder="Icono (Lucide)"
+                                                    className="w-full pl-3 pr-10 py-2 bg-white border border-slate-100 rounded-xl text-xs outline-none focus:ring-2 focus:ring-cafh-indigo"
+                                                />
+                                                <button
+                                                    onClick={() => {
+                                                        setActiveSelector({ type: 'search', index: idx });
+                                                        setIsIconPickerOpen(true);
+                                                    }}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cafh-indigo transition-colors"
+                                                >
+                                                    <Sparkles size={14} />
+                                                </button>
+                                            </div>
                                         </div>
                                         <input
                                             type="text"
@@ -3514,7 +3676,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                                 setLocalConfig({ ...localConfig, searchItems: newItems });
                                             }}
                                             placeholder="Ruta (ej: /activities)"
-                                            className="w-full px-3 py-2 bg-white border border-slate-100 rounded-xl text-xs outline-none"
+                                            className="w-full px-3 py-2 bg-white border border-slate-100 rounded-xl text-xs outline-none focus:ring-2 focus:ring-cafh-indigo"
                                         />
                                     </div>
                                 ))}
@@ -3612,17 +3774,28 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                         placeholder="Título"
                                         className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm font-bold"
                                     />
-                                    <input
-                                        type="text"
-                                        value={col.icon}
-                                        onChange={e => {
-                                            const newCols = [...localConfig.threeColumns];
-                                            newCols[idx].icon = e.target.value;
-                                            setLocalConfig({ ...localConfig, threeColumns: newCols });
-                                        }}
-                                        placeholder="Icono (Lucide Name)"
-                                        className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={col.icon}
+                                            onChange={e => {
+                                                const newCols = [...localConfig.threeColumns];
+                                                newCols[idx].icon = e.target.value;
+                                                setLocalConfig({ ...localConfig, threeColumns: newCols });
+                                            }}
+                                            placeholder="Icono (Lucide Name)"
+                                            className="w-full pl-4 pr-10 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm"
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                setActiveSelector({ type: 'columns', index: idx });
+                                                setIsIconPickerOpen(true);
+                                            }}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cafh-indigo transition-colors"
+                                        >
+                                            <Sparkles size={16} />
+                                        </button>
+                                    </div>
                                 </div>
                                 <textarea
                                     rows={2}
@@ -3966,6 +4139,12 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                     </div>
                 </div>
             </div>
+
+            <IconPickerModal
+                isOpen={isIconPickerOpen}
+                onClose={() => setIsIconPickerOpen(false)}
+                onSelect={handleIconSelect}
+            />
         </div>
     );
 };
@@ -4516,6 +4695,25 @@ const PagesManager: React.FC = () => {
 
 const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => void; onCancel: () => void }> = ({ page, onSave, onCancel }) => {
     const [localPage, setLocalPage] = useState<CustomPage>(page);
+    const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
+    const [activeSelector, setActiveSelector] = useState<{ sectionIdx: number; itemIdx: number | null } | null>(null);
+
+    const handleIconSelect = (iconName: string) => {
+        if (!activeSelector) return;
+        const { sectionIdx, itemIdx } = activeSelector;
+        const newSections = [...localPage.sections];
+        const section = newSections[sectionIdx];
+
+        if (itemIdx === null) {
+            // Section level icon (if any)
+        } else {
+            // Item level icon
+            if (section.type === 'Stats' || section.type === 'Cards' || section.type === 'IconGrid') {
+                section.content.items[itemIdx].icon = iconName;
+            }
+        }
+        setLocalPage({ ...localPage, sections: newSections });
+    };
 
     const addSection = (type: PageSection['type']) => {
         const newSection: PageSection = {
@@ -4770,17 +4968,28 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                         placeholder="Valor"
                                                     />
                                                     <div className="flex gap-2">
-                                                        <input
-                                                            type="text"
-                                                            value={item.icon}
-                                                            onChange={e => {
-                                                                const newSections = [...localPage.sections];
-                                                                newSections[idx].content.items[i].icon = e.target.value;
-                                                                setLocalPage({ ...localPage, sections: newSections });
-                                                            }}
-                                                            className="flex-1 px-3 py-2 bg-white border border-slate-100 rounded-lg text-xs outline-none"
-                                                            placeholder="Icono"
-                                                        />
+                                                        <div className="relative flex-1">
+                                                            <input
+                                                                type="text"
+                                                                value={item.icon}
+                                                                onChange={e => {
+                                                                    const newSections = [...localPage.sections];
+                                                                    newSections[idx].content.items[i].icon = e.target.value;
+                                                                    setLocalPage({ ...localPage, sections: newSections });
+                                                                }}
+                                                                className="w-full px-3 py-2 bg-white border border-slate-100 rounded-lg text-xs outline-none"
+                                                                placeholder="Icono"
+                                                            />
+                                                            <button
+                                                                onClick={() => {
+                                                                    setActiveSelector({ sectionIdx: idx, itemIdx: i });
+                                                                    setIsIconPickerOpen(true);
+                                                                }}
+                                                                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cafh-indigo"
+                                                            >
+                                                                <Sparkles size={12} />
+                                                            </button>
+                                                        </div>
                                                         <button
                                                             onClick={() => {
                                                                 const newSections = [...localPage.sections];
@@ -4843,17 +5052,28 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                         className="w-full p-3 bg-white border border-slate-100 rounded-lg text-xs outline-none h-20 resize-none"
                                                         placeholder="Descripción..."
                                                     />
-                                                    <input
-                                                        type="text"
-                                                        value={item.icon}
-                                                        onChange={e => {
-                                                            const newSections = [...localPage.sections];
-                                                            newSections[idx].content.items[i].icon = e.target.value;
-                                                            setLocalPage({ ...localPage, sections: newSections });
-                                                        }}
-                                                        className="w-full px-3 py-2 bg-white border border-slate-100 rounded-lg text-xs outline-none"
-                                                        placeholder="Icono (Lucide)"
-                                                    />
+                                                    <div className="relative">
+                                                        <input
+                                                            type="text"
+                                                            value={item.icon}
+                                                            onChange={e => {
+                                                                const newSections = [...localPage.sections];
+                                                                newSections[idx].content.items[i].icon = e.target.value;
+                                                                setLocalPage({ ...localPage, sections: newSections });
+                                                            }}
+                                                            className="w-full px-3 py-2 bg-white border border-slate-100 rounded-lg text-xs outline-none"
+                                                            placeholder="Icono (Lucide)"
+                                                        />
+                                                        <button
+                                                            onClick={() => {
+                                                                setActiveSelector({ sectionIdx: idx, itemIdx: i });
+                                                                setIsIconPickerOpen(true);
+                                                            }}
+                                                            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-cafh-indigo hover:bg-cafh-indigo/5 rounded-md"
+                                                        >
+                                                            <Sparkles size={14} />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             ))}
                                             <button
@@ -4884,17 +5104,28 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                             className="flex-1 px-3 py-2 bg-white border border-slate-100 rounded-lg text-xs outline-none"
                                                             placeholder="Etiqueta"
                                                         />
-                                                        <input
-                                                            type="text"
-                                                            value={item.icon}
-                                                            onChange={e => {
-                                                                const newSections = [...localPage.sections];
-                                                                newSections[idx].content.items[i].icon = e.target.value;
-                                                                setLocalPage({ ...localPage, sections: newSections });
-                                                            }}
-                                                            className="w-20 px-3 py-2 bg-white border border-slate-100 rounded-lg text-xs outline-none"
-                                                            placeholder="Icono"
-                                                        />
+                                                        <div className="relative w-24">
+                                                            <input
+                                                                type="text"
+                                                                value={item.icon}
+                                                                onChange={e => {
+                                                                    const newSections = [...localPage.sections];
+                                                                    newSections[idx].content.items[i].icon = e.target.value;
+                                                                    setLocalPage({ ...localPage, sections: newSections });
+                                                                }}
+                                                                className="w-full px-3 py-2 bg-white border border-slate-100 rounded-lg text-xs outline-none"
+                                                                placeholder="Icono"
+                                                            />
+                                                            <button
+                                                                onClick={() => {
+                                                                    setActiveSelector({ sectionIdx: idx, itemIdx: i });
+                                                                    setIsIconPickerOpen(true);
+                                                                }}
+                                                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-cafh-indigo hover:bg-cafh-indigo/5 rounded-md"
+                                                            >
+                                                                <Sparkles size={14} />
+                                                            </button>
+                                                        </div>
                                                         <button
                                                             onClick={() => {
                                                                 const newSections = [...localPage.sections];
@@ -5235,6 +5466,11 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                     </div>
                 </div>
             </div>
+            <IconPickerModal
+                isOpen={isIconPickerOpen}
+                onClose={() => setIsIconPickerOpen(false)}
+                onSelect={handleIconSelect}
+            />
         </div>
     );
 };
