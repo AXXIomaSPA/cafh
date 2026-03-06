@@ -16,7 +16,7 @@ import {
     Layout, Type, Image, Layers, Video, Sparkles, Edit, ArrowLeft,
     GripVertical, ArrowUp, ArrowDown, Compass, BookOpen, TrendingUp,
     Hash, Activity, Play, MousePointer, ChevronDown, ChevronUp, Database, UploadCloud, Settings, Eye, Target, Percent, Zap, Pause,
-    Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter, Heart, Sun, Cloud, Anchor, Feather, Coffee, Book, Headphones, Mic, LogOut, Check, ChevronLeft, Minus, Info, Settings2, Trash
+    Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter, Heart, Sun, Cloud, Anchor, Feather, Coffee, Book, Headphones, Mic, LogOut, Check, ChevronLeft, Minus, Info, Settings2, Trash, Copy, Table2, FolderOpen, Columns
 } from 'lucide-react';
 
 const LUCIDE_ICONS: Record<string, any> = {
@@ -28,7 +28,12 @@ const LUCIDE_ICONS: Record<string, any> = {
     Layout, Type, Image, Layers, Video, Sparkles, Edit, ArrowLeft,
     GripVertical, ArrowUp, ArrowDown, Compass, BookOpen, TrendingUp,
     Hash, Activity, Play, MousePointer, ChevronDown, ChevronUp, Database, UploadCloud, Settings, Eye, Target, Percent, Zap, Pause,
-    Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter, Heart, Sun, Cloud, Anchor, Feather, Coffee, Book, Headphones, Mic, LogOut, Check, ChevronLeft, Minus, Info, Settings2, Trash
+    Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter, Heart, Sun, Cloud, Anchor, Feather, Coffee, Book, Headphones, Mic, LogOut, Check, ChevronLeft, Minus, Info, Settings2, Trash, Copy, Table2, FolderOpen, Columns
+};
+
+const DynamicIcon: React.FC<{ name: string; size?: number; className?: string }> = ({ name, size = 20, className }) => {
+    const Icon = LUCIDE_ICONS[name] || Globe;
+    return <Icon size={size} className={className} />;
 };
 
 const IconPickerModal: React.FC<{
@@ -147,6 +152,91 @@ const IconPickerModal: React.FC<{
                             </button>
                         </div>
                     )}
+                </div>
+            </div>
+        </div>
+    );
+};
+const PagePickerModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onSelect: (slug: string) => void;
+    pages: CustomPage[];
+}> = ({ isOpen, onClose, onSelect, pages }) => {
+    const [search, setSearch] = useState('');
+
+    const filteredPages = pages.filter(p =>
+        p.title.toLowerCase().includes(search.toLowerCase()) ||
+        p.slug.toLowerCase().includes(search.toLowerCase())
+    );
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}></div>
+            <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div>
+                        <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <Globe size={20} className="text-cafh-indigo" />
+                            Seleccionar Página Interna
+                        </h3>
+                        <p className="text-xs text-slate-500">Selecciona una de tus páginas personalizadas para el enlace.</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-all">
+                        <X size={20} className="text-slate-400" />
+                    </button>
+                </div>
+
+                <div className="p-8">
+                    <div className="relative mb-6">
+                        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Buscar por título o ruta..."
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-cafh-indigo transition-all font-medium text-sm"
+                            autoFocus
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                        <button
+                            onClick={() => { onSelect('/'); onClose(); }}
+                            className="flex items-center justify-between p-4 bg-slate-50 hover:bg-cafh-indigo/5 border border-transparent hover:border-cafh-indigo/20 rounded-2xl transition-all group"
+                        >
+                            <div className="text-left">
+                                <p className="font-bold text-slate-800 text-sm group-hover:text-cafh-indigo">Página de Inicio</p>
+                                <p className="text-[10px] text-slate-400 font-mono tracking-tight uppercase">ruta: /</p>
+                            </div>
+                            <ChevronRight size={16} className="text-slate-300 group-hover:text-cafh-indigo" />
+                        </button>
+
+                        {pages.map(p => (
+                            <button
+                                key={p.id}
+                                onClick={() => { onSelect(`/${p.slug}`); onClose(); }}
+                                className="flex items-center justify-between p-4 bg-slate-50 hover:bg-cafh-indigo/5 border border-transparent hover:border-cafh-indigo/20 rounded-2xl transition-all group"
+                            >
+                                <div className="text-left">
+                                    <p className="font-bold text-slate-800 text-sm group-hover:text-cafh-indigo">{p.title}</p>
+                                    <p className="text-[10px] text-slate-400 font-mono tracking-tight uppercase">ruta: /{p.slug}</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest ${p.status === 'Published' ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'}`}>
+                                        {p.status === 'Published' ? 'Activo' : 'Borrador'}
+                                    </span>
+                                    <ChevronRight size={16} className="text-slate-300 group-hover:text-cafh-indigo" />
+                                </div>
+                            </button>
+                        ))}
+
+                        {pages.length === 0 && (
+                            <div className="py-12 text-center text-slate-400">No hay otras páginas creadas aún.</div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
@@ -2382,7 +2472,7 @@ const SMTPSettingsModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
 }> = ({ isOpen, onClose }) => {
-    const [config, setConfig] = useState<SMTPConfig>(db.emails.getSMTPConfig());
+    const [config, setConfig] = useState<SMTPConfig>(() => db.emails.getSMTPConfig());
     const [isSaving, setIsSaving] = useState(false);
 
     if (!isOpen) return null;
@@ -3379,8 +3469,8 @@ export const AutomationsView: React.FC = () => {
 // --- CMS VIEW ---
 export const CMSView: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'home' | 'pages' | 'menu' | 'articles' | 'changelog'>('home');
-    const [homeConfig, setHomeConfig] = useState<HomeConfig>(db.cms.getHomeConfig());
-    const [changeLogs, setChangeLogs] = useState<ChangeLog[]>(db.cms.getChangeLogs());
+    const [homeConfig, setHomeConfig] = useState<HomeConfig>(() => db.cms.getHomeConfig());
+    const [changeLogs, setChangeLogs] = useState<ChangeLog[]>(() => db.cms.getChangeLogs());
 
     const handleHomeUpdate = (newConfig: HomeConfig) => {
         const updated = db.cms.updateHomeConfig(newConfig);
@@ -3445,7 +3535,7 @@ export const CMSView: React.FC = () => {
 const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) => void }> = ({ config, onSave }) => {
     const [localConfig, setLocalConfig] = useState<HomeConfig>(config);
     const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
-    const [activeSelector, setActiveSelector] = useState<{ type: 'search' | 'columns'; index: number } | null>(null);
+    const [activeSelector, setActiveSelector] = useState<{ type: 'search' | 'columns' | 'social'; index: number } | null>(null);
 
     const handleIconSelect = (iconName: string) => {
         if (!activeSelector) return;
@@ -3458,6 +3548,10 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
             const newCols = [...localConfig.threeColumns];
             newCols[index].icon = iconName;
             setLocalConfig({ ...localConfig, threeColumns: newCols });
+        } else if (type === 'social') {
+            const newLinks = [...localConfig.footer.socialLinks];
+            newLinks[index].icon = iconName;
+            setLocalConfig({ ...localConfig, footer: { ...localConfig.footer, socialLinks: newLinks } });
         }
     };
 
@@ -3573,7 +3667,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 {localConfig.hero.backgrounds.map((bg, idx) => (
                                     <div key={idx} className="relative group aspect-video rounded-xl overflow-hidden border border-slate-100">
-                                        <img src={bg.url} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                        <img src={bg.url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center gap-2">
                                             <button
                                                 onClick={() => {
@@ -4010,6 +4104,16 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                             <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Redes Sociales</h4>
                             {localConfig.footer.socialLinks.map((link, idx) => (
                                 <div key={idx} className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => {
+                                            setActiveSelector({ type: 'social', index: idx });
+                                            setIsIconPickerOpen(true);
+                                        }}
+                                        className="p-2 bg-slate-50 border border-slate-100 rounded-lg text-cafh-indigo hover:bg-white transition-colors"
+                                        title="Cambiar Icono"
+                                    >
+                                        <DynamicIcon name={link.icon} size={16} />
+                                    </button>
                                     <input
                                         type="text"
                                         value={link.platform}
@@ -4579,7 +4683,7 @@ const MediaUploadModal: React.FC<{
 };
 
 const PagesManager: React.FC = () => {
-    const [pages, setPages] = useState<CustomPage[]>(db.cms.getPages());
+    const [pages, setPages] = useState<CustomPage[]>(() => db.cms.getPages());
     const [editingPage, setEditingPage] = useState<CustomPage | null>(null);
     const [showSystemPages, setShowSystemPages] = useState(false);
 
@@ -4696,16 +4800,32 @@ const PagesManager: React.FC = () => {
 const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => void; onCancel: () => void }> = ({ page, onSave, onCancel }) => {
     const [localPage, setLocalPage] = useState<CustomPage>(page);
     const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
-    const [activeSelector, setActiveSelector] = useState<{ sectionIdx: number; itemIdx: number | null } | null>(null);
+    const [isPagePickerOpen, setIsPagePickerOpen] = useState(false);
+    const [allPages, setAllPages] = useState<CustomPage[]>([]);
+    const [activeSelector, setActiveSelector] = useState<{ sectionIdx: number; itemIdx: number | null; field?: string } | null>(null);
+
+    useEffect(() => {
+        setAllPages(db.cms.getPages());
+    }, []);
 
     const handleIconSelect = (iconName: string) => {
         if (!activeSelector) return;
-        const { sectionIdx, itemIdx } = activeSelector;
+        const { sectionIdx, itemIdx, field } = activeSelector;
         const newSections = [...localPage.sections];
         const section = newSections[sectionIdx];
 
         if (itemIdx === null) {
-            // Section level icon (if any)
+            // Section level fields
+            if (field && section.content[field] !== undefined) {
+                section.content[field] = iconName;
+            } else if (section.type === 'Hero' || section.type === 'Image' || section.type === 'ImageText') {
+                section.content.imageUrl = iconName;
+            } else if (section.type === 'Video') {
+                section.content.videoId = iconName;
+            } else if (section.type === 'Gallery') {
+                if (!section.content.images) section.content.images = [];
+                section.content.images.push(iconName);
+            }
         } else {
             // Item level icon
             if (section.type === 'Stats' || section.type === 'Cards' || section.type === 'IconGrid') {
@@ -4713,6 +4833,21 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
             }
         }
         setLocalPage({ ...localPage, sections: newSections });
+    };
+    const handlePageLinkSelect = (slug: string) => {
+        if (!activeSelector) return;
+        const { sectionIdx, itemIdx, field } = activeSelector;
+        const newSections = [...localPage.sections];
+
+        if (itemIdx === null) {
+            if (field) newSections[sectionIdx].content[field] = slug;
+        } else {
+            if (field) newSections[sectionIdx].content.items[itemIdx][field] = slug;
+        }
+
+        setLocalPage({ ...localPage, sections: newSections });
+        setIsPagePickerOpen(false);
+        setActiveSelector(null);
     };
 
     const addSection = (type: PageSection['type']) => {
@@ -4729,8 +4864,12 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                         type === 'Video' ? { videoId: '', title: '' } :
                                             type === 'CTA' ? { title: '', text: '', buttonText: '', buttonLink: '' } :
                                                 type === 'Accordion' ? { items: [{ title: 'Pregunta', content: 'Respuesta' }] } :
-                                                    type === 'ResourcesGrid' || type === 'EventsCalendar' || type === 'Timeline' || type === 'MethodPillars' ? {} :
-                                                        { items: [] },
+                                                    type === 'ImageText' ? { title: 'Tu título aquí', text: 'Tu descripción aquí...', imageUrl: 'https://images.unsplash.com/photo-1518133910546-b6c2fb7d79e3', imagePosition: 'left' } :
+                                                        type === 'Table' ? { title: 'Cronograma', headers: ['Horario', 'Actividad', 'Lugar'], rows: [['08:00', 'Meditación', 'Sala A'], ['10:00', 'Charla', 'Salón Central']] } :
+                                                            type === 'Tabs' ? { items: [{ title: 'Misión', content: 'Contenido de la misión...' }, { title: 'Visión', content: 'Contenido de la visión...' }] } :
+                                                                type === 'VideoGrid' ? { items: [{ title: 'Presentación', videoId: 'dQw4w9WgXcQ' }, { title: 'Testimonio', videoId: 'dQw4w9WgXcQ' }] } :
+                                                                    type === 'ResourcesGrid' || type === 'EventsCalendar' || type === 'Timeline' || type === 'MethodPillars' ? {} :
+                                                                        { items: [] },
             order: localPage.sections.length
         };
         setLocalPage({ ...localPage, sections: [...localPage.sections, newSection] });
@@ -4745,6 +4884,19 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
         }
     };
 
+    const duplicateSection = (idx: number) => {
+        const newSections = [...localPage.sections];
+        const sectionToCopy = newSections[idx];
+        const duplicated: PageSection = {
+            ...JSON.parse(JSON.stringify(sectionToCopy)),
+            id: Math.random().toString(36).substr(2, 9),
+            order: sectionToCopy.order + 0.5
+        };
+        newSections.push(duplicated);
+        const sorted = newSections.sort((a, b) => a.order - b.order).map((s, i) => ({ ...s, order: i }));
+        setLocalPage({ ...localPage, sections: sorted });
+    };
+
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
             <div className="flex items-center justify-between bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
@@ -4753,7 +4905,20 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                         <ArrowLeft size={20} className="text-slate-400" />
                     </button>
                     <div>
-                        <h3 className="text-lg font-bold text-slate-800">{localPage.id ? 'Editar Página' : 'Nueva Página'}</h3>
+                        <div className="flex items-center gap-3">
+                            <h3 className="text-lg font-bold text-slate-800">{localPage.id ? 'Editar Página' : 'Nueva Página'}</h3>
+                            <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-lg border border-slate-200 group relative cursor-pointer" onClick={() => {
+                                navigator.clipboard.writeText(`/${localPage.slug}`);
+                                // Optional toast
+                            }}>
+                                <Globe2 size={12} className="text-slate-400" />
+                                <span className="text-[10px] font-mono font-bold text-slate-500 uppercase">/{localPage.slug || 'sin-ruta'}</span>
+                                <Copy size={10} className="text-slate-300 opacity-0 group-hover:opacity-100 transition-all" />
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap">
+                                    Clic para copiar ruta
+                                </div>
+                            </div>
+                        </div>
                         <p className="text-xs text-slate-500">Configura la estructura y contenido de tu página.</p>
                     </div>
                 </div>
@@ -4845,6 +5010,13 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                         </button>
                                         <div className="w-px h-4 bg-slate-200 mx-1"></div>
                                         <button
+                                            onClick={() => duplicateSection(idx)}
+                                            className="p-2 text-slate-300 hover:text-cafh-indigo transition-all"
+                                            title="Duplicar Sección"
+                                        >
+                                            <Copy size={16} />
+                                        </button>
+                                        <button
                                             onClick={() => setLocalPage({ ...localPage, sections: localPage.sections.filter(s => s.id !== section.id) })}
                                             className="p-2 text-slate-300 hover:text-red-500 transition-all"
                                         >
@@ -4891,6 +5063,257 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                             />
                                         </div>
                                     )}
+                                    {section.type === 'ImageText' && (
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-4">
+                                                    <input
+                                                        type="text"
+                                                        value={section.content.title}
+                                                        onChange={e => {
+                                                            const newSections = [...localPage.sections];
+                                                            newSections[idx].content.title = e.target.value;
+                                                            setLocalPage({ ...localPage, sections: newSections });
+                                                        }}
+                                                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold outline-none"
+                                                        placeholder="Título"
+                                                    />
+                                                    <textarea
+                                                        value={section.content.text}
+                                                        onChange={e => {
+                                                            const newSections = [...localPage.sections];
+                                                            newSections[idx].content.text = e.target.value;
+                                                            setLocalPage({ ...localPage, sections: newSections });
+                                                        }}
+                                                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none h-32 resize-none"
+                                                        placeholder="Contenido..."
+                                                    />
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <div className="relative group/img overflow-hidden rounded-xl border border-slate-100">
+                                                        <img src={section.content.imageUrl} alt="" className="w-full h-40 object-cover" />
+                                                        <button
+                                                            onClick={() => {
+                                                                setActiveSelector({ sectionIdx: idx, itemIdx: null, field: 'imageUrl' });
+                                                                setIsIconPickerOpen(true);
+                                                            }}
+                                                            className="absolute inset-0 bg-cafh-indigo/60 text-white opacity-0 group-hover/img:opacity-100 flex items-center justify-center gap-2 transition-all"
+                                                        >
+                                                            <Sparkles size={16} /> Cambiar Media
+                                                        </button>
+                                                    </div>
+                                                    <div className="flex bg-slate-100 p-1 rounded-xl">
+                                                        <button
+                                                            onClick={() => {
+                                                                const newSections = [...localPage.sections];
+                                                                newSections[idx].content.imagePosition = 'left';
+                                                                setLocalPage({ ...localPage, sections: newSections });
+                                                            }}
+                                                            className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all ${section.content.imagePosition === 'left' ? 'bg-white text-cafh-indigo shadow-sm' : 'text-slate-400'}`}
+                                                        >
+                                                            IZQUIERDA
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                const newSections = [...localPage.sections];
+                                                                newSections[idx].content.imagePosition = 'right';
+                                                                setLocalPage({ ...localPage, sections: newSections });
+                                                            }}
+                                                            className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all ${section.content.imagePosition === 'right' ? 'bg-white text-cafh-indigo shadow-sm' : 'text-slate-400'}`}
+                                                        >
+                                                            DERECHA
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {section.type === 'Table' && (
+                                        <div className="space-y-4">
+                                            <input
+                                                type="text"
+                                                value={section.content.title}
+                                                onChange={e => {
+                                                    const newSections = [...localPage.sections];
+                                                    newSections[idx].content.title = e.target.value;
+                                                    setLocalPage({ ...localPage, sections: newSections });
+                                                }}
+                                                className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold outline-none"
+                                                placeholder="Título de la Tabla"
+                                            />
+                                            <div className="overflow-x-auto bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                                <table className="w-full text-xs text-left">
+                                                    <thead>
+                                                        <tr>
+                                                            {section.content.headers.map((h: string, hi: number) => (
+                                                                <th key={hi} className="p-2">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={h}
+                                                                        onChange={e => {
+                                                                            const newSections = [...localPage.sections];
+                                                                            newSections[idx].content.headers[hi] = e.target.value;
+                                                                            setLocalPage({ ...localPage, sections: newSections });
+                                                                        }}
+                                                                        className="w-full bg-white border border-slate-200 rounded p-1 outline-none font-bold"
+                                                                    />
+                                                                </th>
+                                                            ))}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {section.content.rows.map((row: string[], ri: number) => (
+                                                            <tr key={ri}>
+                                                                {row.map((cell, ci) => (
+                                                                    <td key={ci} className="p-1">
+                                                                        <input
+                                                                            type="text"
+                                                                            value={cell}
+                                                                            onChange={e => {
+                                                                                const newSections = [...localPage.sections];
+                                                                                newSections[idx].content.rows[ri][ci] = e.target.value;
+                                                                                setLocalPage({ ...localPage, sections: newSections });
+                                                                            }}
+                                                                            className="w-full bg-slate-100/50 border border-transparent hover:border-slate-200 rounded p-1 outline-none"
+                                                                        />
+                                                                    </td>
+                                                                ))}
+                                                                <td className="p-1">
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            const newSections = [...localPage.sections];
+                                                                            newSections[idx].content.rows.splice(ri, 1);
+                                                                            setLocalPage({ ...localPage, sections: newSections });
+                                                                        }}
+                                                                        className="p-1 text-slate-300 hover:text-red-500"
+                                                                    >
+                                                                        <Trash2 size={12} />
+                                                                    </button>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                                <button
+                                                    onClick={() => {
+                                                        const newSections = [...localPage.sections];
+                                                        newSections[idx].content.rows.push(new Array(section.content.headers.length).fill(''));
+                                                        setLocalPage({ ...localPage, sections: newSections });
+                                                    }}
+                                                    className="mt-4 flex items-center gap-2 text-[10px] font-bold text-cafh-indigo hover:text-cafh-indigo-dark transition-all px-3 py-1 bg-white rounded-lg shadow-sm border border-slate-100"
+                                                >
+                                                    <Plus size={10} /> AÑADIR FILA
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {section.type === 'Tabs' && (
+                                        <div className="space-y-4">
+                                            {section.content.items.map((item: any, i: number) => (
+                                                <div key={i} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 relative group">
+                                                    <button
+                                                        onClick={() => {
+                                                            const newSections = [...localPage.sections];
+                                                            newSections[idx].content.items.splice(i, 1);
+                                                            setLocalPage({ ...localPage, sections: newSections });
+                                                        }}
+                                                        className="absolute top-2 right-2 p-1 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                    <input
+                                                        type="text"
+                                                        value={item.title}
+                                                        onChange={e => {
+                                                            const newSections = [...localPage.sections];
+                                                            newSections[idx].content.items[i].title = e.target.value;
+                                                            setLocalPage({ ...localPage, sections: newSections });
+                                                        }}
+                                                        className="w-full mb-2 p-2 bg-white border border-slate-100 rounded-lg text-sm font-bold outline-none"
+                                                        placeholder="Título de la Pestaña"
+                                                    />
+                                                    <textarea
+                                                        value={item.content}
+                                                        onChange={e => {
+                                                            const newSections = [...localPage.sections];
+                                                            newSections[idx].content.items[i].content = e.target.value;
+                                                            setLocalPage({ ...localPage, sections: newSections });
+                                                        }}
+                                                        className="w-full p-2 bg-white border border-slate-100 rounded-lg text-xs outline-none h-24 resize-none"
+                                                        placeholder="Contenido..."
+                                                    />
+                                                </div>
+                                            ))}
+                                            <button
+                                                onClick={() => {
+                                                    const newSections = [...localPage.sections];
+                                                    newSections[idx].content.items.push({ title: 'Nueva Pestaña', content: '' });
+                                                    setLocalPage({ ...localPage, sections: newSections });
+                                                }}
+                                                className="w-full py-3 border border-dashed border-slate-200 rounded-2xl text-slate-400 hover:text-cafh-indigo hover:border-cafh-indigo hover:bg-cafh-indigo/5 transition-all text-xs font-bold"
+                                            >
+                                                + AÑADIR PESTAÑA
+                                            </button>
+                                        </div>
+                                    )}
+                                    {section.type === 'VideoGrid' && (
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {section.content.items.map((v: any, vi: number) => (
+                                                    <div key={vi} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 relative group space-y-3">
+                                                        <button
+                                                            onClick={() => {
+                                                                const newSections = [...localPage.sections];
+                                                                newSections[idx].content.items.splice(vi, 1);
+                                                                setLocalPage({ ...localPage, sections: newSections });
+                                                            }}
+                                                            className="absolute top-2 right-2 p-1 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                        <div className="aspect-video bg-slate-200 rounded-xl overflow-hidden relative">
+                                                            <img src={`https://img.youtube.com/vi/${v.videoId}/mqdefault.jpg`} alt={v.title} className="w-full h-full object-cover" />
+                                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                                <Play size={24} className="text-white drop-shadow-lg" />
+                                                            </div>
+                                                        </div>
+                                                        <input
+                                                            type="text"
+                                                            value={v.title}
+                                                            onChange={e => {
+                                                                const newSections = [...localPage.sections];
+                                                                newSections[idx].content.items[vi].title = e.target.value;
+                                                                setLocalPage({ ...localPage, sections: newSections });
+                                                            }}
+                                                            className="w-full p-2 bg-white border border-slate-100 rounded-lg text-xs font-bold outline-none"
+                                                            placeholder="Título del Video"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={v.videoId}
+                                                            onChange={e => {
+                                                                const newSections = [...localPage.sections];
+                                                                newSections[idx].content.items[vi].videoId = e.target.value;
+                                                                setLocalPage({ ...localPage, sections: newSections });
+                                                            }}
+                                                            className="w-full p-2 bg-white border border-slate-100 rounded-lg text-xs font-mono outline-none"
+                                                            placeholder="ID de Video YouTube"
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <button
+                                                onClick={() => {
+                                                    const newSections = [...localPage.sections];
+                                                    newSections[idx].content.items.push({ title: 'Nuevo Video', videoId: '' });
+                                                    setLocalPage({ ...localPage, sections: newSections });
+                                                }}
+                                                className="w-full py-3 border border-dashed border-slate-200 rounded-2xl text-slate-400 hover:text-cafh-indigo hover:border-cafh-indigo hover:bg-cafh-indigo/5 transition-all text-xs font-bold"
+                                            >
+                                                + AÑADIR VIDEO A LA GRILLA
+                                            </button>
+                                        </div>
+                                    )}
                                     {section.type === 'Hero' && (
                                         <div className="space-y-4">
                                             <input
@@ -4927,17 +5350,29 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                     className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none"
                                                     placeholder="Texto Botón"
                                                 />
-                                                <input
-                                                    type="text"
-                                                    value={section.content.ctaLink}
-                                                    onChange={e => {
-                                                        const newSections = [...localPage.sections];
-                                                        newSections[idx].content.ctaLink = e.target.value;
-                                                        setLocalPage({ ...localPage, sections: newSections });
-                                                    }}
-                                                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none"
-                                                    placeholder="Enlace Botón"
-                                                />
+                                                <div className="relative">
+                                                    <input
+                                                        type="text"
+                                                        value={section.content.ctaLink}
+                                                        onChange={e => {
+                                                            const newSections = [...localPage.sections];
+                                                            newSections[idx].content.ctaLink = e.target.value;
+                                                            setLocalPage({ ...localPage, sections: newSections });
+                                                        }}
+                                                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none pr-10"
+                                                        placeholder="Enlace (ex: /contacto)"
+                                                    />
+                                                    <button
+                                                        onClick={() => {
+                                                            setActiveSelector({ sectionIdx: idx, itemIdx: null, field: 'ctaLink' });
+                                                            setIsPagePickerOpen(true);
+                                                        }}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cafh-indigo"
+                                                        title="Seleccionar página"
+                                                    >
+                                                        <Globe size={16} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     )}
@@ -5156,7 +5591,7 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                             <div className="grid grid-cols-3 gap-3">
                                                 {section.content.images.map((img: string, i: number) => (
                                                     <div key={i} className="relative aspect-square rounded-xl overflow-hidden group">
-                                                        <img src={img} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                                        <img src={img} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                                                         <button
                                                             onClick={() => {
                                                                 const newSections = [...localPage.sections];
@@ -5255,17 +5690,28 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                     className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none"
                                                     placeholder="Texto del Botón"
                                                 />
-                                                <input
-                                                    type="text"
-                                                    value={section.content.buttonLink}
-                                                    onChange={e => {
-                                                        const newSections = [...localPage.sections];
-                                                        newSections[idx].content.buttonLink = e.target.value;
-                                                        setLocalPage({ ...localPage, sections: newSections });
-                                                    }}
-                                                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none"
-                                                    placeholder="Enlace del Botón"
-                                                />
+                                                <div className="relative">
+                                                    <input
+                                                        type="text"
+                                                        value={section.content.buttonLink}
+                                                        onChange={e => {
+                                                            const newSections = [...localPage.sections];
+                                                            newSections[idx].content.buttonLink = e.target.value;
+                                                            setLocalPage({ ...localPage, sections: newSections });
+                                                        }}
+                                                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none pr-10"
+                                                        placeholder="Enlace (ex: /contacto)"
+                                                    />
+                                                    <button
+                                                        onClick={() => {
+                                                            setActiveSelector({ sectionIdx: idx, itemIdx: null, field: 'buttonLink' });
+                                                            setIsPagePickerOpen(true);
+                                                        }}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cafh-indigo"
+                                                    >
+                                                        <Globe size={16} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     )}
@@ -5336,7 +5782,7 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                             </div>
                         )}
                     </div>
-                </div>
+                </div >
 
                 <div className="space-y-6">
                     <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm">
@@ -5363,6 +5809,31 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                 </div>
                                 <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Imagen / Video</span>
                             </button>
+                            <button onClick={() => addSection('ImageText')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-cafh-indigo/5 rounded-2xl transition-all group">
+                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-indigo shadow-sm">
+                                    <Columns size={18} />
+                                </div>
+                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Imagen + Texto</span>
+                            </button>
+                            <button onClick={() => addSection('Table')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-cafh-indigo/5 rounded-2xl transition-all group">
+                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-indigo shadow-sm">
+                                    <Table2 size={18} />
+                                </div>
+                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Tabla Pro</span>
+                            </button>
+                            <button onClick={() => addSection('Tabs')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-cafh-indigo/5 rounded-2xl transition-all group">
+                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-indigo shadow-sm">
+                                    <FolderOpen size={18} />
+                                </div>
+                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Pestañas (Tabs)</span>
+                            </button>
+                            <button onClick={() => addSection('VideoGrid')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-cafh-indigo/5 rounded-2xl transition-all group">
+                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-indigo shadow-sm">
+                                    <Video size={18} />
+                                </div>
+                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Galería de Videos</span>
+                            </button>
+
                             <button onClick={() => addSection('Stats')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-cafh-indigo/5 rounded-2xl transition-all group">
                                 <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-indigo shadow-sm">
                                     <Hash size={18} />
@@ -5465,18 +5936,24 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                         </div>
                     </div>
                 </div>
-            </div>
+            </div >
             <IconPickerModal
                 isOpen={isIconPickerOpen}
                 onClose={() => setIsIconPickerOpen(false)}
                 onSelect={handleIconSelect}
+            />
+            <PagePickerModal
+                isOpen={isPagePickerOpen}
+                onClose={() => setIsPagePickerOpen(false)}
+                onSelect={handlePageLinkSelect}
+                pages={allPages}
             />
         </div>
     );
 };
 
 const MenuEditor: React.FC = () => {
-    const [menu, setMenu] = useState<MegaMenuItem[]>(db.cms.getMenu());
+    const [menu, setMenu] = useState<MegaMenuItem[]>(() => db.cms.getMenu());
     const availableRoutes = db.cms.getAllAvailableRoutes();
 
     const handleSave = () => {
@@ -5611,7 +6088,7 @@ const MenuEditor: React.FC = () => {
 };
 
 const ArticlesManager: React.FC = () => {
-    const [articles, setArticles] = useState<any[]>(db.content.search('')); // Using existing db.content for now
+    const [articles, setArticles] = useState<any[]>(() => db.content.search('')); // Using existing db.content for now
 
     return (
         <div className="space-y-6">

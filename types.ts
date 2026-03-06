@@ -184,7 +184,7 @@ export interface HomeConfig {
 // DYNAMIC PAGES (WYSIWYG)
 export interface PageSection {
   id: string;
-  type: 'Text' | 'Image' | 'Gallery' | 'Stats' | 'Cards' | 'IconGrid' | 'Hero' | 'Video' | 'CTA' | 'Accordion' | 'ResourcesGrid' | 'EventsCalendar' | 'Timeline' | 'MethodPillars';
+  type: 'Text' | 'Image' | 'Gallery' | 'Stats' | 'Cards' | 'IconGrid' | 'Hero' | 'Video' | 'CTA' | 'Accordion' | 'ResourcesGrid' | 'EventsCalendar' | 'Timeline' | 'MethodPillars' | 'ImageText' | 'Table' | 'Tabs' | 'VideoGrid';
   content: any; // Flexible content based on type
   order: number;
   settings?: {

@@ -727,6 +727,13 @@ export const db = {
             }
             return all;
         },
+        save: (contact: Contact) => db.crm.update(contact),
+        delete: (id: string) => {
+            const all = JSON.parse(localStorage.getItem(KEYS.CONTACTS) || '[]');
+            const updated = all.filter((c: any) => c.id !== id);
+            localStorage.setItem(KEYS.CONTACTS, JSON.stringify(updated));
+            return updated;
+        },
         add: (contact: Omit<Contact, 'id'>) => {
             const all = db.crm.getAll();
             const newContact = { ...contact, id: Math.random().toString(36).substr(2, 9) } as Contact;

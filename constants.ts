@@ -273,15 +273,15 @@ export const PUBLIC_NAV_STRUCTURE = [
             {
                 title: 'Identidad',
                 items: [
-                    { label: 'Nuestra Historia', path: '/about/history', icon: Compass, desc: 'Orígenes y trayectoria.' },
-                    { label: 'Misión y Visión', path: '/about/mission', icon: Anchor, desc: 'El propósito que nos guía.' },
+                    { label: 'Nuestra Historia', path: '/about/history', icon: 'Compass', desc: 'Orígenes y trayectoria.' },
+                    { label: 'Misión y Visión', path: '/about/mission', icon: 'Anchor', desc: 'El propósito que nos guía.' },
                 ]
             },
             {
                 title: 'Organización',
                 items: [
-                    { label: 'Sedes en el Mundo', path: '/about/locations', icon: Map, desc: 'Nuestra presencia global.' },
-                    { label: 'Comunidad', path: '/about/community', icon: Users, desc: 'Quienes formamos Cafh.' },
+                    { label: 'Sedes en el Mundo', path: '/about/locations', icon: 'Map', desc: 'Nuestra presencia global.' },
+                    { label: 'Comunidad', path: '/about/community', icon: 'Users', desc: 'Quienes formamos Cafh.' },
                 ]
             }
         ]

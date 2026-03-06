@@ -322,18 +322,21 @@ export const PublicFooter: React.FC = () => {
                             Una reunión de personas dedicadas al servicio de la gente. Nuestro propósito es puramente espiritual, ayudando a desarrollar la conciencia y la capacidad de amar.
                         </p>
                         <div className="flex gap-2.5 pt-1">
-                            {footerConfig.socialLinks?.map((link: any, idx: number) => (
-                                <a
-                                    key={idx}
-                                    href={link.url || '#'}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    title={link.platform}
-                                    className="w-10 h-10 rounded-full bg-white/10 hover:bg-cafh-cyan/20 hover:border-cafh-cyan border border-white/10 flex items-center justify-center text-white cursor-pointer transition-all duration-200"
-                                >
-                                    <Globe size={16} />
-                                </a>
-                            ))}
+                            {footerConfig.socialLinks?.map((link: any, idx: number) => {
+                                const IconComponent = (Lucide as any)[link.icon || ''] || Globe;
+                                return (
+                                    <a
+                                        key={idx}
+                                        href={link.url || '#'}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        title={link.platform}
+                                        className="w-10 h-10 rounded-full bg-white/10 hover:bg-cafh-cyan/20 hover:border-cafh-cyan border border-white/10 flex items-center justify-center text-white cursor-pointer transition-all duration-200 group"
+                                    >
+                                        <IconComponent size={18} strokeWidth={2} className="group-hover:scale-110 transition-transform" />
+                                    </a>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -420,8 +423,12 @@ export const PublicFooter: React.FC = () => {
                 </div>
 
                 {/* Compliance & Data Protection Policy Statement */}
-                <div className="mt-6 text-center text-[10px] md:text-xs text-white/30 font-light border-t border-white/5 pt-6 pb-2 px-4">
-                    <p className="max-w-4xl mx-auto leading-relaxed">
+                <div className="mt-8 text-center border-t border-white/5 pt-8 pb-4 px-4 flex flex-col items-center gap-5">
+                    <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-emerald-500/5 border border-emerald-500/20 backdrop-blur-md shadow-[0_0_25px_rgba(16,185,129,0.1)] text-emerald-400/90 group hover:bg-emerald-500/10 hover:border-emerald-500/40 transition-all duration-700 cursor-default">
+                        <Lucide.ShieldCheck size={16} className="animate-pulse text-emerald-400" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Sus datos están seguros</span>
+                    </div>
+                    <p className="max-w-4xl mx-auto leading-relaxed text-[10px] md:text-xs text-white/20 font-light italic">
                         Sistema asegurado con validación de cuentas estricto, alineado a los estándares mundiales de protección de datos personales (RGPD/GDPR). El uso de esta plataforma constituye la aceptación de nuestras políticas de privacidad y el uso de cookies operacionales.
                     </p>
                 </div>
@@ -527,16 +534,15 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
                 </nav>
 
                 <div className="p-4 border-t border-slate-800">
-                    <button
-                        onClick={() => {
-                            navigate('/');
-                            setIsMobileMenuOpen(false);
-                        }}
+                    <a
+                        href="#/"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white w-full transition-colors"
                     >
                         <Globe size={18} />
                         <span className="text-sm">Ver Sitio Web</span>
-                    </button>
+                    </a>
                     <button
                         onClick={handleLogout}
                         className="flex items-center gap-3 px-3 py-2 text-red-400 hover:text-red-300 w-full transition-colors mt-1"
@@ -597,13 +603,15 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
                                     </div>
                                     {/* Actions */}
                                     <div className="p-2">
-                                        <button
-                                            onClick={() => { navigate('/'); setIsProfileOpen(false); }}
+                                        <a
+                                            href="#/"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
                                             className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 text-sm font-medium transition-colors"
                                         >
                                             <Globe size={16} className="text-slate-400" />
                                             Ver sitio web
-                                        </button>
+                                        </a>
                                         <button
                                             className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 text-sm font-medium transition-colors"
                                             onClick={() => setIsProfileOpen(false)}

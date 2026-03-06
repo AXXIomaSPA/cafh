@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Compass, Anchor, Users, Map, Heart, Sparkles, Cloud, Book, BookOpen, Video, 
+import {
+    Compass, Anchor, Users, Map, Heart, Sparkles, Cloud, Book, BookOpen, Video,
     Feather, MessageCircle, Calendar, Sun, Coffee, Search, Filter, ArrowRight,
-    Play, Download, MapPin, Clock, ChevronRight
+    Play, Download, MapPin, Clock, ChevronRight, X
 } from 'lucide-react';
 import { db } from '../storage';
 import { ContentItem, CalendarEvent } from '../types';
@@ -15,7 +15,7 @@ const InternalHeader: React.FC<{ title: string; subtitle: string; icon: any; bgI
             <img src={bgImage} alt={title} className="w-full h-full object-cover opacity-30 mix-blend-multiply" />
             <div className="absolute inset-0 bg-gradient-to-b from-cafh-indigo via-cafh-indigo/80 to-slate-50"></div>
         </div>
-        
+
         {/* Floating Elements */}
         <div className="absolute top-20 right-10 w-64 h-64 bg-cafh-cyan rounded-full blur-[100px] opacity-20 animate-float"></div>
 
@@ -34,22 +34,22 @@ const InternalHeader: React.FC<{ title: string; subtitle: string; icon: any; bgI
 export const AboutView: React.FC = () => {
     return (
         <div className="min-h-screen bg-slate-50">
-            <InternalHeader 
-                title="Quiénes Somos" 
+            <InternalHeader
+                title="Quiénes Somos"
                 subtitle="Una comunidad global dedicada al desenvolvimiento espiritual y al servicio de la humanidad."
                 icon={Users}
                 bgImage="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2000&auto=format&fit=crop"
             />
-            
+
             <div className="max-w-7xl mx-auto px-6 py-16 md:py-24 space-y-24">
-                
+
                 {/* Section 1: History & Identity */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                     <div className="relative">
                         <div className="absolute inset-0 bg-cafh-cyan rounded-[2rem] rotate-3 opacity-20 transform translate-x-4 translate-y-4"></div>
-                        <img 
-                            src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800&auto=format&fit=crop" 
-                            alt="Historia" 
+                        <img
+                            src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800&auto=format&fit=crop"
+                            alt="Historia"
                             className="relative z-10 rounded-[2rem] shadow-xl w-full object-cover h-[400px]"
                         />
                     </div>
@@ -101,7 +101,7 @@ export const AboutView: React.FC = () => {
                                 </div>
                                 <h3 className="text-xl font-bold text-slate-800 mb-2">{region}</h3>
                                 <p className="text-slate-500 text-sm mb-4">Sedes activas y grupos de estudio presenciales.</p>
-                                <span className="text-cafh-cyan font-bold text-sm flex items-center gap-2">Ver ubicaciones <ArrowRight size={16}/></span>
+                                <span className="text-cafh-cyan font-bold text-sm flex items-center gap-2">Ver ubicaciones <ArrowRight size={16} /></span>
                             </div>
                         ))}
                     </div>
@@ -115,13 +115,13 @@ export const AboutView: React.FC = () => {
 export const MethodView: React.FC = () => {
     return (
         <div className="min-h-screen bg-slate-50">
-            <InternalHeader 
-                title="El Método" 
+            <InternalHeader
+                title="El Método"
                 subtitle="Un camino práctico para integrar la espiritualidad en la vida cotidiana."
                 icon={Sparkles}
                 bgImage="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=2000&auto=format&fit=crop"
             />
-            
+
             <div className="max-w-7xl mx-auto px-6 py-16 md:py-24">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
                     {/* Pilar 1: Vida Interior */}
@@ -141,7 +141,7 @@ export const MethodView: React.FC = () => {
                         <ul className="space-y-3">
                             {['Auto-observación', 'Dominio emocional', 'Intención pura'].map(item => (
                                 <li key={item} className="flex items-center gap-3 text-slate-700 font-medium">
-                                    <div className="w-6 h-6 rounded-full bg-cafh-light flex items-center justify-center text-cafh-cyan"><ChevronRight size={14}/></div>
+                                    <div className="w-6 h-6 rounded-full bg-cafh-light flex items-center justify-center text-cafh-cyan"><ChevronRight size={14} /></div>
                                     {item}
                                 </li>
                             ))}
@@ -162,10 +162,10 @@ export const MethodView: React.FC = () => {
                         <p className="text-slate-600 leading-relaxed mb-6">
                             La mística en Cafh es la experiencia directa de la unión con la vida. A través del amor, trascendemos nuestras limitaciones individuales y participamos de una realidad mayor.
                         </p>
-                         <ul className="space-y-3">
+                        <ul className="space-y-3">
                             {['Amor a la humanidad', 'Sentido de trascendencia', 'Unión sustancial'].map(item => (
                                 <li key={item} className="flex items-center gap-3 text-slate-700 font-medium">
-                                    <div className="w-6 h-6 rounded-full bg-cafh-light flex items-center justify-center text-cafh-cyan"><ChevronRight size={14}/></div>
+                                    <div className="w-6 h-6 rounded-full bg-cafh-light flex items-center justify-center text-cafh-cyan"><ChevronRight size={14} /></div>
                                     {item}
                                 </li>
                             ))}
@@ -176,11 +176,11 @@ export const MethodView: React.FC = () => {
                 {/* Practices Banner */}
                 <div className="mt-24 bg-white rounded-[2.5rem] shadow-xl border border-slate-100 p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8">
                     <div>
-                         <span className="text-cafh-indigo font-bold tracking-widest text-sm uppercase block mb-2">Herramientas Prácticas</span>
-                         <h3 className="text-3xl font-display font-bold text-slate-800">Meditación Discursiva</h3>
-                         <p className="text-slate-600 mt-4 max-w-xl">
-                             Nuestro método principal de meditación. No solo busca calmar la mente, sino transformar la conducta a través de la reflexión profunda sobre temas universales.
-                         </p>
+                        <span className="text-cafh-indigo font-bold tracking-widest text-sm uppercase block mb-2">Herramientas Prácticas</span>
+                        <h3 className="text-3xl font-display font-bold text-slate-800">Meditación Discursiva</h3>
+                        <p className="text-slate-600 mt-4 max-w-xl">
+                            Nuestro método principal de meditación. No solo busca calmar la mente, sino transformar la conducta a través de la reflexión profunda sobre temas universales.
+                        </p>
                     </div>
                     <div className="flex gap-4">
                         <button className="px-8 py-4 bg-cafh-indigo text-white rounded-full font-bold hover:bg-slate-800 transition-colors shadow-lg shadow-cafh-indigo/20">
@@ -211,8 +211,8 @@ export const ResourcesView: React.FC = () => {
         setResourcesContent([...contents, ...medias].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     }, []);
 
-    const filteredContent = filter === 'Todos' 
-        ? resourcesContent 
+    const filteredContent = filter === 'Todos'
+        ? resourcesContent
         : resourcesContent.filter(c => {
             if (filter === 'Article') return c.type === 'Article';
             if (filter === 'Resource') return c.type === 'document' || c.type === 'Resource';
@@ -239,7 +239,7 @@ export const ResourcesView: React.FC = () => {
                     <div className="relative w-full max-w-4xl bg-white rounded-[2rem] overflow-hidden shadow-2xl animate-fade-in-up" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-center p-6 border-b border-slate-100">
                             <h3 className="text-xl font-bold text-slate-800">{selectedResource.title}</h3>
-                            <button onClick={() => setSelectedResource(null)} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full"><X size={20}/></button>
+                            <button onClick={() => setSelectedResource(null)} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full"><X size={20} /></button>
                         </div>
                         <div className="p-6 bg-slate-50 min-h-[400px] flex flex-col items-center justify-center">
                             {(selectedResource.type === 'video') ? (
@@ -255,7 +255,7 @@ export const ResourcesView: React.FC = () => {
                                 selectedResource.url && selectedResource.url !== '#' ? (
                                     <iframe src={selectedResource.url} className="w-full h-[60vh] rounded-xl border border-slate-200" title="Document Viewer" />
                                 ) : (
-                                    <div className="text-center text-slate-500"><BookOpen size={48} className="mx-auto mb-4 opacity-50"/> <p>El documento no tiene un archivo asignado.</p></div>
+                                    <div className="text-center text-slate-500"><BookOpen size={48} className="mx-auto mb-4 opacity-50" /> <p>El documento no tiene un archivo asignado.</p></div>
                                 )
                             ) : (
                                 <div className="text-center p-12 max-w-lg">
@@ -270,38 +270,37 @@ export const ResourcesView: React.FC = () => {
                     </div>
                 </div>
             )}
-            <InternalHeader 
-                title="Biblioteca de Recursos" 
+            <InternalHeader
+                title="Biblioteca de Recursos"
                 subtitle="Explora documentos, videos y audios para nutrir tu camino."
                 icon={BookOpen}
                 bgImage="https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=2000&auto=format&fit=crop"
             />
-            
+
             <div className="max-w-7xl mx-auto px-6 py-16">
-                
+
                 {/* Filters */}
                 <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
                     <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
                         {['Todos', 'Article', 'Resource', 'Video', 'Audio'].map(type => (
-                            <button 
+                            <button
                                 key={type}
                                 onClick={() => setFilter(type)}
-                                className={`px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-all ${
-                                    filter === type 
-                                    ? 'bg-cafh-indigo text-white shadow-md' 
-                                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-                                }`}
+                                className={`px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-all ${filter === type
+                                        ? 'bg-cafh-indigo text-white shadow-md'
+                                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                                    }`}
                             >
                                 {type === 'Todos' ? 'Todos' : type === 'Article' ? 'Artículos' : type === 'Resource' ? 'Descargas/PDF' : type === 'Video' ? 'Videos' : 'Audios'}
                             </button>
                         ))}
                     </div>
-                    
+
                     <div className="relative w-full md:w-80">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                        <input 
-                            type="text" 
-                            placeholder="Buscar en la biblioteca..." 
+                        <input
+                            type="text"
+                            placeholder="Buscar en la biblioteca..."
                             className="w-full pl-12 pr-4 py-3 rounded-full border border-slate-200 focus:outline-none focus:border-cafh-cyan transition-colors"
                         />
                     </div>
@@ -312,30 +311,29 @@ export const ResourcesView: React.FC = () => {
                     {filteredContent.map(item => (
                         <div key={item.id} onClick={() => handleResourceClick(item)} className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex flex-col h-full">
                             <div className="flex justify-between items-start mb-4">
-                                <div className={`p-3 rounded-2xl ${
-                                    item.type === 'Article' ? 'bg-blue-50 text-blue-600' :
-                                    (item.type === 'Resource' || item.type === 'document') ? 'bg-green-50 text-green-600' :
-                                    item.type === 'audio' ? 'bg-purple-50 text-purple-600' :
-                                    'bg-red-50 text-red-600'
-                                }`}>
-                                    {item.type === 'Article' ? <Feather size={24}/> : (item.type === 'Resource' || item.type === 'document') ? <Download size={24}/> : item.type === 'audio' ? <Play size={24}/> : <Video size={24}/>}
+                                <div className={`p-3 rounded-2xl ${item.type === 'Article' ? 'bg-blue-50 text-blue-600' :
+                                        (item.type === 'Resource' || item.type === 'document') ? 'bg-green-50 text-green-600' :
+                                            item.type === 'audio' ? 'bg-purple-50 text-purple-600' :
+                                                'bg-red-50 text-red-600'
+                                    }`}>
+                                    {item.type === 'Article' ? <Feather size={24} /> : (item.type === 'Resource' || item.type === 'document') ? <Download size={24} /> : item.type === 'audio' ? <Play size={24} /> : <Video size={24} />}
                                 </div>
                                 <span className="text-xs font-bold text-slate-400 uppercase bg-slate-50 px-2 py-1 rounded">{item.type}</span>
                             </div>
-                            
+
                             <h3 className="text-xl font-bold text-slate-800 mb-3 leading-tight group-hover:text-cafh-indigo transition-colors flex-1">
                                 {item.title}
                             </h3>
-                            
+
                             <div className="flex flex-wrap gap-2 mb-6">
                                 {item.tags.map(tag => (
                                     <span key={tag} className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded">#{tag}</span>
                                 ))}
                             </div>
-                            
+
                             <div className="pt-4 border-t border-slate-50 flex items-center justify-between text-sm text-slate-400">
                                 <span>{item.date}</span>
-                                <span className="flex items-center gap-1 group-hover:text-cafh-cyan transition-colors font-bold text-cafh-indigo">Abrir <ArrowRight size={14}/></span>
+                                <span className="flex items-center gap-1 group-hover:text-cafh-cyan transition-colors font-bold text-cafh-indigo">Abrir <ArrowRight size={14} /></span>
                             </div>
                         </div>
                     ))}
@@ -355,15 +353,15 @@ export const ActivitiesView: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-slate-50">
-            <InternalHeader 
-                title="Actividades y Retiros" 
+            <InternalHeader
+                title="Actividades y Retiros"
                 subtitle="Participa de nuestros encuentros. Espacios diseñados para el aprendizaje y la vivencia espiritual."
                 icon={Calendar}
                 bgImage="https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?q=80&w=2000&auto=format&fit=crop"
             />
 
             <div className="max-w-7xl mx-auto px-6 py-16">
-                
+
                 {/* Upcoming Highlights */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
                     <div className="lg:col-span-1 bg-cafh-indigo text-white rounded-[2.5rem] p-10 relative overflow-hidden flex flex-col justify-center">
@@ -376,7 +374,7 @@ export const ActivitiesView: React.FC = () => {
                     </div>
 
                     <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                         {events.slice(0, 2).map((event) => (
+                        {events.slice(0, 2).map((event) => (
                             <div key={event.id} className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden">
                                 {event.meetingUrl && (
                                     <div className="absolute top-0 right-0 bg-green-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
@@ -394,13 +392,13 @@ export const ActivitiesView: React.FC = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-2 text-sm text-slate-500">
-                                    <div className="flex items-center gap-2"><Clock size={16} className="text-cafh-turquoise"/> {event.time}</div>
-                                    <div className="flex items-center gap-2"><MapPin size={16} className="text-cafh-turquoise"/> {event.location}</div>
+                                    <div className="flex items-center gap-2"><Clock size={16} className="text-cafh-turquoise" /> {event.time}</div>
+                                    <div className="flex items-center gap-2"><MapPin size={16} className="text-cafh-turquoise" /> {event.location}</div>
                                 </div>
                                 {event.meetingUrl && (
-                                    <a 
-                                        href={event.meetingUrl} 
-                                        target="_blank" 
+                                    <a
+                                        href={event.meetingUrl}
+                                        target="_blank"
                                         rel="noopener noreferrer"
                                         className="mt-4 inline-flex items-center gap-2 text-green-600 font-bold text-sm hover:underline"
                                     >
@@ -417,7 +415,7 @@ export const ActivitiesView: React.FC = () => {
                     <div className="flex justify-between items-center mb-10">
                         <h2 className="text-3xl font-display font-bold text-slate-800">Calendario Completo</h2>
                         <div className="flex gap-2">
-                             <button className="p-2 rounded-full border border-slate-200 hover:bg-slate-50"><Filter size={20}/></button>
+                            <button className="p-2 rounded-full border border-slate-200 hover:bg-slate-50"><Filter size={20} /></button>
                         </div>
                     </div>
 
@@ -425,7 +423,7 @@ export const ActivitiesView: React.FC = () => {
                         {events.map((event) => (
                             <div key={event.id} className="flex flex-col md:flex-row md:items-center justify-between p-6 rounded-2xl border border-slate-50 hover:bg-slate-50 hover:border-slate-200 transition-all group">
                                 <div className="flex items-start md:items-center gap-6 mb-4 md:mb-0">
-                                     <div className={`w-16 h-16 rounded-2xl ${event.color} flex flex-col items-center justify-center text-white font-bold leading-none shrink-0`}>
+                                    <div className={`w-16 h-16 rounded-2xl ${event.color} flex flex-col items-center justify-center text-white font-bold leading-none shrink-0`}>
                                         <span className="text-2xl">{event.day}</span>
                                         <span className="text-xs tracking-widest uppercase">{event.month}</span>
                                     </div>
@@ -435,15 +433,15 @@ export const ActivitiesView: React.FC = () => {
                                             {event.meetingUrl && <Video size={16} className="text-green-500" />}
                                         </h4>
                                         <div className="flex flex-wrap gap-4 text-sm text-slate-500">
-                                            <span className="flex items-center gap-1"><Clock size={14}/> {event.time}</span>
-                                            <span className="flex items-center gap-1"><MapPin size={14}/> {event.location}</span>
+                                            <span className="flex items-center gap-1"><Clock size={14} /> {event.time}</span>
+                                            <span className="flex items-center gap-1"><MapPin size={14} /> {event.location}</span>
                                             <span className="bg-white border border-slate-200 px-2 rounded-full text-xs font-bold">{event.type}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     {event.meetingUrl ? (
-                                        <a 
+                                        <a
                                             href={event.meetingUrl}
                                             target="_blank"
                                             rel="noopener noreferrer"

@@ -354,12 +354,101 @@ const DynamicMethodPillars: React.FC<any> = ({ bgClass, paddingClass, containerC
         </div>
     </section>
 );
+
+const TableSection = ({ section, bgClass, paddingClass, containerClass }: any) => {
+    const { content } = section;
+    return (
+        <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+            <div className={`${containerClass} mx-auto px-6`}>
+                {content.title && <h3 className="text-2xl md:text-3xl font-display font-bold text-slate-800 mb-8">{content.title}</h3>}
+                <div className="overflow-hidden rounded-[2rem] border border-slate-100 shadow-sm">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-slate-50">
+                                    {content.headers.map((h: string, i: number) => (
+                                        <th key={i} className="p-5 text-sm font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">{h}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {content.rows.map((row: string[], ri: number) => (
+                                    <tr key={ri} className="hover:bg-slate-50/50 transition-colors">
+                                        {row.map((cell, ci) => (
+                                            <td key={ci} className="p-5 text-slate-600 border-b border-slate-50">{cell}</td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+};
+
+const TabsSection = ({ section, bgClass, paddingClass, containerClass }: any) => {
+    const { content } = section;
+    const [activeTab, setActiveTab] = useState(0);
+
+    return (
+        <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+            <div className={`${containerClass} mx-auto px-6`}>
+                <div className="flex flex-wrap gap-2 mb-8 justify-center">
+                    {content.items.map((item: any, i: number) => (
+                        <button
+                            key={i}
+                            onClick={() => setActiveTab(i)}
+                            className={`px-6 py-3 rounded-2xl font-bold transition-all ${activeTab === i ? 'bg-cafh-indigo text-white shadow-lg shadow-cafh-indigo/20' : 'bg-white text-slate-450 hover:bg-slate-50 border border-slate-100'}`}
+                        >
+                            {item.title}
+                        </button>
+                    ))}
+                </div>
+                <div className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-100 shadow-sm min-h-[200px] animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <p className="text-slate-600 text-lg leading-relaxed whitespace-pre-wrap">
+                        {content.items[activeTab]?.content}
+                    </p>
+                </div>
+            </div>
+        </section>
+    );
+};
+
+const VideoGridSection = ({ section, bgClass, paddingClass, containerClass, onVideoSelect }: any) => {
+    const { content } = section;
+    return (
+        <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+            <div className={`${containerClass} mx-auto px-6`}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {content.items.map((v: any, i: number) => (
+                        <div key={i} className="group cursor-pointer" onClick={() => onVideoSelect(v.videoId)}>
+                            <div className="aspect-video rounded-3xl overflow-hidden relative mb-4 shadow-md group-hover:shadow-xl transition-all group-hover:-translate-y-1 duration-300">
+                                <img src={`https://img.youtube.com/vi/${v.videoId}/maxresdefault.jpg`} alt={v.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                <div className="absolute inset-0 bg-cafh-indigo/20 group-hover:bg-cafh-indigo/40 transition-colors flex items-center justify-center">
+                                    <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center text-cafh-indigo shadow-xl scale-90 group-hover:scale-100 transition-transform">
+                                        <Lucide.Play size={24} fill="currentColor" />
+                                    </div>
+                                </div>
+                            </div>
+                            <h4 className="text-xl font-bold text-slate-800 group-hover:text-cafh-indigo transition-colors">{v.title}</h4>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+};
+
 // --- END DYNAMIC PREDEFINED BLOCKS ---
 
 export const DynamicPageView: React.FC<{ slug: string }> = ({ slug }) => {
     const navigate = useNavigate();
     const [page, setPage] = useState<CustomPage | undefined>(undefined);
     const [isLoading, setIsLoading] = useState(true);
+    const [videoModal, setVideoModal] = useState({ isOpen: false, videoId: '' });
+    const [imageModal, setImageModal] = useState({ isOpen: false, imageUrl: '' });
 
     useEffect(() => {
         const p = db.cms.getPageBySlug(slug);
@@ -434,6 +523,24 @@ export const DynamicPageView: React.FC<{ slug: string }> = ({ slug }) => {
                                 <img src={content.imageUrl} alt={content.caption} className="w-full h-auto" referrerPolicy="no-referrer" />
                             </div>
                             {content.caption && <p className="text-center text-slate-400 mt-6 text-sm italic">{content.caption}</p>}
+                        </div>
+                    </section>
+                );
+            case 'ImageText':
+                return (
+                    <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                        <div className={`${containerClass} mx-auto px-6`}>
+                            <div className={`flex flex-col md:flex-row items-center gap-12 ${content.imagePosition === 'right' ? 'md:flex-row-reverse' : ''}`}>
+                                <div className="flex-1 space-y-6">
+                                    <h2 className="text-3xl md:text-5xl font-display font-bold text-slate-800 leading-tight">{content.title}</h2>
+                                    <p className="text-slate-600 text-lg leading-relaxed whitespace-pre-wrap">{content.text}</p>
+                                </div>
+                                <div className="flex-1 w-full">
+                                    <div className="rounded-[2.5rem] overflow-hidden shadow-2xl hover:scale-[1.02] transition-transform duration-500">
+                                        <img src={content.imageUrl} alt={content.title} className="w-full h-auto object-cover max-h-[500px]" referrerPolicy="no-referrer" />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </section>
                 );
@@ -522,7 +629,7 @@ export const DynamicPageView: React.FC<{ slug: string }> = ({ slug }) => {
                         <div className={`${containerClass} mx-auto px-6`}>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {content.images.map((img: string, i: number) => (
-                                    <div key={i} className="aspect-square rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all group">
+                                    <div key={i} className="aspect-square rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all group cursor-pointer" onClick={() => setImageModal({ isOpen: true, imageUrl: img })}>
                                         <img src={img} alt={`Gallery ${i}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
                                     </div>
                                 ))}
@@ -577,6 +684,12 @@ export const DynamicPageView: React.FC<{ slug: string }> = ({ slug }) => {
                 return <DynamicTimeline key={section.id} section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
             case 'MethodPillars':
                 return <DynamicMethodPillars key={section.id} section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
+            case 'Table':
+                return <TableSection key={section.id} section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
+            case 'Tabs':
+                return <TabsSection key={section.id} section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
+            case 'VideoGrid':
+                return <VideoGridSection key={section.id} section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} onVideoSelect={(id: string) => setVideoModal({ isOpen: true, videoId: id })} />;
             default:
                 return null;
         }
@@ -585,6 +698,16 @@ export const DynamicPageView: React.FC<{ slug: string }> = ({ slug }) => {
     return (
         <div className="w-full bg-slate-50">
             {page.sections.sort((a, b) => a.order - b.order).map(section => renderPageSection(section))}
+            <VideoModal
+                isOpen={videoModal.isOpen}
+                onClose={() => setVideoModal({ ...videoModal, isOpen: false })}
+                videoId={videoModal.videoId}
+            />
+            <ImageModal
+                isOpen={imageModal.isOpen}
+                onClose={() => setImageModal({ ...imageModal, isOpen: false })}
+                imageUrl={imageModal.imageUrl}
+            />
         </div>
     );
 };
@@ -837,6 +960,26 @@ const VideoModal: React.FC<{ isOpen: boolean; onClose: () => void; videoId: stri
                         className="w-full h-full"
                     ></iframe>
                 </div>
+            </div>
+        </div>,
+        document.body
+    );
+};
+
+const ImageModal: React.FC<{ isOpen: boolean; onClose: () => void; imageUrl: string }> = ({ isOpen, onClose, imageUrl }) => {
+    if (!isOpen) return null;
+
+    return createPortal(
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-sm" onClick={onClose}></div>
+            <div className="relative max-w-5xl max-h-[90vh] bg-transparent rounded-3xl overflow-hidden shadow-2xl animate-scale-in">
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 text-white/70 hover:text-white bg-black/50 p-2 rounded-full z-10 transition-colors"
+                >
+                    <X size={24} />
+                </button>
+                <img src={imageUrl} alt="Vista ampliada" className="max-w-full max-h-[90vh] object-contain rounded-2xl" referrerPolicy="no-referrer" />
             </div>
         </div>,
         document.body
