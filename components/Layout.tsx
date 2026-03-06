@@ -189,7 +189,7 @@ export const PublicHeader: React.FC = () => {
                         <button
                             onClick={() => navigate('/login')}
                             className={`px-6 py-3 rounded-full text-sm font-bold transition-all shadow-lg transform hover:scale-105 active:scale-95 ${(isScrolled || activeMenu)
-                                ? 'bg-cafh-indigo text-white hover:bg-blue-900'
+                                ? 'bg-cafh-indigo text-white hover:bg-slate-900'
                                 : 'bg-white text-cafh-indigo hover:bg-slate-100'
                                 }`}
                         >
@@ -515,7 +515,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
                                     setIsMobileMenuOpen(false);
                                 }}
                                 className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 ${isActive
-                                    ? 'bg-cafh-indigo text-white shadow-lg shadow-blue-900/40 translate-x-1'
+                                    ? 'bg-cafh-indigo text-white shadow-lg shadow-cafh-indigo/40 translate-x-1'
                                     : 'hover:bg-slate-800 hover:text-white'
                                     }`}
                             >

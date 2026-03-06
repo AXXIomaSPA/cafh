@@ -78,7 +78,7 @@ export const DashboardView: React.FC = () => {
     const statusIcon = (status: string) => {
         if (status === 'Opened' || status === 'Clicked') return { icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-50' };
         if (status === 'Bounced' || status === 'Failed') return { icon: AlertCircle, color: 'text-red-500 bg-red-50' };
-        return { icon: Mail, color: 'text-blue-500 bg-blue-50' };
+        return { icon: Mail, color: 'text-cafh-indigo/80 bg-cafh-indigo/5' };
     };
 
     const kpis = [
@@ -241,7 +241,7 @@ export const DashboardView: React.FC = () => {
                                         <p className="text-xs text-slate-500">{contactName} · <span className="font-mono">{log.campaignName}</span></p>
                                     </div>
                                     <div className="text-right shrink-0">
-                                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${log.status === 'Opened' || log.status === 'Clicked' ? 'bg-emerald-50 text-emerald-600' : log.status === 'Bounced' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
+                                        <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${log.status === 'Opened' || log.status === 'Clicked' ? 'bg-emerald-50 text-emerald-600' : log.status === 'Bounced' ? 'bg-red-50 text-red-600' : 'bg-cafh-indigo/5 text-cafh-indigo'}`}>
                                             {log.status}
                                         </span>
                                         <p className="text-[10px] text-slate-400 mt-1 font-mono">{log.sentAt}</p>
@@ -277,7 +277,7 @@ export const DashboardView: React.FC = () => {
                                         <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                             <div className="h-full bg-cafh-indigo/60 rounded-full transition-all duration-700" style={{ width: `${pct}%` }}></div>
                                         </div>
-                                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${item.type === 'Article' ? 'bg-blue-50 text-blue-600' : item.type === 'Resource' ? 'bg-green-50 text-green-600' : 'bg-purple-50 text-purple-600'}`}>{item.type}</span>
+                                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${item.type === 'Article' ? 'bg-cafh-indigo/5 text-cafh-indigo' : item.type === 'Resource' ? 'bg-green-50 text-green-600' : 'bg-purple-50 text-purple-600'}`}>{item.type}</span>
                                     </div>
                                 </div>
                             );
@@ -372,7 +372,7 @@ const ContactOffCanvas: React.FC<{
                         <div className="grid grid-cols-3 gap-3">
                             <button
                                 onClick={() => onSendEmail(contact)}
-                                className="flex flex-col items-center gap-2 p-3 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                                className="flex flex-col items-center gap-2 p-3 rounded-xl bg-cafh-indigo/5 text-cafh-indigo hover:bg-cafh-indigo/10 transition-colors"
                             >
                                 <Mail size={20} />
                                 <span className="text-[10px] font-bold uppercase">Email</span>
@@ -401,7 +401,7 @@ const ContactOffCanvas: React.FC<{
                                 <h4 className="text-xs font-bold text-slate-800 uppercase tracking-widest mb-4">Rendimiento Individual</h4>
                                 <div className="grid grid-cols-3 gap-0 divide-x divide-slate-100">
                                     <div className="px-2">
-                                        <p className="text-2xl font-bold text-blue-600">{totalEmails}</p>
+                                        <p className="text-2xl font-bold text-cafh-indigo">{totalEmails}</p>
                                         <p className="text-[9px] uppercase font-bold text-slate-400 mt-1">Enviados</p>
                                     </div>
                                     <div className="px-2">
@@ -452,7 +452,7 @@ const ContactOffCanvas: React.FC<{
                                 <div className="flex flex-wrap gap-2">
                                     {(contact.listIds && contact.listIds.length > 0) ? (
                                         availableLists.filter(l => contact.listIds?.includes(l.id)).map(list => (
-                                            <span key={list.id} className="px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-xs font-bold text-blue-600 shadow-sm flex items-center gap-1.5">
+                                            <span key={list.id} className="px-3 py-1 bg-cafh-indigo/5 border border-blue-100 rounded-full text-xs font-bold text-cafh-indigo shadow-sm flex items-center gap-1.5">
                                                 <Layers size={12} />
                                                 {list.name}
                                             </span>
@@ -493,7 +493,7 @@ const ContactOffCanvas: React.FC<{
                                         <div className="flex justify-between items-start mb-1">
                                             <span className="text-xs font-bold text-slate-800 truncate pr-2">{log.subject}</span>
                                             <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase ${log.status === 'Opened' || log.status === 'Clicked' ? 'bg-green-100 text-green-700' :
-                                                log.status === 'Bounced' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                                                log.status === 'Bounced' ? 'bg-red-100 text-red-700' : 'bg-cafh-indigo/10 text-cafh-indigo'
                                                 }`}>
                                                 {log.status}
                                             </span>
@@ -617,7 +617,7 @@ const EmailComposerModal: React.FC<{
                         <button
                             onClick={handleSend}
                             disabled={isSending || !subject || !content}
-                            className="flex-[2] py-4 bg-cafh-indigo text-white font-bold rounded-2xl shadow-xl shadow-indigo-200 hover:bg-blue-900 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                            className="flex-[2] py-4 bg-cafh-indigo text-white font-bold rounded-2xl shadow-xl shadow-indigo-200 hover:bg-slate-900 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                             {isSending ? <RefreshCw size={20} className="animate-spin" /> : <Send size={20} />}
                             <span>{isSending ? 'Enviando...' : 'Enviar Email'}</span>
@@ -850,7 +850,7 @@ export const CRMView: React.FC = () => {
                     </button>
                     <button
                         onClick={() => setIsCampaignOrchestratorOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-cafh-indigo text-white rounded-xl hover:bg-blue-900 transition-all font-bold text-sm shadow-lg shadow-indigo-100"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-cafh-indigo text-white rounded-xl hover:bg-slate-900 transition-all font-bold text-sm shadow-lg shadow-indigo-100"
                     >
                         <Send size={18} />
                         <span>Campañas</span>
@@ -879,7 +879,7 @@ export const CRMView: React.FC = () => {
                     </button>
                     <button
                         onClick={() => handleEditRequest(null)}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-cafh-indigo text-white rounded-xl hover:bg-blue-900 transition-all shadow-xl shadow-indigo-100 font-bold text-sm"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-cafh-indigo text-white rounded-xl hover:bg-slate-900 transition-all shadow-xl shadow-indigo-100 font-bold text-sm"
                     >
                         <Plus size={18} />
                         <span>Nuevo Contacto</span>
@@ -906,7 +906,7 @@ export const CRMView: React.FC = () => {
                                 </select>
                             </div>
                             <div className="flex gap-4 text-xs font-bold uppercase tracking-widest">
-                                <span className="flex items-center gap-1.5 text-blue-600"><span className="w-2 h-2 rounded-full bg-blue-600"></span> Enviados</span>
+                                <span className="flex items-center gap-1.5 text-cafh-indigo"><span className="w-2 h-2 rounded-full bg-cafh-indigo"></span> Enviados</span>
                                 <span className="flex items-center gap-1.5 text-emerald-500"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Abiertos</span>
                             </div>
                         </div>
@@ -948,7 +948,7 @@ export const CRMView: React.FC = () => {
                                         </div>
                                         <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
                                             <div
-                                                className="h-full bg-blue-500 transition-all duration-500"
+                                                className="h-full bg-cafh-indigo/50 transition-all duration-500"
                                                 style={{ width: `${(queueStatus.sentCountThisHour / queueStatus.limit) * 100}%` }}
                                             ></div>
                                         </div>
@@ -1153,7 +1153,7 @@ export const CRMView: React.FC = () => {
                                 return (
                                     <tr
                                         key={contact.id}
-                                        className={`hover:bg-slate-50/80 transition-colors group cursor-pointer ${isSelected ? 'bg-blue-50/60' : ''}`}
+                                        className={`hover:bg-slate-50/80 transition-colors group cursor-pointer ${isSelected ? 'bg-cafh-indigo/5/60' : ''}`}
                                     >
                                         <td className="px-5 py-4" onClick={e => e.stopPropagation()}>
                                             <input type="checkbox" checked={isSelected}
@@ -1199,7 +1199,7 @@ export const CRMView: React.FC = () => {
                                         </td>
                                         <td className="px-4 py-4 hidden xl:table-cell" onClick={() => handleContactClick(contact)}>
                                             <div className="flex gap-1.5 text-[10px] font-bold uppercase tracking-widest">
-                                                <span title="Unitarios" className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">U: {allEmailLogs.filter(l => l.contactId === contact.id && l.campaignName === 'Direct Message').length}</span>
+                                                <span title="Unitarios" className="bg-cafh-indigo/5 text-cafh-indigo px-1.5 py-0.5 rounded">U: {allEmailLogs.filter(l => l.contactId === contact.id && l.campaignName === 'Direct Message').length}</span>
                                                 <span title="Masivos" className="bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded">M: {allEmailLogs.filter(l => l.contactId === contact.id && l.campaignName !== 'Direct Message').length}</span>
                                             </div>
                                         </td>
@@ -1493,7 +1493,7 @@ const CampaignOrchestratorModal: React.FC<{
         Draft: { label: 'Borrador', cls: 'bg-slate-100 text-slate-600' },
         Sent: { label: 'Enviada', cls: 'bg-emerald-50 text-emerald-700' },
         Testing: { label: 'En Prueba', cls: 'bg-amber-50 text-amber-700' },
-        Scheduled: { label: 'Programada', cls: 'bg-blue-50 text-blue-700' },
+        Scheduled: { label: 'Programada', cls: 'bg-cafh-indigo/5 text-cafh-indigo' },
     };
 
     if (!isOpen) return null;
@@ -1553,7 +1553,7 @@ const CampaignOrchestratorModal: React.FC<{
                                     <h4 className="text-lg font-bold text-slate-400 mb-2">Sin campañas aún</h4>
                                     <p className="text-sm text-slate-400 mb-6">Crea tu primera campaña de email marketing.</p>
                                     <button onClick={() => { setTab('create'); resetForm(); }}
-                                        className="px-6 py-3 bg-cafh-indigo text-white rounded-2xl font-bold hover:bg-blue-900 transition-all shadow-xl shadow-indigo-100">
+                                        className="px-6 py-3 bg-cafh-indigo text-white rounded-2xl font-bold hover:bg-slate-900 transition-all shadow-xl shadow-indigo-100">
                                         Crear primera campaña
                                     </button>
                                 </div>
@@ -1616,7 +1616,7 @@ const CampaignOrchestratorModal: React.FC<{
                                                             <Eye size={13} /> Enviar Prueba
                                                         </button>
                                                         <button onClick={() => handleLaunch(camp)} disabled={isLaunching}
-                                                            className="flex items-center gap-1.5 px-5 py-2 bg-cafh-indigo text-white rounded-xl text-xs font-bold hover:bg-blue-900 transition-all shadow-lg shadow-indigo-100 disabled:opacity-60 ml-auto">
+                                                            className="flex items-center gap-1.5 px-5 py-2 bg-cafh-indigo text-white rounded-xl text-xs font-bold hover:bg-slate-900 transition-all shadow-lg shadow-indigo-100 disabled:opacity-60 ml-auto">
                                                             {isLaunching ? <RefreshCw size={13} className="animate-spin" /> : <Send size={13} />}
                                                             {isLaunching ? 'Lanzando...' : 'Lanzar Campaña'}
                                                         </button>
@@ -1745,7 +1745,7 @@ const CampaignOrchestratorModal: React.FC<{
                                                     ['tag', '🏷\ufe0f Por Etiqueta', 'Selecciona un tag CRM', 'Segmentaci\u00f3n por tag'],
                                                 ] as [string, string, string, string][]).map(([val, title, sub, hint]) => (
                                                     <button key={val} onClick={() => setFormRecipientType(val as any)}
-                                                        className={`p-5 rounded-2xl border-2 text-left transition-all ${formRecipientType === val ? 'border-cafh-indigo bg-blue-50 shadow-lg shadow-indigo-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
+                                                        className={`p-5 rounded-2xl border-2 text-left transition-all ${formRecipientType === val ? 'border-cafh-indigo bg-cafh-indigo/5 shadow-lg shadow-indigo-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
                                                         <p className="font-bold text-sm text-slate-800 mb-1">{title}</p>
                                                         <p className="text-xs text-slate-500">{sub}</p>
                                                         <p className="text-[10px] text-slate-400 mt-1 italic">{hint}</p>
@@ -1906,14 +1906,14 @@ const CampaignOrchestratorModal: React.FC<{
                                                     ['schedule', '📅 Programar', 'Elige fecha y hora exacta de env\u00edo.'],
                                                 ] as [string, string, string][]).map(([val, title, desc]) => (
                                                     <button key={val} onClick={() => setSendMode(val as any)}
-                                                        className={`p-6 rounded-2xl border-2 text-left transition-all ${sendMode === val ? 'border-cafh-indigo bg-blue-50 shadow-lg shadow-indigo-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
+                                                        className={`p-6 rounded-2xl border-2 text-left transition-all ${sendMode === val ? 'border-cafh-indigo bg-cafh-indigo/5 shadow-lg shadow-indigo-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
                                                         <p className="font-bold text-slate-800 mb-2">{title}</p>
                                                         <p className="text-xs text-slate-500">{desc}</p>
                                                     </button>
                                                 ))}
                                             </div>
                                             {sendMode === 'schedule' && (
-                                                <div className="grid grid-cols-2 gap-4 bg-blue-50 border border-blue-100 rounded-2xl p-5">
+                                                <div className="grid grid-cols-2 gap-4 bg-cafh-indigo/5 border border-blue-100 rounded-2xl p-5">
                                                     <div>
                                                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Fecha de Env\u00edo</label>
                                                         <input type="date" value={scheduledDate} onChange={e => setScheduledDate(e.target.value)}
@@ -1953,7 +1953,7 @@ const CampaignOrchestratorModal: React.FC<{
                                                     }
                                                 }}
                                                     disabled={sendMode === 'schedule' && !scheduledDate}
-                                                    className="flex-[2] py-3.5 bg-cafh-indigo text-white rounded-2xl font-bold hover:bg-blue-900 transition-all shadow-xl shadow-indigo-200 text-sm flex items-center justify-center gap-2 disabled:opacity-40">
+                                                    className="flex-[2] py-3.5 bg-cafh-indigo text-white rounded-2xl font-bold hover:bg-slate-900 transition-all shadow-xl shadow-indigo-200 text-sm flex items-center justify-center gap-2 disabled:opacity-40">
                                                     <Send size={16} />
                                                     {sendMode === 'now' ? '🚀 Lanzar Campaña Ahora' : '📅 Programar Campaña'}
                                                 </button>
@@ -1969,7 +1969,7 @@ const CampaignOrchestratorModal: React.FC<{
                                         </button>
                                         {wizardStep < 5 && (
                                             <button onClick={() => setWizardStep(w => w + 1)} disabled={!canGoNext}
-                                                className="flex items-center gap-2 px-6 py-3 bg-cafh-indigo text-white rounded-2xl font-bold hover:bg-blue-900 transition-all shadow-lg shadow-indigo-100 text-sm disabled:opacity-40">
+                                                className="flex items-center gap-2 px-6 py-3 bg-cafh-indigo text-white rounded-2xl font-bold hover:bg-slate-900 transition-all shadow-lg shadow-indigo-100 text-sm disabled:opacity-40">
                                                 Siguiente <ChevronRight size={16} />
                                             </button>
                                         )}
@@ -2197,13 +2197,13 @@ const ImportContactsModal: React.FC<{
                         </button>
                     </div>
 
-                    <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl mb-6 flex gap-3">
-                        <UploadCloud className="text-blue-600 shrink-0" size={20} />
-                        <div className="text-xs text-blue-800">
+                    <div className="bg-cafh-indigo/5 border border-blue-100 p-4 rounded-2xl mb-6 flex gap-3">
+                        <UploadCloud className="text-cafh-indigo shrink-0" size={20} />
+                        <div className="text-xs text-slate-800">
                             <strong>Instrucciones:</strong> Copia los datos de tu Excel o archivo CSV y pégalos abajo.
                             El sistema detectará automáticamente las columnas si están separadas por tabulaciones (copiado directo de Excel) o comas/puntos y comas (archivos CSV).
                             <br /><br />
-                            <span className="font-mono bg-blue-100 px-2 py-1 rounded text-[10px]">Formato: Nombre [TAB] Email [TAB] Teléfono</span>
+                            <span className="font-mono bg-cafh-indigo/10 px-2 py-1 rounded text-[10px]">Formato: Nombre [TAB] Email [TAB] Teléfono</span>
                         </div>
                     </div>
 
@@ -2230,7 +2230,7 @@ const ImportContactsModal: React.FC<{
                         <button
                             onClick={handleImport}
                             disabled={isProcessing || !inputText.trim()}
-                            className="flex-[2] py-3 bg-cafh-indigo text-white font-bold rounded-2xl shadow-xl hover:bg-blue-900 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                            className="flex-[2] py-3 bg-cafh-indigo text-white font-bold rounded-2xl shadow-xl hover:bg-slate-900 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                             {isProcessing ? <RefreshCw size={20} className="animate-spin" /> : <Database size={20} />}
                             <span>{isProcessing ? 'Procesando...' : 'Iniciar Importación'}</span>
@@ -2365,7 +2365,7 @@ const SMTPSettingsModal: React.FC<{
                         <button
                             onClick={handleSave}
                             disabled={isSaving}
-                            className="flex-[2] py-4 bg-cafh-indigo text-white font-bold rounded-2xl shadow-xl hover:bg-blue-900 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                            className="flex-[2] py-4 bg-cafh-indigo text-white font-bold rounded-2xl shadow-xl hover:bg-slate-900 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                         >
                             {isSaving ? <RefreshCw size={20} className="animate-spin" /> : <CheckCircle2 size={20} />}
                             <span>{isSaving ? 'Guardando...' : 'Guardar Credenciales'}</span>
@@ -2468,7 +2468,7 @@ const ContactListsOffCanvas: React.FC<{ isOpen: boolean; onClose: () => void }> 
                                             <h4 className="font-bold text-slate-800 text-sm">{list.name}</h4>
                                             <p className="text-xs text-slate-500 mt-1">{list.description}</p>
                                         </div>
-                                        <div className="flex bg-blue-50 text-blue-700 px-2 py-1 rounded gap-1 items-center text-xs font-bold">
+                                        <div className="flex bg-cafh-indigo/5 text-cafh-indigo px-2 py-1 rounded gap-1 items-center text-xs font-bold">
                                             <User size={12} /> {list.contactCount || 0}
                                         </div>
                                     </div>
@@ -2664,7 +2664,7 @@ const ContactEditorModal: React.FC<{
                         <button
                             onClick={handleSave}
                             disabled={!name || !email}
-                            className="flex-1 py-4 bg-cafh-indigo text-white font-bold rounded-2xl shadow-xl shadow-indigo-200 hover:bg-blue-900 transition-all disabled:opacity-50"
+                            className="flex-1 py-4 bg-cafh-indigo text-white font-bold rounded-2xl shadow-xl shadow-indigo-200 hover:bg-slate-900 transition-all disabled:opacity-50"
                         >
                             Guardar
                         </button>
@@ -2852,7 +2852,7 @@ export const AutomationsView: React.FC = () => {
                     <p className="text-slate-500">Motor de flujos automáticos conectado al CRM Cafh.</p>
                 </div>
                 <button onClick={() => { resetWizard(); setSelectedAuto(null); setViewTab('create'); }}
-                    className="flex items-center gap-2 px-5 py-3 bg-cafh-indigo text-white rounded-2xl hover:bg-blue-900 transition-all font-bold text-sm shadow-lg shadow-indigo-100">
+                    className="flex items-center gap-2 px-5 py-3 bg-cafh-indigo text-white rounded-2xl hover:bg-slate-900 transition-all font-bold text-sm shadow-lg shadow-indigo-100">
                     <Plus size={18} /> Nueva Automatización
                 </button>
             </div>
@@ -2894,7 +2894,7 @@ export const AutomationsView: React.FC = () => {
                             <h4 className="text-lg font-bold text-slate-400 mb-2">Sin automatizaciones aún</h4>
                             <p className="text-sm text-slate-400 mb-6">Crea tu primera automatización con nodos de email, espera y condición.</p>
                             <button onClick={() => { resetWizard(); setViewTab('create'); }}
-                                className="px-6 py-3 bg-cafh-indigo text-white rounded-2xl font-bold hover:bg-blue-900 transition-all shadow-xl shadow-indigo-100">
+                                className="px-6 py-3 bg-cafh-indigo text-white rounded-2xl font-bold hover:bg-slate-900 transition-all shadow-xl shadow-indigo-100">
                                 Crear primera automatización
                             </button>
                         </div>
@@ -2967,7 +2967,7 @@ export const AutomationsView: React.FC = () => {
                                                 <option value="tag">Por tag</option>
                                             </select>
                                             <button onClick={() => handleRunForSegment(auto)} disabled={isRunning || auto.nodes.length === 0}
-                                                className="flex items-center gap-1.5 px-5 py-2 bg-cafh-indigo text-white rounded-xl text-xs font-bold hover:bg-blue-900 transition-all shadow-lg shadow-indigo-100 disabled:opacity-60">
+                                                className="flex items-center gap-1.5 px-5 py-2 bg-cafh-indigo text-white rounded-xl text-xs font-bold hover:bg-slate-900 transition-all shadow-lg shadow-indigo-100 disabled:opacity-60">
                                                 {isRunning ? <RefreshCw size={13} className="animate-spin" /> : <Play size={13} />}
                                                 Ejecutar
                                             </button>
@@ -3024,7 +3024,7 @@ export const AutomationsView: React.FC = () => {
                                 <div className="grid grid-cols-2 gap-3">
                                     {(Object.entries(triggerLabels) as [AutomationRule['trigger']['type'], string][]).map(([val, label]) => (
                                         <button key={val} onClick={() => setWTriggerType(val)}
-                                            className={`p-4 rounded-2xl border-2 text-left transition-all text-sm ${wTriggerType === val ? 'border-cafh-indigo bg-blue-50 shadow-md shadow-indigo-50' : 'border-slate-200 bg-slate-50 hover:border-slate-300'}`}>
+                                            className={`p-4 rounded-2xl border-2 text-left transition-all text-sm ${wTriggerType === val ? 'border-cafh-indigo bg-cafh-indigo/5 shadow-md shadow-indigo-50' : 'border-slate-200 bg-slate-50 hover:border-slate-300'}`}>
                                             <span className="font-bold text-slate-800">{label}</span>
                                         </button>
                                     ))}
@@ -3136,7 +3136,7 @@ export const AutomationsView: React.FC = () => {
                                 )}
 
                                 {addingNodeType && (
-                                    <button onClick={handleAddNode} className="mt-3 px-5 py-2.5 bg-cafh-indigo text-white rounded-xl font-bold text-sm hover:bg-blue-900 transition-all">
+                                    <button onClick={handleAddNode} className="mt-3 px-5 py-2.5 bg-cafh-indigo text-white rounded-xl font-bold text-sm hover:bg-slate-900 transition-all">
                                         + Agregar al flujo
                                     </button>
                                 )}
@@ -3192,7 +3192,7 @@ export const AutomationsView: React.FC = () => {
                                     <FileText size={16} /> Guardar Borrador
                                 </button>
                                 <button onClick={() => handleSaveAutomation('Active')}
-                                    className="flex-[2] py-3.5 bg-cafh-indigo text-white rounded-2xl font-bold hover:bg-blue-900 transition-all shadow-xl shadow-indigo-200 text-sm flex items-center justify-center gap-2">
+                                    className="flex-[2] py-3.5 bg-cafh-indigo text-white rounded-2xl font-bold hover:bg-slate-900 transition-all shadow-xl shadow-indigo-200 text-sm flex items-center justify-center gap-2">
                                     <Zap size={16} /> Activar Automatización
                                 </button>
                             </div>
@@ -3207,7 +3207,7 @@ export const AutomationsView: React.FC = () => {
                         </button>
                         {wStep < 3 && (
                             <button onClick={() => setWStep(w => w + 1)} disabled={wStep === 1 && !wName}
-                                className="flex items-center gap-2 px-6 py-3 bg-cafh-indigo text-white rounded-2xl font-bold hover:bg-blue-900 transition-all shadow-lg shadow-indigo-100 text-sm disabled:opacity-40">
+                                className="flex items-center gap-2 px-6 py-3 bg-cafh-indigo text-white rounded-2xl font-bold hover:bg-slate-900 transition-all shadow-lg shadow-indigo-100 text-sm disabled:opacity-40">
                                 Siguiente <ChevronRight size={16} />
                             </button>
                         )}
@@ -3274,9 +3274,9 @@ export const CMSView: React.FC = () => {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab.id
-                            ? 'bg-cafh-blue text-white shadow-lg shadow-blue-100'
-                            : 'text-slate-500 hover:bg-slate-50'
+                        className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
+                            ? 'bg-cafh-indigo text-white shadow-lg shadow-cafh-indigo/25'
+                            : 'text-slate-500 hover:bg-cafh-indigo/10 hover:text-cafh-indigo'
                             }`}
                     >
                         <tab.icon size={18} />
@@ -3331,7 +3331,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                 <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
                     <div className="p-8 border-b border-slate-50 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-blue-50 text-cafh-blue rounded-lg">
+                            <div className="p-2 bg-cafh-indigo/5 text-cafh-indigo rounded-lg">
                                 <Sparkles size={20} />
                             </div>
                             <h3 className="text-lg font-bold text-slate-800">Sección Hero & Sliders</h3>
@@ -3356,7 +3356,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                     type="text"
                                     value={localConfig.hero.title}
                                     onChange={e => setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, title: e.target.value } })}
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                                 />
                             </div>
                             <div>
@@ -3365,7 +3365,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                     type="text"
                                     value={localConfig.hero.highlightWord}
                                     onChange={e => setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, highlightWord: e.target.value } })}
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                                 />
                             </div>
                         </div>
@@ -3375,7 +3375,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                 rows={2}
                                 value={localConfig.hero.subtitle}
                                 onChange={e => setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, subtitle: e.target.value } })}
-                                className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all resize-none"
+                                className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all resize-none"
                             />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -3385,7 +3385,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                     type="number"
                                     value={localConfig.hero.sliderSpeed}
                                     onChange={e => setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, sliderSpeed: parseInt(e.target.value) } })}
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                                 />
                             </div>
                             <div>
@@ -3394,7 +3394,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                     type="text"
                                     value={localConfig.hero.modalVideoId}
                                     onChange={e => setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, modalVideoId: e.target.value } })}
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                                     placeholder="Ej: dQw4w9WgXcQ"
                                 />
                             </div>
@@ -3404,7 +3404,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                     type="text"
                                     value={localConfig.hero.ctaText}
                                     onChange={e => setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, ctaText: e.target.value } })}
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                                 />
                             </div>
                             <div>
@@ -3413,7 +3413,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                     type="text"
                                     value={localConfig.hero.ctaLink}
                                     onChange={e => setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, ctaLink: e.target.value } })}
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                                 />
                             </div>
                         </div>
@@ -3461,7 +3461,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                             type="text"
                             value={localConfig.searchSubtitle}
                             onChange={e => setLocalConfig({ ...localConfig, searchSubtitle: e.target.value })}
-                            className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all mb-8"
+                            className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all mb-8"
                         />
 
                         <div className="space-y-4">
@@ -3526,7 +3526,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                         searchItems: [...localConfig.searchItems, { label: 'Nuevo', icon: 'Activity', path: '/' }]
                                     });
                                 }}
-                                className="w-full py-3 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 text-xs font-bold hover:border-cafh-blue hover:text-cafh-blue transition-all flex items-center justify-center gap-2"
+                                className="w-full py-3 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 text-xs font-bold hover:border-cafh-indigo hover:text-cafh-indigo transition-all flex items-center justify-center gap-2"
                             >
                                 <Plus size={14} /> AÑADIR ACCESO DIRECTO
                             </button>
@@ -3554,10 +3554,10 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                     <span className="text-sm font-bold text-slate-700 capitalize">{section.replace(/([A-Z])/g, ' $1')}</span>
                                 </div>
                                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                                    <button onClick={() => moveSection(idx, 'up')} className="p-2 bg-white rounded-lg text-slate-400 hover:text-cafh-blue shadow-sm">
+                                    <button onClick={() => moveSection(idx, 'up')} className="p-2 bg-white rounded-lg text-slate-400 hover:text-cafh-indigo shadow-sm">
                                         <ArrowUp size={14} />
                                     </button>
-                                    <button onClick={() => moveSection(idx, 'down')} className="p-2 bg-white rounded-lg text-slate-400 hover:text-cafh-blue shadow-sm">
+                                    <button onClick={() => moveSection(idx, 'down')} className="p-2 bg-white rounded-lg text-slate-400 hover:text-cafh-indigo shadow-sm">
                                         <ArrowDown size={14} />
                                     </button>
                                 </div>
@@ -3610,7 +3610,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                             setLocalConfig({ ...localConfig, threeColumns: newCols });
                                         }}
                                         placeholder="Título"
-                                        className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-cafh-blue outline-none text-sm font-bold"
+                                        className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm font-bold"
                                     />
                                     <input
                                         type="text"
@@ -3621,7 +3621,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                             setLocalConfig({ ...localConfig, threeColumns: newCols });
                                         }}
                                         placeholder="Icono (Lucide Name)"
-                                        className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-cafh-blue outline-none text-sm"
+                                        className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm"
                                     />
                                 </div>
                                 <textarea
@@ -3633,7 +3633,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                         setLocalConfig({ ...localConfig, threeColumns: newCols });
                                     }}
                                     placeholder="Descripción"
-                                    className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-cafh-blue outline-none text-sm resize-none"
+                                    className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm resize-none"
                                 />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <input
@@ -3645,7 +3645,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                             setLocalConfig({ ...localConfig, threeColumns: newCols });
                                         }}
                                         placeholder="Enlace (Opcional)"
-                                        className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-cafh-blue outline-none text-sm"
+                                        className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm"
                                     />
                                     <input
                                         type="number"
@@ -3656,7 +3656,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                             setLocalConfig({ ...localConfig, threeColumns: newCols });
                                         }}
                                         placeholder="Orden"
-                                        className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-cafh-blue outline-none text-sm"
+                                        className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm"
                                     />
                                 </div>
                             </div>
@@ -3682,7 +3682,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                     type="text"
                                     value={localConfig.blogSection.sectionTitle}
                                     onChange={e => setLocalConfig({ ...localConfig, blogSection: { ...localConfig.blogSection, sectionTitle: e.target.value } })}
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                                 />
                             </div>
                             <div>
@@ -3691,7 +3691,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                     type="text"
                                     value={localConfig.blogSection.sectionSubtitle}
                                     onChange={e => setLocalConfig({ ...localConfig, blogSection: { ...localConfig.blogSection, sectionSubtitle: e.target.value } })}
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                                 />
                             </div>
                         </div>
@@ -3702,7 +3702,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                     type="number"
                                     value={localConfig.blogSection.postsToShow}
                                     onChange={e => setLocalConfig({ ...localConfig, blogSection: { ...localConfig.blogSection, postsToShow: parseInt(e.target.value) } })}
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                                 />
                             </div>
                             <div>
@@ -3711,7 +3711,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                     type="number"
                                     value={localConfig.blogSection.autoPlaySpeed}
                                     onChange={e => setLocalConfig({ ...localConfig, blogSection: { ...localConfig.blogSection, autoPlaySpeed: parseInt(e.target.value) } })}
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                                 />
                             </div>
                             <div className="flex flex-col justify-center pt-6">
@@ -3720,7 +3720,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                         type="checkbox"
                                         checked={localConfig.blogSection.autoPlay}
                                         onChange={e => setLocalConfig({ ...localConfig, blogSection: { ...localConfig.blogSection, autoPlay: e.target.checked } })}
-                                        className="w-5 h-5 rounded text-cafh-blue focus:ring-cafh-blue"
+                                        className="w-5 h-5 rounded text-cafh-indigo focus:ring-cafh-indigo"
                                     />
                                     <span className="text-sm font-bold text-slate-700">Activar AutoPlay</span>
                                 </label>
@@ -3747,7 +3747,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                     type="text"
                                     value={localConfig.activitiesSection.title}
                                     onChange={e => setLocalConfig({ ...localConfig, activitiesSection: { ...localConfig.activitiesSection, title: e.target.value } })}
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                                 />
                             </div>
                             <div>
@@ -3756,7 +3756,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                     type="text"
                                     value={localConfig.activitiesSection.subtitle}
                                     onChange={e => setLocalConfig({ ...localConfig, activitiesSection: { ...localConfig.activitiesSection, subtitle: e.target.value } })}
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                                 />
                             </div>
                         </div>
@@ -3766,7 +3766,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                 type="number"
                                 value={localConfig.activitiesSection.maxEvents}
                                 onChange={e => setLocalConfig({ ...localConfig, activitiesSection: { ...localConfig.activitiesSection, maxEvents: parseInt(e.target.value) } })}
-                                className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                             />
                         </div>
                     </div>
@@ -3775,13 +3775,13 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
 
             <div className="space-y-8">
                 {/* Actions Card */}
-                <div className="bg-cafh-blue p-8 rounded-[2rem] text-white shadow-xl shadow-blue-100 relative overflow-hidden">
+                <div className="bg-cafh-indigo p-8 rounded-[2rem] text-white shadow-xl shadow-cafh-indigo/10 relative overflow-hidden">
                     <div className="relative z-10">
                         <h3 className="text-xl font-bold mb-2">Publicar Cambios</h3>
                         <p className="text-blue-100 text-sm mb-6">Los cambios se reflejarán inmediatamente en el sitio público.</p>
                         <button
                             onClick={handleSave}
-                            className="w-full py-4 bg-white text-cafh-blue font-black rounded-2xl hover:bg-blue-50 transition-all flex items-center justify-center gap-2"
+                            className="w-full py-4 bg-white text-cafh-indigo font-black rounded-2xl hover:bg-cafh-indigo/5 transition-all flex items-center justify-center gap-2"
                         >
                             <Send size={18} />
                             GUARDAR CONFIGURACIÓN
@@ -3796,7 +3796,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                 <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
                     <div className="p-6 border-b border-slate-50 flex items-center justify-between">
                         <h3 className="text-sm font-bold text-slate-800">Configuración Footer</h3>
-                        <div className="p-2 bg-blue-50 text-cafh-blue rounded-lg">
+                        <div className="p-2 bg-cafh-indigo/5 text-cafh-indigo rounded-lg">
                             <Layout size={16} />
                         </div>
                     </div>
@@ -3880,7 +3880,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                         }
                                     });
                                 }}
-                                className="text-xs font-bold text-cafh-blue flex items-center gap-1 hover:underline"
+                                className="text-xs font-bold text-cafh-indigo flex items-center gap-1 hover:underline"
                             >
                                 <Plus size={12} /> Añadir Red Social
                             </button>
@@ -3945,7 +3945,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                                 newCols[idx].links.push({ label: 'Nuevo Enlace', path: '/', url: '/' });
                                                 setLocalConfig({ ...localConfig, footer: { ...localConfig.footer, columns: newCols } });
                                             }}
-                                            className="text-[10px] font-bold text-cafh-blue flex items-center gap-1 hover:underline"
+                                            className="text-[10px] font-bold text-cafh-indigo flex items-center gap-1 hover:underline"
                                         >
                                             <Plus size={10} /> Añadir Enlace
                                         </button>
@@ -4015,7 +4015,7 @@ export const MediaLibraryView: React.FC = () => {
                 </div>
                 <button
                     onClick={() => setIsUploadModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 bg-cafh-blue text-white rounded-lg hover:bg-blue-900 transition-colors shadow-sm"
+                    className="flex items-center gap-2 px-4 py-2 bg-cafh-indigo text-white rounded-lg hover:bg-slate-900 transition-colors shadow-sm"
                 >
                     <Plus size={18} />
                     <span>Subir Archivos</span>
@@ -4030,13 +4030,13 @@ export const MediaLibraryView: React.FC = () => {
                         <input
                             type="text"
                             placeholder="Buscar por nombre o etiqueta..."
-                            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-cafh-blue outline-none text-sm"
+                            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-cafh-indigo outline-none text-sm"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
                     <select
-                        className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cafh-blue"
+                        className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cafh-indigo"
                         value={filterType}
                         onChange={(e) => setFilterType(e.target.value)}
                     >
@@ -4051,13 +4051,13 @@ export const MediaLibraryView: React.FC = () => {
                 <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg">
                     <button
                         onClick={() => setViewMode('grid')}
-                        className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white text-cafh-blue shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white text-cafh-indigo shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         <Grid size={18} />
                     </button>
                     <button
                         onClick={() => setViewMode('list')}
-                        className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-white text-cafh-blue shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                        className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-white text-cafh-indigo shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         <List size={18} />
                     </button>
@@ -4104,7 +4104,7 @@ export const MediaLibraryView: React.FC = () => {
                     {/* Upload Placeholder */}
                     <div
                         onClick={() => setIsUploadModalOpen(true)}
-                        className="aspect-square border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400 hover:border-cafh-blue hover:text-cafh-blue transition-colors cursor-pointer"
+                        className="aspect-square border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400 hover:border-cafh-indigo hover:text-cafh-indigo transition-colors cursor-pointer"
                     >
                         <Plus size={32} className="mb-2" />
                         <span className="text-xs font-bold">Subir nuevo</span>
@@ -4140,8 +4140,8 @@ export const MediaLibraryView: React.FC = () => {
                                     <td className="px-6 py-4 text-xs text-slate-500">{asset.uploadedAt}</td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button className="p-1.5 text-slate-400 hover:text-cafh-blue"><ExternalLink size={16} /></button>
-                                            <button className="p-1.5 text-slate-400 hover:text-cafh-blue"><Download size={16} /></button>
+                                            <button className="p-1.5 text-slate-400 hover:text-cafh-indigo"><ExternalLink size={16} /></button>
+                                            <button className="p-1.5 text-slate-400 hover:text-cafh-indigo"><Download size={16} /></button>
                                             <button onClick={() => handleDelete(asset.id)} className="p-1.5 text-slate-400 hover:text-red-500"><Trash2 size={16} /></button>
                                         </div>
                                     </td>
@@ -4278,13 +4278,13 @@ const MediaUploadModal: React.FC<{
                     <div className="flex bg-slate-100 p-1 rounded-2xl mb-8">
                         <button
                             onClick={() => setUploadType('local')}
-                            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${uploadType === 'local' ? 'bg-white text-cafh-blue shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${uploadType === 'local' ? 'bg-white text-cafh-indigo shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             Archivo Local
                         </button>
                         <button
                             onClick={() => setUploadType('url')}
-                            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${uploadType === 'url' ? 'bg-white text-cafh-blue shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${uploadType === 'url' ? 'bg-white text-cafh-indigo shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                         >
                             Desde URL
                         </button>
@@ -4301,7 +4301,7 @@ const MediaUploadModal: React.FC<{
                                             <button
                                                 key={tag}
                                                 onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isSelected ? 'bg-cafh-blue text-white shadow-md' : 'bg-slate-50 border border-slate-200 text-slate-500 hover:border-cafh-blue'}`}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isSelected ? 'bg-cafh-indigo text-white shadow-md' : 'bg-slate-50 border border-slate-200 text-slate-500 hover:border-cafh-indigo'}`}
                                             >
                                                 {tag}
                                             </button>
@@ -4312,7 +4312,7 @@ const MediaUploadModal: React.FC<{
                             </div>
                             <div
                                 onClick={() => fileInputRef.current?.click()}
-                                className="border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center hover:border-cafh-blue hover:bg-blue-50 transition-all cursor-pointer group"
+                                className="border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center hover:border-cafh-indigo hover:bg-cafh-indigo/5 transition-all cursor-pointer group"
                             >
                                 <input
                                     type="file"
@@ -4323,9 +4323,9 @@ const MediaUploadModal: React.FC<{
                                     }}
                                 />
                                 {isProcessing ? (
-                                    <RefreshCw size={48} className="mx-auto mb-4 text-cafh-blue animate-spin" />
+                                    <RefreshCw size={48} className="mx-auto mb-4 text-cafh-indigo animate-spin" />
                                 ) : (
-                                    <Plus size={48} className="mx-auto mb-4 text-slate-300 group-hover:text-cafh-blue transition-colors" />
+                                    <Plus size={48} className="mx-auto mb-4 text-slate-300 group-hover:text-cafh-indigo transition-colors" />
                                 )}
                                 <p className="text-slate-600 font-bold">Haz clic para seleccionar un archivo</p>
                                 <p className="text-xs text-slate-400 mt-2">Imágenes, videos, audio o documentos</p>
@@ -4340,7 +4340,7 @@ const MediaUploadModal: React.FC<{
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="Ej: Logo Institucional"
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                                 />
                             </div>
                             <div>
@@ -4350,7 +4350,7 @@ const MediaUploadModal: React.FC<{
                                     value={url}
                                     onChange={(e) => setUrl(e.target.value)}
                                     placeholder="https://ejemplo.com/imagen.jpg"
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                                 />
                             </div>
                             <div>
@@ -4362,7 +4362,7 @@ const MediaUploadModal: React.FC<{
                                             <button
                                                 key={tag}
                                                 onClick={() => setSelectedTags(prev => isSelected ? prev.filter(t => t !== tag) : [...prev, tag])}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isSelected ? 'bg-cafh-blue text-white shadow-md' : 'bg-slate-50 border border-slate-200 text-slate-500 hover:border-cafh-blue'}`}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isSelected ? 'bg-cafh-indigo text-white shadow-md' : 'bg-slate-50 border border-slate-200 text-slate-500 hover:border-cafh-indigo'}`}
                                             >
                                                 {tag}
                                             </button>
@@ -4387,7 +4387,7 @@ const MediaUploadModal: React.FC<{
                                     setSelectedTags([]);
                                 }}
                                 disabled={!url || !name}
-                                className="w-full py-4 bg-cafh-blue text-white font-bold rounded-2xl shadow-xl shadow-blue-100 hover:bg-blue-900 transition-all disabled:opacity-50"
+                                className="w-full py-4 bg-cafh-indigo text-white font-bold rounded-2xl shadow-xl shadow-cafh-indigo/10 hover:bg-slate-900 transition-all disabled:opacity-50"
                             >
                                 Agregar desde URL
                             </button>
@@ -4439,7 +4439,7 @@ const PagesManager: React.FC = () => {
                     </button>
                     <button
                         onClick={() => setEditingPage({ id: '', title: '', slug: '', sections: [], status: 'Draft', seo: { title: '', description: '', keywords: [] } })}
-                        className="flex items-center gap-2 px-4 py-2 bg-cafh-blue text-white rounded-xl hover:bg-blue-900 transition-all shadow-sm text-sm font-bold"
+                        className="flex items-center gap-2 px-4 py-2 bg-cafh-indigo text-white rounded-xl hover:bg-slate-900 transition-all shadow-sm text-sm font-bold"
                     >
                         <Plus size={18} />
                         CREAR NUEVA PÁGINA
@@ -4458,7 +4458,7 @@ const PagesManager: React.FC = () => {
                                     <p className="text-[10px] text-slate-400 font-mono">{p.path}</p>
                                 </div>
                                 <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <a href={p.path} target="_blank" rel="noreferrer" className="p-1.5 text-slate-400 hover:text-cafh-blue"><ExternalLink size={14} /></a>
+                                    <a href={p.path} target="_blank" rel="noreferrer" className="p-1.5 text-slate-400 hover:text-cafh-indigo"><ExternalLink size={14} /></a>
                                 </div>
                             </div>
                         ))}
@@ -4470,7 +4470,7 @@ const PagesManager: React.FC = () => {
                 {pages.map(page => (
                     <div key={page.id} className="bg-white rounded-[2rem] border border-slate-100 p-6 hover:shadow-lg transition-all group">
                         <div className="flex justify-between items-start mb-4">
-                            <div className="p-3 bg-blue-50 text-cafh-blue rounded-2xl">
+                            <div className="p-3 bg-cafh-indigo/5 text-cafh-indigo rounded-2xl">
                                 <FileText size={24} />
                             </div>
                             <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${page.status === 'Published' ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-500'
@@ -4486,7 +4486,7 @@ const PagesManager: React.FC = () => {
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => setEditingPage(page)}
-                                    className="p-2 text-slate-400 hover:text-cafh-blue hover:bg-blue-50 rounded-lg transition-all"
+                                    className="p-2 text-slate-400 hover:text-cafh-indigo hover:bg-cafh-indigo/5 rounded-lg transition-all"
                                 >
                                     <Edit size={18} />
                                 </button>
@@ -4570,7 +4570,7 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                     </select>
                     <button
                         onClick={() => onSave(localPage)}
-                        className="px-6 py-2 bg-cafh-blue text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-100"
+                        className="px-6 py-2 bg-cafh-indigo text-white rounded-xl font-bold text-sm shadow-lg shadow-cafh-indigo/10"
                     >
                         GUARDAR PÁGINA
                     </button>
@@ -4588,7 +4588,7 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                     type="text"
                                     value={localPage.title}
                                     onChange={e => setLocalPage({ ...localPage, title: e.target.value })}
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                                     placeholder="Ej: Nuestra Historia"
                                 />
                             </div>
@@ -4598,7 +4598,7 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                     type="text"
                                     value={localPage.slug}
                                     onChange={e => setLocalPage({ ...localPage, slug: e.target.value.toLowerCase().replace(/ /g, '-') })}
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-blue outline-none transition-all"
+                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
                                     placeholder="nuestra-historia"
                                 />
                             </div>
@@ -4615,7 +4615,7 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                             <div key={section.id} className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden group">
                                 <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-white rounded-lg text-cafh-blue shadow-sm">
+                                        <div className="p-2 bg-white rounded-lg text-cafh-indigo shadow-sm">
                                             {section.type === 'Text' ? <Type size={16} /> :
                                                 section.type === 'Image' ? <Image size={16} /> :
                                                     section.type === 'Hero' ? <Layout size={16} /> :
@@ -4634,14 +4634,14 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                         <button
                                             onClick={() => moveSection(idx, 'up')}
                                             disabled={idx === 0}
-                                            className="p-2 text-slate-300 hover:text-cafh-blue disabled:opacity-30 transition-all"
+                                            className="p-2 text-slate-300 hover:text-cafh-indigo disabled:opacity-30 transition-all"
                                         >
                                             <ChevronUp size={16} />
                                         </button>
                                         <button
                                             onClick={() => moveSection(idx, 'down')}
                                             disabled={idx === localPage.sections.length - 1}
-                                            className="p-2 text-slate-300 hover:text-cafh-blue disabled:opacity-30 transition-all"
+                                            className="p-2 text-slate-300 hover:text-cafh-indigo disabled:opacity-30 transition-all"
                                         >
                                             <ChevronDown size={16} />
                                         </button>
@@ -4800,7 +4800,7 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                     newSections[idx].content.items.push({ label: '', value: '', icon: 'Activity' });
                                                     setLocalPage({ ...localPage, sections: newSections });
                                                 }}
-                                                className="w-full py-2 border border-dashed border-slate-200 rounded-xl text-[10px] font-bold text-slate-400 hover:border-cafh-blue hover:text-cafh-blue transition-all"
+                                                className="w-full py-2 border border-dashed border-slate-200 rounded-xl text-[10px] font-bold text-slate-400 hover:border-cafh-indigo hover:text-cafh-indigo transition-all"
                                             >
                                                 + AÑADIR DATO
                                             </button>
@@ -4862,7 +4862,7 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                     newSections[idx].content.items.push({ title: '', description: '', icon: 'Star' });
                                                     setLocalPage({ ...localPage, sections: newSections });
                                                 }}
-                                                className="w-full py-2 border border-dashed border-slate-200 rounded-xl text-[10px] font-bold text-slate-400 hover:border-cafh-blue hover:text-cafh-blue transition-all"
+                                                className="w-full py-2 border border-dashed border-slate-200 rounded-xl text-[10px] font-bold text-slate-400 hover:border-cafh-indigo hover:text-cafh-indigo transition-all"
                                             >
                                                 + AÑADIR CARD
                                             </button>
@@ -4914,7 +4914,7 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                     newSections[idx].content.items.push({ label: '', icon: 'Heart' });
                                                     setLocalPage({ ...localPage, sections: newSections });
                                                 }}
-                                                className="w-full py-2 border border-dashed border-slate-200 rounded-xl text-[10px] font-bold text-slate-400 hover:border-cafh-blue hover:text-cafh-blue transition-all"
+                                                className="w-full py-2 border border-dashed border-slate-200 rounded-xl text-[10px] font-bold text-slate-400 hover:border-cafh-indigo hover:text-cafh-indigo transition-all"
                                             >
                                                 + AÑADIR ICONO
                                             </button>
@@ -4956,7 +4956,7 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                             input.value = '';
                                                         }
                                                     }}
-                                                    className="px-4 bg-cafh-blue text-white rounded-xl text-xs font-bold"
+                                                    className="px-4 bg-cafh-indigo text-white rounded-xl text-xs font-bold"
                                                 >
                                                     AÑADIR
                                                 </button>
@@ -5083,7 +5083,7 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                     newSections[idx].content.items.push({ title: '', content: '' });
                                                     setLocalPage({ ...localPage, sections: newSections });
                                                 }}
-                                                className="w-full py-2 border border-dashed border-slate-200 rounded-xl text-[10px] font-bold text-slate-400 hover:border-cafh-blue hover:text-cafh-blue transition-all"
+                                                className="w-full py-2 border border-dashed border-slate-200 rounded-xl text-[10px] font-bold text-slate-400 hover:border-cafh-indigo hover:text-cafh-indigo transition-all"
                                             >
                                                 + AÑADIR ITEM
                                             </button>
@@ -5110,63 +5110,63 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                 <div className="space-y-6">
                     <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm">
                         <h4 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2">
-                            <Plus size={16} className="text-cafh-blue" />
+                            <Plus size={16} className="text-cafh-indigo" />
                             Añadir Sección
                         </h4>
                         <div className="grid grid-cols-1 gap-3">
-                            <button onClick={() => addSection('Hero')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-blue-50 rounded-2xl transition-all group">
-                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-blue shadow-sm">
+                            <button onClick={() => addSection('Hero')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-cafh-indigo/5 rounded-2xl transition-all group">
+                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-indigo shadow-sm">
                                     <Layout size={18} />
                                 </div>
-                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-blue">Banner Hero</span>
+                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Banner Hero</span>
                             </button>
-                            <button onClick={() => addSection('Text')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-blue-50 rounded-2xl transition-all group">
-                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-blue shadow-sm">
+                            <button onClick={() => addSection('Text')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-cafh-indigo/5 rounded-2xl transition-all group">
+                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-indigo shadow-sm">
                                     <Type size={18} />
                                 </div>
-                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-blue">Bloque de Texto</span>
+                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Bloque de Texto</span>
                             </button>
-                            <button onClick={() => addSection('Image')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-blue-50 rounded-2xl transition-all group">
-                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-blue shadow-sm">
+                            <button onClick={() => addSection('Image')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-cafh-indigo/5 rounded-2xl transition-all group">
+                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-indigo shadow-sm">
                                     <Image size={18} />
                                 </div>
-                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-blue">Imagen / Video</span>
+                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Imagen / Video</span>
                             </button>
-                            <button onClick={() => addSection('Stats')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-blue-50 rounded-2xl transition-all group">
-                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-blue shadow-sm">
+                            <button onClick={() => addSection('Stats')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-cafh-indigo/5 rounded-2xl transition-all group">
+                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-indigo shadow-sm">
                                     <Hash size={18} />
                                 </div>
-                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-blue">Datos Numéricos</span>
+                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Datos Numéricos</span>
                             </button>
-                            <button onClick={() => addSection('Cards')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-blue-50 rounded-2xl transition-all group">
-                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-blue shadow-sm">
+                            <button onClick={() => addSection('Cards')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-cafh-indigo/5 rounded-2xl transition-all group">
+                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-indigo shadow-sm">
                                     <Grid size={18} />
                                 </div>
-                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-blue">Grid de Cards</span>
+                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Grid de Cards</span>
                             </button>
-                            <button onClick={() => addSection('IconGrid')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-blue-50 rounded-2xl transition-all group">
-                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-blue shadow-sm">
+                            <button onClick={() => addSection('IconGrid')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-cafh-indigo/5 rounded-2xl transition-all group">
+                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-indigo shadow-sm">
                                     <Activity size={18} />
                                 </div>
-                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-blue">Grid de Iconos</span>
+                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Grid de Iconos</span>
                             </button>
-                            <button onClick={() => addSection('Gallery')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-blue-50 rounded-2xl transition-all group">
-                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-blue shadow-sm">
+                            <button onClick={() => addSection('Gallery')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-cafh-indigo/5 rounded-2xl transition-all group">
+                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-indigo shadow-sm">
                                     <Image size={18} />
                                 </div>
-                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-blue">Galería de Fotos</span>
+                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Galería de Fotos</span>
                             </button>
-                            <button onClick={() => addSection('CTA')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-blue-50 rounded-2xl transition-all group">
-                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-blue shadow-sm">
+                            <button onClick={() => addSection('CTA')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-cafh-indigo/5 rounded-2xl transition-all group">
+                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-indigo shadow-sm">
                                     <MousePointer size={18} />
                                 </div>
-                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-blue">Llamado a la Acción</span>
+                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Llamado a la Acción</span>
                             </button>
-                            <button onClick={() => addSection('Accordion')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-blue-50 rounded-2xl transition-all group">
-                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-blue shadow-sm">
+                            <button onClick={() => addSection('Accordion')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-cafh-indigo/5 rounded-2xl transition-all group">
+                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-indigo shadow-sm">
                                     <ChevronDown size={18} />
                                 </div>
-                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-blue">Acordeón / FAQ</span>
+                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Acordeón / FAQ</span>
                             </button>
                             <div className="border-t border-slate-100 pt-3 mt-3">
                                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Bloques Dinámicos (Especiales)</h4>
@@ -5197,11 +5197,11 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                     </button>
                                 </div>
                             </div>
-                            <button onClick={() => addSection('Video')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-blue-50 rounded-2xl transition-all group">
-                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-blue shadow-sm">
+                            <button onClick={() => addSection('Video')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-cafh-indigo/5 rounded-2xl transition-all group">
+                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-indigo shadow-sm">
                                     <Play size={18} />
                                 </div>
-                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-blue">Video YouTube</span>
+                                <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Video YouTube</span>
                             </button>
                         </div>
                     </div>
@@ -5209,7 +5209,7 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                     {/* SEO Config */}
                     <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm">
                         <h4 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2">
-                            <SearchIcon size={16} className="text-cafh-blue" />
+                            <SearchIcon size={16} className="text-cafh-indigo" />
                             Configuración SEO
                         </h4>
                         <div className="space-y-4">
@@ -5257,7 +5257,7 @@ const MenuEditor: React.FC = () => {
                 </div>
                 <button
                     onClick={handleSave}
-                    className="px-6 py-2 bg-cafh-blue text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-100"
+                    className="px-6 py-2 bg-cafh-indigo text-white rounded-xl font-bold text-sm shadow-lg shadow-cafh-indigo/10"
                 >
                     GUARDAR MENÚ
                 </button>
@@ -5268,7 +5268,7 @@ const MenuEditor: React.FC = () => {
                     <div key={idx} className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
                         <div className="p-6 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="p-2 bg-white rounded-lg text-cafh-blue shadow-sm">
+                                <div className="p-2 bg-white rounded-lg text-cafh-indigo shadow-sm">
                                     <Grid size={18} />
                                 </div>
                                 <input
@@ -5279,7 +5279,7 @@ const MenuEditor: React.FC = () => {
                                         newMenu[idx].label = e.target.value;
                                         setMenu(newMenu);
                                     }}
-                                    className="bg-transparent font-bold text-slate-800 outline-none border-b border-transparent focus:border-cafh-blue"
+                                    className="bg-transparent font-bold text-slate-800 outline-none border-b border-transparent focus:border-cafh-indigo"
                                 />
                             </div>
                         </div>
@@ -5381,7 +5381,7 @@ const ArticlesManager: React.FC = () => {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h3 className="text-lg font-bold text-slate-800">Gestión de Artículos & Blog</h3>
-                <button className="flex items-center gap-2 px-4 py-2 bg-cafh-blue text-white rounded-xl hover:bg-blue-900 transition-all shadow-sm text-sm font-bold">
+                <button className="flex items-center gap-2 px-4 py-2 bg-cafh-indigo text-white rounded-xl hover:bg-slate-900 transition-all shadow-sm text-sm font-bold">
                     <Plus size={18} />
                     NUEVO ARTÍCULO
                 </button>
@@ -5404,7 +5404,7 @@ const ArticlesManager: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <button className="p-2 text-slate-400 hover:text-cafh-blue hover:bg-blue-50 rounded-xl transition-all">
+                            <button className="p-2 text-slate-400 hover:text-cafh-indigo hover:bg-cafh-indigo/5 rounded-xl transition-all">
                                 <Edit size={18} />
                             </button>
                             <button className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
@@ -5449,7 +5449,7 @@ const ChangeLogTable: React.FC<{ logs: ChangeLog[] }> = ({ logs }) => {
                             <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
                                 <td className="px-8 py-5">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-cafh-blue font-bold text-xs">
+                                        <div className="w-8 h-8 rounded-full bg-cafh-indigo/10 flex items-center justify-center text-cafh-indigo font-bold text-xs">
                                             {log.userName.charAt(0)}
                                         </div>
                                         <span className="text-sm font-bold text-slate-700">{log.userName}</span>
@@ -5460,7 +5460,7 @@ const ChangeLogTable: React.FC<{ logs: ChangeLog[] }> = ({ logs }) => {
                                 </td>
                                 <td className="px-8 py-5">
                                     <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase ${log.action === 'Create' ? 'bg-green-50 text-green-600' :
-                                        log.action === 'Update' ? 'bg-blue-50 text-blue-600' :
+                                        log.action === 'Update' ? 'bg-cafh-indigo/5 text-cafh-indigo' :
                                             log.action === 'Delete' ? 'bg-red-50 text-red-600' :
                                                 'bg-purple-50 text-purple-600'
                                         }`}>
@@ -5510,7 +5510,7 @@ export const AnalyticsView: React.FC = () => {
 
     const funnelSteps = [
         { label: 'Total Inscritos', value: totalContacts, pct: 100, color: 'bg-cafh-indigo', textColor: 'text-cafh-indigo' },
-        { label: 'Suscritos Activos', value: subscribed, pct: totalContacts > 0 ? Math.round((subscribed / totalContacts) * 100) : 0, color: 'bg-blue-500', textColor: 'text-blue-500' },
+        { label: 'Suscritos Activos', value: subscribed, pct: totalContacts > 0 ? Math.round((subscribed / totalContacts) * 100) : 0, color: 'bg-cafh-indigo/50', textColor: 'text-cafh-indigo/80' },
         { label: 'Emails Abiertos', value: opened, pct: totalContacts > 0 ? Math.round((opened / totalContacts) * 100) : 0, color: 'bg-emerald-500', textColor: 'text-emerald-500' },
         { label: 'Hicieron Clic', value: clicked, pct: totalContacts > 0 ? Math.round((clicked / totalContacts) * 100) : 0, color: 'bg-purple-500', textColor: 'text-purple-500' },
     ];
@@ -5616,7 +5616,7 @@ export const AnalyticsView: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 bg-white rounded-[2rem] p-7 shadow-sm border border-slate-100">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2.5 bg-blue-50 rounded-xl text-cafh-indigo"><TrendingUp size={18} /></div>
+                        <div className="p-2.5 bg-cafh-indigo/5 rounded-xl text-cafh-indigo"><TrendingUp size={18} /></div>
                         <div>
                             <h3 className="font-bold text-slate-800">Histórico de Envío de Emails</h3>
                             <p className="text-xs text-slate-400">Enviados vs Abiertos por fecha</p>
@@ -5741,7 +5741,7 @@ export const AnalyticsView: React.FC = () => {
             {/* Content Performance Table */}
             <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 overflow-hidden">
                 <div className="px-7 py-5 border-b border-slate-50 flex items-center gap-3">
-                    <div className="p-2.5 bg-blue-50 rounded-xl text-cafh-indigo"><Eye size={18} /></div>
+                    <div className="p-2.5 bg-cafh-indigo/5 rounded-xl text-cafh-indigo"><Eye size={18} /></div>
                     <div>
                         <h3 className="font-bold text-slate-800">Rendimiento de Contenidos</h3>
                         <p className="text-xs text-slate-400">Artículos, recursos y páginas por número de vistas</p>
@@ -5775,7 +5775,7 @@ export const AnalyticsView: React.FC = () => {
                                             </div>
                                         </td>
                                         <td className="px-4 py-4">
-                                            <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${item.type === 'Article' ? 'bg-blue-50 text-blue-700' : (item.type === 'video' || item.type === 'audio') ? 'bg-[conic-gradient(at_top_right,_var(--tw-gradient-stops))] from-indigo-200 via-slate-600 to-indigo-200 text-transparent bg-clip-text font-black' : (item.type === 'Resource' || item.type === 'document') ? 'bg-green-50 text-green-700' : 'bg-purple-50 text-purple-700'}`}>
+                                            <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${item.type === 'Article' ? 'bg-cafh-indigo/5 text-cafh-indigo' : (item.type === 'video' || item.type === 'audio') ? 'bg-[conic-gradient(at_top_right,_var(--tw-gradient-stops))] from-indigo-200 via-slate-600 to-indigo-200 text-transparent bg-clip-text font-black' : (item.type === 'Resource' || item.type === 'document') ? 'bg-green-50 text-green-700' : 'bg-purple-50 text-purple-700'}`}>
                                                 {item.type}
                                             </span>
                                         </td>
