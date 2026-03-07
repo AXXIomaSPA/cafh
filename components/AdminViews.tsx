@@ -16,7 +16,8 @@ import {
     Layout, Type, Image, Layers, Video, Sparkles, Edit, ArrowLeft,
     GripVertical, ArrowUp, ArrowDown, Compass, BookOpen, TrendingUp,
     Hash, Activity, Play, MousePointer, ChevronDown, ChevronUp, Database, UploadCloud, Settings, Eye, Target, Percent, Zap, Pause,
-    Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter, Heart, Sun, Cloud, Anchor, Feather, Coffee, Book, Headphones, Mic, LogOut, Check, ChevronLeft, Minus, Info, Settings2, Trash, Copy, Table2, FolderOpen, Columns
+    Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter, Heart, Sun, Cloud, Anchor, Feather, Coffee, Book, Headphones, Mic, LogOut, Check, ChevronLeft, Minus, Info, Settings2, Trash, Copy, Table2, FolderOpen, Columns,
+    Bold, Italic, Underline, ListOrdered, AlignLeft, AlignCenter, Type as TypeIcon, Eraser
 } from 'lucide-react';
 
 const LUCIDE_ICONS: Record<string, any> = {
@@ -28,7 +29,8 @@ const LUCIDE_ICONS: Record<string, any> = {
     Layout, Type, Image, Layers, Video, Sparkles, Edit, ArrowLeft,
     GripVertical, ArrowUp, ArrowDown, Compass, BookOpen, TrendingUp,
     Hash, Activity, Play, MousePointer, ChevronDown, ChevronUp, Database, UploadCloud, Settings, Eye, Target, Percent, Zap, Pause,
-    Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter, Heart, Sun, Cloud, Anchor, Feather, Coffee, Book, Headphones, Mic, LogOut, Check, ChevronLeft, Minus, Info, Settings2, Trash, Copy, Table2, FolderOpen, Columns
+    Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter, Heart, Sun, Cloud, Anchor, Feather, Coffee, Book, Headphones, Mic, LogOut, Check, ChevronLeft, Minus, Info, Settings2, Trash, Copy, Table2, FolderOpen, Columns,
+    Bold, Italic, Underline, ListOrdered, AlignLeft, AlignCenter, TypeIcon, Eraser
 };
 
 const DynamicIcon: React.FC<{ name: string; size?: number; className?: string }> = ({ name, size = 20, className }) => {
@@ -378,6 +380,115 @@ const PagePickerModal: React.FC<{
                         )}
                     </div>
                 </div>
+            </div>
+        </div>
+    );
+};
+
+// --- PREMIUM RICH TEXT EDITOR ---
+export const RichTextEditor: React.FC<{
+    value: string;
+    onChange: (val: string) => void;
+    placeholder?: string;
+    className?: string;
+    label?: string;
+    description?: string;
+}> = ({ value, onChange, placeholder, className, label, description }) => {
+    const editorRef = React.useRef<HTMLDivElement>(null);
+    const [isFocused, setIsFocused] = useState(false);
+    const [activeCommands, setActiveCommands] = useState<Record<string, boolean>>({});
+
+    useEffect(() => {
+        if (editorRef.current && editorRef.current.innerHTML !== value) {
+            editorRef.current.innerHTML = value || '';
+        }
+    }, [value]);
+
+    const updateActiveCommands = () => {
+        const commands = ['bold', 'italic', 'underline', 'insertUnorderedList', 'insertOrderedList', 'justifyLeft', 'justifyCenter'];
+        const status: Record<string, boolean> = {};
+        commands.forEach(cmd => {
+            status[cmd] = document.queryCommandState(cmd);
+        });
+        setActiveCommands(status);
+    };
+
+    const execCommand = (e: React.MouseEvent, command: string, val?: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        document.execCommand(command, false, val);
+        updateActiveCommands();
+        if (editorRef.current) {
+            onChange(editorRef.current.innerHTML);
+        }
+    };
+
+    const handleInput = () => {
+        updateActiveCommands();
+        if (editorRef.current) {
+            const html = editorRef.current.innerHTML;
+            if (html !== value) {
+                onChange(html);
+            }
+        }
+    };
+
+    const btnClass = (cmd: string) => `p-2 rounded-xl transition-all duration-200 ${activeCommands[cmd]
+        ? 'bg-cafh-indigo text-white shadow-sm'
+        : 'text-slate-500 hover:bg-white hover:text-cafh-indigo'
+        }`;
+
+    return (
+        <div className={`space-y-2 ${className}`}>
+            <div className="flex justify-between items-end px-1">
+                <div>
+                    {label && <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</label>}
+                    {description && <p className="text-[10px] text-slate-400 italic mt-0.5">{description}</p>}
+                </div>
+            </div>
+            <div className={`relative bg-white border transition-all duration-500 rounded-[2rem] overflow-hidden group ${isFocused
+                ? 'ring-8 ring-cafh-indigo/5 border-cafh-indigo/40 shadow-xl'
+                : 'border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200'
+                }`}>
+                <div className="bg-slate-50/90 border-b border-slate-100 px-4 py-2 flex flex-wrap gap-1.5 items-center backdrop-blur-xl sticky top-0 z-10">
+                    <button type="button" onMouseDown={(e) => execCommand(e, 'bold')} className={btnClass('bold')} title="Negrita"><Bold size={14} /></button>
+                    <button type="button" onMouseDown={(e) => execCommand(e, 'italic')} className={btnClass('italic')} title="Cursiva"><Italic size={14} /></button>
+                    <button type="button" onMouseDown={(e) => execCommand(e, 'underline')} className={btnClass('underline')} title="Subrayado"><Underline size={14} /></button>
+                    <div className="w-px h-5 bg-slate-200 mx-1"></div>
+                    <button type="button" onMouseDown={(e) => execCommand(e, 'insertUnorderedList')} className={btnClass('insertUnorderedList')} title="Lista Viñetas"><List size={14} /></button>
+                    <button type="button" onMouseDown={(e) => execCommand(e, 'insertOrderedList')} className={btnClass('insertOrderedList')} title="Lista Numerada"><ListOrdered size={14} /></button>
+                    <div className="w-px h-5 bg-slate-200 mx-1"></div>
+                    <button type="button" onMouseDown={(e) => execCommand(e, 'justifyLeft')} className={btnClass('justifyLeft')} title="Alinear Izquierda"><AlignLeft size={14} /></button>
+                    <button type="button" onMouseDown={(e) => execCommand(e, 'justifyCenter')} className={btnClass('justifyCenter')} title="Alinear Centro"><AlignCenter size={14} /></button>
+                    <div className="w-px h-5 bg-slate-200 mx-1"></div>
+                    <button type="button" onMouseDown={(e) => {
+                        const url = prompt('Introduce la URL del enlace:');
+                        if (url) execCommand(e, 'createLink', url);
+                    }} className="p-2 hover:bg-white rounded-xl text-slate-500 hover:text-cafh-indigo transition-all" title="Insertar Link"><Link2 size={14} /></button>
+                    <button type="button" onMouseDown={(e) => execCommand(e, 'removeFormat')} className="p-2 hover:bg-white rounded-xl text-slate-500 hover:text-red-500 transition-all ml-auto" title="Limpiar Formato"><Eraser size={14} /></button>
+                </div>
+                <div className="relative">
+                    <div
+                        ref={editorRef}
+                        contentEditable
+                        onInput={handleInput}
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => { handleInput(); setIsFocused(false); }}
+                        onMouseUp={updateActiveCommands}
+                        onKeyUp={updateActiveCommands}
+                        className="p-8 text-sm min-h-[180px] max-h-[500px] overflow-y-auto outline-none text-slate-600 leading-relaxed prose prose-slate max-w-none prose-p:my-2 prose-headings:text-cafh-indigo prose-a:text-cafh-cyan transition-colors"
+                    />
+                    {!value && !isFocused && (
+                        <div className="absolute left-8 top-8 text-slate-300 pointer-events-none text-sm italic animate-pulse">
+                            {placeholder || 'Escribe contenido enriquecido aquí...'}
+                        </div>
+                    )}
+                </div>
+                {isFocused && (
+                    <div className="absolute bottom-2 right-4 text-[9px] font-bold text-cafh-indigo/40 uppercase tracking-widest animate-pulse">
+                        Modo Edición Activo
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -3790,15 +3901,13 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                 />
                             </div>
                         </div>
-                        <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Subtítulo Principal</label>
-                            <textarea
-                                rows={2}
-                                value={localConfig.hero.subtitle}
-                                onChange={e => setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, subtitle: e.target.value } })}
-                                className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all resize-none"
-                            />
-                        </div>
+                        <RichTextEditor
+                            label="Subtítulo Principal"
+                            description="Contenido detallado bajo el título de impacto"
+                            value={localConfig.hero.subtitle}
+                            onChange={val => setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, subtitle: val } })}
+                            placeholder="Escribe el subtítulo aquí..."
+                        />
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                             <div>
                                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Velocidad Slider (ms)</label>
@@ -4096,16 +4205,15 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                         </button>
                                     </div>
                                 </div>
-                                <textarea
-                                    rows={2}
+                                <RichTextEditor
+                                    label="Descripción"
                                     value={col.description}
-                                    onChange={e => {
+                                    onChange={val => {
                                         const newCols = [...localConfig.threeColumns];
-                                        newCols[idx].description = e.target.value;
+                                        newCols[idx].description = val;
                                         setLocalConfig({ ...localConfig, threeColumns: newCols });
                                     }}
-                                    placeholder="Descripción"
-                                    className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm resize-none"
+                                    placeholder="Escribe la descripción de la columna..."
                                 />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <input
@@ -4223,12 +4331,11 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Subtítulo de Sección</label>
-                                <input
-                                    type="text"
+                                <RichTextEditor
+                                    label="Subtítulo de Sección"
                                     value={localConfig.activitiesSection.subtitle}
-                                    onChange={e => setLocalConfig({ ...localConfig, activitiesSection: { ...localConfig.activitiesSection, subtitle: e.target.value } })}
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
+                                    onChange={val => setLocalConfig({ ...localConfig, activitiesSection: { ...localConfig.activitiesSection, subtitle: val } })}
+                                    placeholder="Breve descripción de la agenda..."
                                 />
                             </div>
                         </div>
@@ -5244,14 +5351,13 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                 </div>
                                 <div className="p-6">
                                     {section.type === 'Text' && (
-                                        <textarea
+                                        <RichTextEditor
                                             value={section.content.text}
-                                            onChange={e => {
+                                            onChange={val => {
                                                 const newSections = [...localPage.sections];
-                                                newSections[idx].content.text = e.target.value;
+                                                newSections[idx].content.text = val;
                                                 setLocalPage({ ...localPage, sections: newSections });
                                             }}
-                                            className="w-full p-4 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none h-32 resize-none"
                                             placeholder="Escribe el contenido aquí..."
                                         />
                                     )}
@@ -5296,14 +5402,13 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                         className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold outline-none"
                                                         placeholder="Título"
                                                     />
-                                                    <textarea
+                                                    <RichTextEditor
                                                         value={section.content.text}
-                                                        onChange={e => {
+                                                        onChange={val => {
                                                             const newSections = [...localPage.sections];
-                                                            newSections[idx].content.text = e.target.value;
+                                                            newSections[idx].content.text = val;
                                                             setLocalPage({ ...localPage, sections: newSections });
                                                         }}
-                                                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none h-32 resize-none"
                                                         placeholder="Contenido..."
                                                     />
                                                 </div>
@@ -5450,15 +5555,14 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                         className="w-full mb-2 p-2 bg-white border border-slate-100 rounded-lg text-sm font-bold outline-none"
                                                         placeholder="Título de la Pestaña"
                                                     />
-                                                    <textarea
+                                                    <RichTextEditor
                                                         value={item.content}
-                                                        onChange={e => {
+                                                        onChange={val => {
                                                             const newSections = [...localPage.sections];
-                                                            newSections[idx].content.items[i].content = e.target.value;
+                                                            newSections[idx].content.items[i].content = val;
                                                             setLocalPage({ ...localPage, sections: newSections });
                                                         }}
-                                                        className="w-full p-2 bg-white border border-slate-100 rounded-lg text-xs outline-none h-24 resize-none"
-                                                        placeholder="Contenido..."
+                                                        placeholder="Contenido de la pestaña..."
                                                     />
                                                 </div>
                                             ))}
@@ -5695,14 +5799,13 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                             <Trash2 size={14} />
                                                         </button>
                                                     </div>
-                                                    <textarea
+                                                    <RichTextEditor
                                                         value={item.description}
-                                                        onChange={e => {
+                                                        onChange={val => {
                                                             const newSections = [...localPage.sections];
-                                                            newSections[idx].content.items[i].description = e.target.value;
+                                                            newSections[idx].content.items[i].description = val;
                                                             setLocalPage({ ...localPage, sections: newSections });
                                                         }}
-                                                        className="w-full p-3 bg-white border border-slate-100 rounded-lg text-xs outline-none h-20 resize-none"
                                                         placeholder="Descripción..."
                                                     />
                                                     <div className="relative">
@@ -5886,14 +5989,13 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                 className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none font-bold"
                                                 placeholder="Título del CTA"
                                             />
-                                            <textarea
+                                            <RichTextEditor
                                                 value={section.content.text}
-                                                onChange={e => {
+                                                onChange={val => {
                                                     const newSections = [...localPage.sections];
-                                                    newSections[idx].content.text = e.target.value;
+                                                    newSections[idx].content.text = val;
                                                     setLocalPage({ ...localPage, sections: newSections });
                                                 }}
-                                                className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none h-20 resize-none"
                                                 placeholder="Texto descriptivo..."
                                             />
                                             <div className="grid grid-cols-2 gap-3">
@@ -5960,14 +6062,13 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                             <Trash2 size={14} />
                                                         </button>
                                                     </div>
-                                                    <textarea
+                                                    <RichTextEditor
                                                         value={item.content}
-                                                        onChange={e => {
+                                                        onChange={val => {
                                                             const newSections = [...localPage.sections];
-                                                            newSections[idx].content.items[i].content = e.target.value;
+                                                            newSections[idx].content.items[i].content = val;
                                                             setLocalPage({ ...localPage, sections: newSections });
                                                         }}
-                                                        className="w-full p-3 bg-white border border-slate-100 rounded-lg text-xs outline-none h-24 resize-none"
                                                         placeholder="Contenido / Respuesta..."
                                                     />
                                                 </div>

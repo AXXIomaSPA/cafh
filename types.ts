@@ -698,12 +698,18 @@ export interface MemberBadge {
 }
 
 /** Registro de participación de un miembro en una actividad */
+/** Registro de participación de un miembro o visitante en una actividad */
 export interface ParticipationRecord {
   id: string;
-  userId: string;
+  userId?: string;     // Opcional si es visitante
+  userEmail?: string;
+  userName: string;
+  userType: 'Visitante' | 'Miembro';
+  userTags: string[];
   eventId: string;
   eventTitle: string;
   participatedAt: string;
+  status: 'Inscrito' | 'Completado' | 'Asistió';
   feedbackSubmitted: boolean;
   feedbackBlocksNext: boolean;  // true si NO respondió → bloquea próxima actividad
 }
@@ -740,6 +746,13 @@ export interface ActivityEvent {
   // Sync bidireccional con Módulo 1 (solo si modality === 'Virtual')
   linkedMeetingId?: string;   // ID del CalendarEvent sincronizado
   zoomUrl?: string;
+  recurrence?: {
+    frequency: 'none' | 'daily' | 'weekly' | 'monthly';
+    interval?: number; // cada X días/semanas/meses
+    daysOfWeek?: number[]; // [0-6] para semanal
+    endType: 'never' | 'date';
+    endDate?: string;
+  };
   createdAt: string;
   updatedAt: string;
 }

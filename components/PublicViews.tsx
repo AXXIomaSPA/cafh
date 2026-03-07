@@ -152,11 +152,192 @@ const DynamicResourcesGrid: React.FC<any> = ({ bgClass, paddingClass, containerC
     );
 };
 
-const DynamicEventsCalendar: React.FC<any> = ({ bgClass, paddingClass, containerClass }) => {
-    const [events, setEvents] = useState<CalendarEvent[]>([]);
+const ActivityRegistrationModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    activity: any;
+}> = ({ isOpen, onClose, activity }) => {
+    const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [name, setName] = useState('');
+    const [step, setStep] = useState<'init' | 'success'>('init');
+    const [loading, setLoading] = useState(false);
+
+    const currentUser = db.auth.getCurrentUser();
 
     useEffect(() => {
-        setEvents(db.events.getAll());
+        if (currentUser) {
+            setName(currentUser.name || '');
+            setEmail(currentUser.email || '');
+        }
+    }, [currentUser]);
+
+    const handleRegister = (type: 'Miembro' | 'Visitante') => {
+        if (!name || !email) return;
+        setLoading(true);
+        setTimeout(() => {
+            db.gamification.recordParticipation({
+                userId: currentUser?.id,
+                userEmail: email,
+                userName: name,
+                userType: type,
+                userTags: currentUser?.interests || [],
+                eventId: activity.id,
+                eventTitle: activity.title,
+                participatedAt: new Date().toISOString(),
+                status: 'Inscrito',
+                feedbackSubmitted: false,
+                feedbackBlocksNext: false
+            });
+            setLoading(false);
+            setStep('success');
+        }, 1200);
+    };
+
+    if (!isOpen) return null;
+
+    return createPortal(
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl overflow-hidden p-8 animate-fade-in-up">
+                <button onClick={onClose} className="absolute top-6 right-6 p-2 text-slate-400 hover:bg-slate-100 rounded-full"><X size={20} /></button>
+
+                {step === 'init' && (
+                    <div className="text-center">
+                        <div className="w-16 h-16 bg-cafh-indigo/10 text-cafh-indigo rounded-2xl flex items-center justify-center mx-auto mb-6">
+                            <Calendar size={32} />
+                        </div>
+                        <h3 className="text-2xl font-display font-bold text-slate-800 mb-2">Inscríbete en la actividad</h3>
+                        <p className="text-slate-500 mb-8 text-sm">{activity.title}</p>
+
+                        {currentUser ? (
+                            <div className="space-y-4">
+                                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-left">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Inscribiéndose como:</p>
+                                    <p className="font-bold text-slate-800">{currentUser.name}</p>
+                                    <p className="text-[11px] text-slate-500">{currentUser.email}</p>
+                                </div>
+                                <button
+                                    onClick={() => handleRegister('Miembro')}
+                                    disabled={loading}
+                                    className="w-full py-4 bg-cafh-indigo text-white rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                                >
+                                    {loading ? <Loader2 size={20} className="animate-spin" /> : 'Confirmar Inscripción'}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="space-y-3 text-left">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nombre Completo</label>
+                                    <input
+                                        type="text"
+                                        placeholder="Tu nombre"
+                                        value={name}
+                                        onChange={e => setName(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-cafh-indigo/20 focus:border-cafh-indigo outline-none text-sm"
+                                    />
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Correo Electrónico</label>
+                                    <input
+                                        type="email"
+                                        placeholder="tu@email.com"
+                                        value={email}
+                                        onChange={e => setEmail(e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-cafh-indigo/20 focus:border-cafh-indigo outline-none text-sm"
+                                    />
+                                </div>
+                                <button
+                                    onClick={() => handleRegister('Visitante')}
+                                    disabled={loading || !name || !email}
+                                    className="w-full py-4 bg-cafh-indigo text-white rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                                >
+                                    {loading ? <Loader2 size={20} className="animate-spin" /> : 'Inscribirme como Visitante'}
+                                </button>
+                                <div className="relative py-4">
+                                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100"></div></div>
+                                    <div className="relative flex justify-center text-[10px] uppercase"><span className="bg-white px-2 text-slate-400 font-bold tracking-widest">o mejora tu experiencia</span></div>
+                                </div>
+                                <button
+                                    onClick={() => navigate('/login?mode=register')}
+                                    className="w-full py-4 bg-white border border-slate-200 text-cafh-indigo rounded-xl font-bold hover:bg-slate-50 transition-all flex items-center justify-center gap-2 text-sm"
+                                >
+                                    <Sparkles size={18} className="text-cafh-cyan" />
+                                    Crear cuenta y empezar mi viaje
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {step === 'success' && (
+                    <div className="text-center py-6">
+                        <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <Check size={40} strokeWidth={3} />
+                        </div>
+                        <h3 className="text-2xl font-display font-bold text-slate-800 mb-2">¡Inscripción Exitosa!</h3>
+                        <p className="text-slate-500 mb-8 text-sm">Te hemos registrado en la actividad. ¡Te esperamos!</p>
+
+                        {!currentUser && (
+                            <div className="p-6 bg-cafh-light rounded-[2rem] border border-cafh-indigo/10 mb-8">
+                                <Sparkles className="text-cafh-indigo mx-auto mb-3" size={24} />
+                                <p className="text-sm font-bold text-slate-700 mb-2">¿Quieres llevar tu experiencia al siguiente nivel?</p>
+                                <p className="text-xs text-slate-500 mb-4 leading-relaxed">Crea tu cuenta ahora para acceder a material exclusivo, ver tu historial y seguir tu progreso.</p>
+                                <button
+                                    onClick={() => navigate('/login?mode=register')}
+                                    className="w-full py-3 bg-cafh-indigo text-white rounded-xl font-bold text-sm hover:bg-slate-800 transition-all shadow-lg shadow-cafh-indigo/20"
+                                >
+                                    Personalizar mi Camino
+                                </button>
+                            </div>
+                        )}
+
+                        <button
+                            onClick={onClose}
+                            className="w-full py-4 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all text-sm"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>,
+        document.body
+    );
+};
+
+const DynamicEventsCalendar: React.FC<any> = ({ bgClass, paddingClass, containerClass }) => {
+    const [events, setEvents] = useState<CalendarEvent[]>([]);
+    const [regModal, setRegModal] = useState<{ isOpen: boolean, activity: any }>({ isOpen: false, activity: null });
+
+    useEffect(() => {
+        const legacyEvents = db.events.getAll();
+        const activities = db.activities.getAll().filter(a => a.status === 'Publicado');
+
+        const mappedActivities: CalendarEvent[] = activities.map(a => {
+            const d = new Date(a.startDate + 'T12:00:00');
+            return {
+                id: a.id,
+                title: a.title,
+                type: a.modality as any,
+                date: a.startDate,
+                day: d.getDate().toString(),
+                month: d.toLocaleDateString('es-CL', { month: 'short' }).toUpperCase(),
+                time: `${a.startTime} – ${a.endTime}`,
+                location: a.modality === 'Virtual' ? 'Online (Zoom)' : 'Centro Cafh',
+                color: a.modality === 'Virtual' ? 'bg-blue-600' : 'bg-green-600',
+                meetingUrl: a.zoomUrl,
+                resources: [],
+                agenda: []
+            };
+        });
+
+        // Merge and sort
+        const combined = [...mappedActivities, ...legacyEvents].sort((a, b) => {
+            const da = new Date(a.date).getTime();
+            const db = new Date(b.date).getTime();
+            return da - db;
+        });
+
+        setEvents(combined);
     }, []);
 
     return (
@@ -239,16 +420,27 @@ const DynamicEventsCalendar: React.FC<any> = ({ bgClass, paddingClass, container
                                 </div>
                                 <div className="flex items-center gap-2">
                                     {event.meetingUrl ? (
-                                        <a
-                                            href={event.meetingUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="px-6 py-3 rounded-xl bg-green-500 text-white font-bold text-sm hover:bg-green-600 transition-all flex items-center gap-2"
-                                        >
-                                            <Lucide.Video size={16} /> Unirse
-                                        </a>
+                                        <div className="flex gap-2">
+                                            <a
+                                                href={event.meetingUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="px-6 py-3 rounded-xl bg-green-500 text-white font-bold text-sm hover:bg-green-600 transition-all flex items-center gap-2"
+                                            >
+                                                <Lucide.Video size={16} /> Unirse
+                                            </a>
+                                            <button
+                                                onClick={() => setRegModal({ isOpen: true, activity: event })}
+                                                className="px-6 py-3 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all"
+                                            >
+                                                Inscribirme
+                                            </button>
+                                        </div>
                                     ) : (
-                                        <button className="px-6 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm group-hover:bg-cafh-indigo group-hover:text-white transition-all">
+                                        <button
+                                            onClick={() => setRegModal({ isOpen: true, activity: event })}
+                                            className="px-6 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm group-hover:bg-cafh-indigo group-hover:text-white transition-all"
+                                        >
                                             Inscribirme
                                         </button>
                                     )}
@@ -258,6 +450,11 @@ const DynamicEventsCalendar: React.FC<any> = ({ bgClass, paddingClass, container
                     </div>
                 </div>
             </div>
+            <ActivityRegistrationModal
+                isOpen={regModal.isOpen}
+                onClose={() => setRegModal({ ...regModal, isOpen: false })}
+                activity={regModal.activity}
+            />
         </section>
     );
 };
@@ -407,9 +604,10 @@ const TabsSection = ({ section, bgClass, paddingClass, containerClass }: any) =>
                     ))}
                 </div>
                 <div className="bg-white p-8 md:p-12 rounded-[2.5rem] border border-slate-100 shadow-sm min-h-[200px] animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <p className="text-slate-600 text-lg leading-relaxed whitespace-pre-wrap">
-                        {content.items[activeTab]?.content}
-                    </p>
+                    <div
+                        className="text-slate-600 text-lg leading-relaxed prose prose-slate max-w-none"
+                        dangerouslySetInnerHTML={{ __html: content.items[activeTab]?.content || '' }}
+                    />
                 </div>
             </div>
         </section>
@@ -509,9 +707,10 @@ export const DynamicPageView: React.FC<{ slug: string }> = ({ slug }) => {
                 return (
                     <section key={section.id} className={`${bgClass} ${paddingClass}`}>
                         <div className={`${containerClass} mx-auto px-6`}>
-                            <div className="markdown-body prose prose-slate prose-lg max-w-none">
-                                <Markdown>{content.text}</Markdown>
-                            </div>
+                            <div
+                                className="markdown-body prose prose-slate prose-lg max-w-none"
+                                dangerouslySetInnerHTML={{ __html: content.text || '' }}
+                            />
                         </div>
                     </section>
                 );
@@ -533,7 +732,10 @@ export const DynamicPageView: React.FC<{ slug: string }> = ({ slug }) => {
                             <div className={`flex flex-col md:flex-row items-center gap-12 ${content.imagePosition === 'right' ? 'md:flex-row-reverse' : ''}`}>
                                 <div className="flex-1 space-y-6">
                                     <h2 className="text-3xl md:text-5xl font-display font-bold text-slate-800 leading-tight">{content.title}</h2>
-                                    <p className="text-slate-600 text-lg leading-relaxed whitespace-pre-wrap">{content.text}</p>
+                                    <div
+                                        className="text-slate-600 text-lg leading-relaxed prose prose-slate max-w-none"
+                                        dangerouslySetInnerHTML={{ __html: content.text || '' }}
+                                    />
                                 </div>
                                 <div className="flex-1 w-full">
                                     <div className="rounded-[2.5rem] overflow-hidden shadow-2xl hover:scale-[1.02] transition-transform duration-500">
@@ -578,7 +780,10 @@ export const DynamicPageView: React.FC<{ slug: string }> = ({ slug }) => {
                                                 <Icon size={28} strokeWidth={1.5} />
                                             </div>
                                             <h3 className="text-xl font-bold text-slate-800 mb-4">{item.title}</h3>
-                                            <p className="text-slate-500 leading-relaxed">{item.description}</p>
+                                            <div
+                                                className="text-slate-500 leading-relaxed prose prose-slate prose-sm max-w-none"
+                                                dangerouslySetInnerHTML={{ __html: item.description || '' }}
+                                            />
                                         </div>
                                     );
                                 })}
@@ -594,7 +799,10 @@ export const DynamicPageView: React.FC<{ slug: string }> = ({ slug }) => {
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-cafh-cyan/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
                                 <div className="relative z-10">
                                     <h2 className="text-4xl md:text-5xl font-display font-bold text-white mb-6">{content.title}</h2>
-                                    <p className="text-white/70 text-lg mb-10 max-w-2xl mx-auto">{content.text}</p>
+                                    <div
+                                        className="text-white/70 text-lg mb-10 max-w-2xl mx-auto prose prose-invert max-w-none"
+                                        dangerouslySetInnerHTML={{ __html: content.text || '' }}
+                                    />
                                     <button onClick={() => navigate(content.buttonLink)} className="px-10 py-5 bg-cafh-cyan text-cafh-indigo rounded-2xl font-bold hover:bg-white transition-all shadow-xl shadow-cafh-cyan/20">
                                         {content.buttonText}
                                     </button>
@@ -666,9 +874,10 @@ export const DynamicPageView: React.FC<{ slug: string }> = ({ slug }) => {
                                             <span className="font-bold text-slate-800">{item.title}</span>
                                             <ChevronDown size={20} className="text-slate-400 group-open:rotate-180 transition-transform" />
                                         </summary>
-                                        <div className="px-6 pb-6 text-slate-600 leading-relaxed border-t border-slate-50 pt-4">
-                                            {item.content}
-                                        </div>
+                                        <div
+                                            className="px-6 pb-6 text-slate-600 leading-relaxed border-t border-slate-50 pt-4 prose prose-slate max-w-none prose-p:my-2"
+                                            dangerouslySetInnerHTML={{ __html: item.content || '' }}
+                                        />
                                     </details>
                                 ))}
                             </div>
@@ -1745,9 +1954,10 @@ export const HomeView: React.FC = () => {
                                 </span>
                             </h1>
 
-                            <p className="text-lg md:text-2xl text-blue-50/90 mb-10 md:mb-14 max-w-md md:max-w-2xl font-light leading-relaxed animate-fade-in-up">
-                                {homeConfig.hero.subtitle}
-                            </p>
+                            <div
+                                className="text-lg md:text-2xl text-blue-50/90 mb-10 md:mb-14 max-w-md md:max-w-2xl font-light leading-relaxed animate-fade-in-up prose prose-invert prose-lg max-w-none"
+                                dangerouslySetInnerHTML={{ __html: homeConfig.hero.subtitle || '' }}
+                            />
 
                             <div className="flex flex-col w-full sm:w-auto sm:flex-row gap-5 animate-fade-in-up">
                                 <button
@@ -1825,7 +2035,10 @@ export const HomeView: React.FC = () => {
                                                 </div>
                                             </div>
                                             <h3 className="font-display text-3xl text-cafh-indigo">{col.title}</h3>
-                                            <p className="text-slate-600 leading-relaxed">{col.description}</p>
+                                            <div
+                                                className="text-slate-600 leading-relaxed prose prose-slate prose-sm max-w-none"
+                                                dangerouslySetInnerHTML={{ __html: col.description || '' }}
+                                            />
                                             {col.link && (
                                                 <button onClick={() => navigate(col.link!)} className="text-cafh-cyan font-bold text-sm hover:underline">
                                                     Leer más
@@ -1894,7 +2107,10 @@ export const HomeView: React.FC = () => {
                                 <div className="max-w-2xl">
                                     <span className="text-cafh-clay font-bold tracking-widest text-xs uppercase bg-cafh-clay/10 px-3 py-1 rounded-full">Agenda</span>
                                     <h2 className="text-4xl font-display font-bold text-slate-800 mt-4 mb-4">{homeConfig.activitiesSection.title}</h2>
-                                    <p className="text-slate-600">{homeConfig.activitiesSection.subtitle}</p>
+                                    <div
+                                        className="text-slate-600 prose prose-slate max-w-none"
+                                        dangerouslySetInnerHTML={{ __html: homeConfig.activitiesSection.subtitle || '' }}
+                                    />
                                 </div>
                                 <button onClick={() => navigate('/activities')} className="px-6 py-3 rounded-full border border-slate-200 text-slate-600 font-bold hover:bg-slate-800 hover:text-white transition-colors">
                                     Ver Calendario Completo

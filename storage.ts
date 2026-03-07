@@ -1366,7 +1366,14 @@ export const db = {
         getParticipation: (userId?: string): ParticipationRecord[] => {
             try {
                 const all: ParticipationRecord[] = JSON.parse(localStorage.getItem(KEYS.PARTICIPATION) || '[]');
-                return userId ? all.filter(p => p.userId === userId) : all;
+                if (userId) return all.filter(p => p.userId === userId);
+                return all;
+            } catch { return []; }
+        },
+        getByActivity: (activityId: string): ParticipationRecord[] => {
+            try {
+                const all: ParticipationRecord[] = JSON.parse(localStorage.getItem(KEYS.PARTICIPATION) || '[]');
+                return all.filter(p => p.eventId === activityId);
             } catch { return []; }
         },
         recordParticipation: (data: Omit<ParticipationRecord, 'id'>): ParticipationRecord => {
@@ -1374,6 +1381,19 @@ export const db = {
             const record: ParticipationRecord = { ...data, id: `part_${Date.now()}` };
             all.unshift(record);
             localStorage.setItem(KEYS.PARTICIPATION, JSON.stringify(all));
+
+            // Sincronizar con Historial de Usuario si es Miembro
+            if (record.userId && record.userType === 'Miembro') {
+                db.user.addHistory({
+                    id: `act_hist_${Date.now()}`,
+                    userId: record.userId,
+                    type: 'Event',
+                    title: `Inscrito en: ${record.eventTitle}`,
+                    date: record.participatedAt.split('T')[0],
+                    status: 'Registered'
+                });
+            }
+
             return record;
         },
         updateParticipationRecord: (id: string, updates: Partial<ParticipationRecord>): void => {
@@ -1386,9 +1406,11 @@ export const db = {
             const allBadges: MemberBadge[] = JSON.parse(localStorage.getItem(KEYS.MEMBER_BADGES) || '[]');
             const map: Record<string, { userId: string; userName: string; points: number; badges: number; participations: number }> = {};
             allPart.forEach(p => {
-                if (!map[p.userId]) map[p.userId] = { userId: p.userId, userName: p.userId, points: 0, badges: 0, participations: 0 };
-                map[p.userId].participations++;
-                map[p.userId].points += p.feedbackSubmitted ? 10 : 5;
+                if (p.userId) {
+                    if (!map[p.userId]) map[p.userId] = { userId: p.userId, userName: p.userName || p.userId, points: 0, badges: 0, participations: 0 };
+                    map[p.userId].participations++;
+                    map[p.userId].points += p.feedbackSubmitted ? 10 : 5;
+                }
             });
             allBadges.forEach(b => {
                 if (!map[b.userId]) map[b.userId] = { userId: b.userId, userName: b.userId, points: 0, badges: 0, participations: 0 };
@@ -1457,10 +1479,41 @@ export const db = {
             localStorage.setItem(KEYS.ACTIVITY_CATS, JSON.stringify(cats));
             return cats;
         },
-        getFeatured: (): ActivityEvent[] =>
-            (JSON.parse(localStorage.getItem(KEYS.ACTIVITY_EVENTS) || '[]') as ActivityEvent[])
+        getFeatured: (): ActivityEvent[] => {
+            const now = new Date().toISOString().slice(0, 10);
+            return (JSON.parse(localStorage.getItem(KEYS.ACTIVITY_EVENTS) || '[]') as ActivityEvent[])
                 .filter(a => a.status === 'Publicado' && a.featuredInDashboard)
-                .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()),
+                .map(a => {
+                    const next = db.activities.getNextDate(a, now);
+                    return { ...a, startDate: next };
+                })
+                .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+        },
+        getNextDate(activity: ActivityEvent, fromDate: string): string {
+            const start = new Date(activity.startDate + 'T00:00:00');
+            const target = new Date(fromDate + 'T00:00:00');
+            if (start >= target) return activity.startDate;
+
+            const rec = activity.recurrence;
+            if (!rec || rec.frequency === 'none') return activity.startDate;
+
+            let current = new Date(target);
+            for (let i = 0; i < 365; i++) {
+                const ds = current.toISOString().slice(0, 10);
+                if (rec.endType === 'date' && rec.endDate && ds > rec.endDate) break;
+                const dayOfWeek = current.getDay();
+                if (rec.frequency === 'daily') {
+                    const diff = Math.floor((current.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+                    if (diff % (rec.interval || 1) === 0) return ds;
+                } else if (rec.frequency === 'weekly') {
+                    if (rec.daysOfWeek?.includes(dayOfWeek)) return ds;
+                } else if (rec.frequency === 'monthly') {
+                    if (current.getDate() === start.getDate()) return ds;
+                }
+                current.setDate(current.getDate() + 1);
+            }
+            return activity.startDate;
+        },
     },
 };
 

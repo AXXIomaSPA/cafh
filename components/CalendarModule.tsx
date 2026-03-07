@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { db } from '../storage';
 import { ActivityEvent, ActivityCategory, User, UserRole, Contact } from '../types';
+import { RichTextEditor } from './AdminViews';
 
 // ─── Palette helpers ─────────────────────────────────────────
 const MODALITY_CFG = {
@@ -86,6 +87,7 @@ const emptyEvent = (): Omit<ActivityEvent, 'id' | 'createdAt' | 'updatedAt'> => 
     featuredInDashboard: false,
     zoomUrl: '',
     linkedMeetingId: undefined,
+    recurrence: { frequency: 'none', interval: 1, daysOfWeek: [], endType: 'never' },
 });
 
 // ══════════════════════════════════════════════════════════════
@@ -192,7 +194,21 @@ const ActividadesTab: React.FC = () => {
                                     <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${mod.color}`}>{mod.icon}{ev.modality}</span>
                                     {ev.featuredInDashboard && <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200"><Sparkles size={9} />Destacado</span>}
                                 </div>
-                                <p className="text-xs text-slate-400">{ev.startDate} · {ev.startTime} – {ev.endTime}</p>
+                                <div className="flex items-center gap-3">
+                                    <p className="text-xs text-slate-400 flex items-center gap-1">
+                                        <CalendarDays size={12} className="text-slate-300" />
+                                        {ev.startDate} · {ev.startTime}
+                                    </p>
+                                    {ev.recurrence && ev.recurrence.frequency !== 'none' && (
+                                        <p className="text-[10px] font-bold text-cafh-indigo bg-indigo-50 px-2 py-0.5 rounded-md flex items-center gap-1 border border-indigo-100/50">
+                                            <Clock size={10} />
+                                            {ev.recurrence.frequency === 'daily' ? 'Diario' :
+                                                ev.recurrence.frequency === 'weekly' ? `Cada ${ev.recurrence.daysOfWeek?.map(d => ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'][d]).join(', ')}` :
+                                                    ev.recurrence.frequency === 'monthly' ? 'Mensual' : ''}
+                                            {ev.recurrence.endType === 'never' ? ' (Permanente)' : ` (Hasta ${ev.recurrence.endDate})`}
+                                        </p>
+                                    )}
+                                </div>
                                 {ev.tags.length > 0 && (
                                     <div className="flex gap-1 flex-wrap mt-2">
                                         {ev.tags.map(t => <span key={t} className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">{t}</span>)}
@@ -254,6 +270,92 @@ const ActividadesTab: React.FC = () => {
                                     </select>
                                 </SField>
                             </div>
+
+                            <div className="p-5 bg-slate-50/50 rounded-2xl border border-slate-100 space-y-4">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <Clock size={16} className="text-cafh-indigo" />
+                                    <p className="text-sm font-bold text-slate-700">Configuración de Recurrencia</p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <SField label="Frecuencia">
+                                        <select
+                                            value={form.recurrence?.frequency || 'none'}
+                                            onChange={e => {
+                                                const freq = e.target.value as any;
+                                                let days = form.recurrence?.daysOfWeek || [];
+                                                if (freq === 'weekly' && days.length === 0) {
+                                                    const d = new Date(form.startDate + 'T12:00:00');
+                                                    days = [d.getDay()];
+                                                }
+                                                setForm(f => ({ ...f, recurrence: { ...f.recurrence!, frequency: freq, daysOfWeek: days } }));
+                                            }}
+                                            className={select}
+                                        >
+                                            <option value="none">Sin repetición</option>
+                                            <option value="daily">Diaria</option>
+                                            <option value="weekly">Semanal</option>
+                                            <option value="monthly">Mensual</option>
+                                        </select>
+                                    </SField>
+                                    {form.recurrence?.frequency !== 'none' && (
+                                        <SField label="Finaliza">
+                                            <select
+                                                value={form.recurrence?.endType || 'never'}
+                                                onChange={e => setForm(f => ({ ...f, recurrence: { ...f.recurrence!, endType: e.target.value as any } }))}
+                                                className={select}
+                                            >
+                                                <option value="never">Nunca (Permanente)</option>
+                                                <option value="date">En una fecha</option>
+                                            </select>
+                                        </SField>
+                                    )}
+                                </div>
+
+                                {form.recurrence?.frequency === 'weekly' && (
+                                    <SField label="Repetir estos días">
+                                        <div className="flex flex-wrap gap-2">
+                                            {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map((label, i) => {
+                                                const isActive = form.recurrence?.daysOfWeek?.includes(i);
+                                                return (
+                                                    <button
+                                                        key={i}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const current = form.recurrence?.daysOfWeek || [];
+                                                            const next = isActive ? current.filter(d => d !== i) : [...current, i];
+                                                            setForm(f => ({ ...f, recurrence: { ...f.recurrence!, daysOfWeek: next } }));
+                                                        }}
+                                                        className={`w-8 h-8 rounded-lg text-[10px] font-bold border transition-all ${isActive ? 'bg-cafh-indigo text-white border-cafh-indigo shadow-sm shadow-indigo-100' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-200'
+                                                            }`}
+                                                    >
+                                                        {label}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </SField>
+                                )}
+
+                                {form.recurrence?.frequency !== 'none' && (
+                                    <div className="text-xs font-medium text-cafh-indigo/80 bg-cafh-indigo/5 p-3 rounded-xl border border-cafh-indigo/10 flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-cafh-indigo animate-pulse" />
+                                        Se repetirá {form.recurrence?.frequency === 'daily' ? 'diariamente' :
+                                            form.recurrence?.frequency === 'weekly' ? `cada semana el ${form.recurrence.daysOfWeek?.map(d => ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][d]).join(', ')}` :
+                                                'cada mes'} a las {form.startTime} hrs.
+                                    </div>
+                                )}
+
+                                {form.recurrence?.frequency !== 'none' && form.recurrence?.endType === 'date' && (
+                                    <SField label="Fecha de finalización">
+                                        <input
+                                            type="date"
+                                            value={form.recurrence?.endDate || ''}
+                                            onChange={e => setForm(f => ({ ...f, recurrence: { ...f.recurrence!, endDate: e.target.value } }))}
+                                            className={input}
+                                        />
+                                    </SField>
+                                )}
+                            </div>
                             {form.modality === 'Virtual' || form.modality === 'Híbrida' ? (
                                 <SField label="URL de Zoom">
                                     <input value={form.zoomUrl || ''} onChange={e => setForm(f => ({ ...f, zoomUrl: e.target.value }))} className={input} placeholder="https://zoom.us/j/..." />
@@ -265,8 +367,12 @@ const ActividadesTab: React.FC = () => {
                                     {adminUsers.map(u => <option key={u.id} value={u.id}>{u.name} ({u.role})</option>)}
                                 </select>
                             </SField>
-                            <SField label="Descripción">
-                                <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} className={input + " resize-none"} placeholder="Descripción de la actividad..." />
+                            <SField label="Descripción de la Actividad">
+                                <RichTextEditor
+                                    value={form.description}
+                                    onChange={val => setForm(f => ({ ...f, description: val }))}
+                                    placeholder="Detalles sobre el contenido del encuentro, requisitos, facilitadores..."
+                                />
                             </SField>
                             <SField label="Tags">
                                 <div className="flex gap-2 mb-2">
@@ -610,6 +716,174 @@ const evColor = (ev: ActivityEvent, cats: ActivityCategory[]): string => {
     return cat?.color || '#4f46e5';
 };
 
+// ══════════════════════════════════════════════════════════════
+// TAB 5 — PARTICIPANTES
+// ══════════════════════════════════════════════════════════════
+const ParticipantesTab: React.FC = () => {
+    const [events, setEvents] = useState<ActivityEvent[]>([]);
+    const [selectedEventId, setSelectedEventId] = useState<string>('');
+    const [participants, setParticipants] = useState<import('../types').ParticipationRecord[]>([]);
+
+    useEffect(() => {
+        const allEvents = db.activities.getAll().filter(e => e.status !== 'Borrador');
+        setEvents(allEvents);
+        if (allEvents.length > 0 && !selectedEventId) {
+            setSelectedEventId(allEvents[0].id);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (selectedEventId) {
+            setParticipants(db.gamification.getByActivity(selectedEventId));
+        }
+    }, [selectedEventId]);
+
+    return (
+        <div className="space-y-6">
+            <SCard title="Listado de Participantes por Actividad" subtitle="Gestiona y conoce a los inscritos en cada evento">
+                <div className="flex flex-col md:flex-row gap-6">
+                    {/* Sidebar: Activity list */}
+                    <div className="w-full md:w-72 border-r border-slate-50 pr-6 space-y-2 max-h-[600px] overflow-y-auto custom-scrollbar">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Seleccionar Actividad</label>
+                        {events.length > 0 ? events.map(ev => (
+                            <div
+                                key={ev.id}
+                                onClick={() => setSelectedEventId(ev.id)}
+                                className={`p-3 rounded-xl cursor-pointer transition-all border ${selectedEventId === ev.id
+                                        ? 'bg-cafh-indigo/5 border-cafh-indigo/20 text-cafh-indigo'
+                                        : 'bg-white border-slate-100 text-slate-600 hover:border-slate-200'
+                                    }`}
+                            >
+                                <p className="text-sm font-bold truncate">{ev.title}</p>
+                                <p className="text-[10px] opacity-60 mt-0.5">{ev.startDate} · {ev.modality}</p>
+                            </div>
+                        )) : (
+                            <p className="text-xs text-slate-400 italic p-4">No hay actividades publicadas.</p>
+                        )}
+                    </div>
+
+                    {/* Main: Participants table */}
+                    <div className="flex-1 min-w-0">
+                        {selectedEventId ? (
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-sm font-bold text-slate-700">Participantes ({participants.length})</h4>
+                                    <div className="flex gap-2">
+                                        <div className="flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                            Miembros: {participants.filter(p => p.userType === 'Miembro').length}
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
+                                            Visitantes: {participants.filter(p => p.userType === 'Visitante').length}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {participants.length > 0 ? (
+                                    <div className="overflow-x-auto rounded-xl border border-slate-100">
+                                        <table className="w-full text-left text-sm">
+                                            <thead className="bg-slate-50 border-b border-slate-100">
+                                                <tr>
+                                                    <th className="px-4 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Identificación</th>
+                                                    <th className="px-4 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Tipo</th>
+                                                    <th className="px-4 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Etiquetas</th>
+                                                    <th className="px-4 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Fecha</th>
+                                                    <th className="px-4 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Estado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-50">
+                                                {participants.map(p => (
+                                                    <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                                                        <td className="px-4 py-3">
+                                                            <p className="font-bold text-slate-800">{p.userName}</p>
+                                                            <p className="text-[11px] text-slate-400">{p.userEmail}</p>
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border ${p.userType === 'Miembro' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-blue-50 text-blue-700 border-blue-100'
+                                                                }`}>
+                                                                {p.userType}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {p.userTags && p.userTags.length > 0 ? p.userTags.map(t => (
+                                                                    <span key={t} className="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded">{t}</span>
+                                                                )) : <span className="text-[9px] text-slate-300 italic">Sin etiquetas</span>}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-3 text-slate-500 text-xs">
+                                                            {new Date(p.participatedAt).toLocaleDateString('es-CL')}
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                                                                {p.status}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-20 bg-slate-50/30 rounded-2xl border border-dashed border-slate-200">
+                                        <Users size={32} className="mx-auto mb-3 text-slate-200" />
+                                        <p className="text-slate-400 text-sm">Aún no hay inscritos en esta actividad.</p>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="text-center py-20">
+                                <Users size={48} className="mx-auto mb-4 text-slate-100" />
+                                <p className="text-slate-400">Selecciona una actividad para ver sus participantes.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </SCard>
+        </div>
+    );
+};
+
+const checkIfEventOccursOn = (event: ActivityEvent, dateStr: string): boolean => {
+    // Normalizar fechas (usamos mediodía para evitar saltos de zona horaria)
+    const targetDate = new Date(dateStr + 'T12:00:00');
+    const startOfBaseEvent = new Date(event.startDate + 'T00:00:00');
+
+    // Si la fecha es anterior al inicio de la actividad, no ocurre
+    if (targetDate < startOfBaseEvent) return false;
+
+    // Si hay fecha de fin de recurrencia y ya pasó
+    if (event.recurrence?.frequency && event.recurrence.frequency !== 'none' && event.recurrence.endType === 'date' && event.recurrence.endDate) {
+        if (dateStr > event.recurrence.endDate) return false;
+    }
+
+    // Caso 1: Sin recurrencia (evento único o de varios días seguidos)
+    if (!event.recurrence || event.recurrence.frequency === 'none') {
+        return dateStr >= event.startDate && dateStr <= event.endDate;
+    }
+
+    // Caso 2: Diaria
+    if (event.recurrence.frequency === 'daily') {
+        const diffTime = targetDate.getTime() - startOfBaseEvent.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        const interval = event.recurrence.interval || 1;
+        return diffDays % interval === 0;
+    }
+
+    // Caso 3: Semanal
+    if (event.recurrence.frequency === 'weekly') {
+        const dayOfWeek = targetDate.getDay(); // 0: Dom, 1: Lun...
+        return event.recurrence.daysOfWeek?.includes(dayOfWeek) || false;
+    }
+
+    // Caso 4: Mensual
+    if (event.recurrence.frequency === 'monthly') {
+        // Se repite el mismo día del mes que la fecha de inicio
+        return targetDate.getDate() === startOfBaseEvent.getDate();
+    }
+
+    return false;
+};
+
 const CalendarioTab: React.FC = () => {
     const [view, setView] = useState<'dia' | 'semana' | 'mes'>('mes');
     const [cursor, setCursor] = useState(new Date());
@@ -623,7 +897,7 @@ const CalendarioTab: React.FC = () => {
     }, []);
 
     const isoDate = (d: Date) => d.toISOString().slice(0, 10);
-    const eventsOn = (ds: string) => events.filter(e => e.startDate <= ds && e.endDate >= ds);
+    const eventsOn = (ds: string) => events.filter(e => checkIfEventOccursOn(e, ds));
 
     const nav = (dir: number) => {
         const d = new Date(cursor);
@@ -833,6 +1107,7 @@ const CalendarioTab: React.FC = () => {
 const TABS = [
     { id: 'calendario', label: 'Calendario', icon: <CalendarDays size={14} /> },
     { id: 'actividades', label: 'Actividades', icon: <GridIcon size={14} /> },
+    { id: 'participantes', label: 'Participantes', icon: <Users size={14} /> },
     { id: 'categorias', label: 'Categorías', icon: <Tag size={14} /> },
     { id: 'envio', label: 'Envío Masivo', icon: <Send size={14} /> },
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={14} /> },
@@ -859,6 +1134,7 @@ export const CalendarAdminView: React.FC = () => {
 
             {tab === 'calendario' && <CalendarioTab />}
             {tab === 'actividades' && <ActividadesTab />}
+            {tab === 'participantes' && <ParticipantesTab />}
             {tab === 'categorias' && <CategoriasTab />}
             {tab === 'envio' && <EnvioMasivoTab />}
             {tab === 'analytics' && <AnalyticsTab />}
