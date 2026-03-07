@@ -166,6 +166,9 @@ export const MemberDashboard: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'resumen' | 'historial' | 'perfil'>('resumen');
     const [profileForm, setProfileForm] = useState({ name: '', phone: '', city: '' });
     const [isSaving, setIsSaving] = useState(false);
+    const [enrollmentActivity, setEnrollmentActivity] = useState<any | null>(null);
+    const [isEnrolling, setIsEnrolling] = useState(false);
+    const [enrollSuccess, setEnrollSuccess] = useState(false);
 
     const navigate = useNavigate();
 
@@ -280,7 +283,41 @@ export const MemberDashboard: React.FC = () => {
                 city: user.city || ''
             });
         }
-    }, [wizardProfile?.userId]);
+    }, [wizardProfile?.userId, currentUser]);
+
+    const handleNewsClick = (post: any) => {
+        if (post.id.startsWith('news_act_')) {
+            const realId = post.id.replace('news_act_', '');
+            const activity = db.activities.getById(realId);
+            if (activity) {
+                setEnrollmentActivity(activity);
+                setEnrollSuccess(false);
+            }
+        }
+    };
+
+    const handleConfirmEnrollment = () => {
+        if (!enrollmentActivity || !currentUser) return;
+        setIsEnrolling(true);
+        setTimeout(() => {
+            db.gamification.recordParticipation({
+                userId: currentUser.id,
+                userEmail: currentUser.email,
+                userName: currentUser.name,
+                userType: 'Miembro',
+                userTags: currentUser.interests || [],
+                eventId: enrollmentActivity.id,
+                eventTitle: enrollmentActivity.title,
+                participatedAt: new Date().toISOString(),
+                status: 'Inscrito',
+                feedbackSubmitted: false,
+                feedbackBlocksNext: false
+            });
+            setIsEnrolling(false);
+            setEnrollSuccess(true);
+            setHistory(db.user.getHistory());
+        }, 1000);
+    };
 
     const handleLogout = () => {
         db.auth.logout();
@@ -707,7 +744,10 @@ export const MemberDashboard: React.FC = () => {
                             </h3>
                             <div className="space-y-4">
                                 {recentBlogPosts.length > 0 ? recentBlogPosts.map(post => (
-                                    <div key={post.id} className="flex gap-4 items-center group cursor-pointer border-b border-slate-50 pb-4 last:border-0 last:pb-0">
+                                    <div key={post.id}
+                                        onClick={() => handleNewsClick(post)}
+                                        className="flex gap-4 items-center group cursor-pointer border-b border-slate-50 pb-4 last:border-0 last:pb-0"
+                                    >
                                         <div className="w-16 h-16 bg-slate-200 rounded-xl overflow-hidden shrink-0 shadow-sm">
                                             <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform" referrerPolicy="no-referrer" />
                                         </div>
@@ -740,6 +780,58 @@ export const MemberDashboard: React.FC = () => {
                 onClose={() => setIsMeetModalOpen(false)}
                 event={nextEvent}
             />
+
+            {/* ENROLLMENT MODAL */}
+            {enrollmentActivity && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setEnrollmentActivity(null)} />
+                    <div className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-8 animate-fade-in-up">
+                        <button onClick={() => setEnrollmentActivity(null)} className="absolute top-6 right-6 p-2 text-slate-400 hover:bg-slate-100 rounded-full"><X size={20} /></button>
+
+                        {!enrollSuccess ? (
+                            <div className="text-center">
+                                <div className="w-16 h-16 bg-cafh-indigo/10 text-cafh-indigo rounded-2xl flex items-center justify-center mx-auto mb-6">
+                                    <Calendar size={32} />
+                                </div>
+                                <h3 className="text-2xl font-display font-bold text-slate-800 mb-2">Inscribirse en Actividad</h3>
+                                <p className="text-slate-500 mb-6 text-sm">{enrollmentActivity.title}</p>
+
+                                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-left mb-6">
+                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                                        <Clock size={14} className="text-cafh-indigo" />
+                                        <span>Detalles</span>
+                                    </div>
+                                    <p className="text-sm font-bold text-slate-700">{enrollmentActivity.startDate} · {enrollmentActivity.startTime}</p>
+                                    <p className="text-[11px] text-slate-400 mt-0.5">{enrollmentActivity.modality} • {enrollmentActivity.category}</p>
+                                </div>
+
+                                <button
+                                    onClick={handleConfirmEnrollment}
+                                    disabled={isEnrolling}
+                                    className="w-full py-4 bg-cafh-indigo text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-xl shadow-cafh-indigo/20 flex items-center justify-center gap-2"
+                                >
+                                    {isEnrolling ? <MoreVertical size={20} className="animate-spin" /> : 'Confirmar Inscripción'}
+                                </button>
+                                <p className="text-[10px] text-slate-400 mt-4 uppercase tracking-widest">Se agregará a tu historial y ranking de puntos</p>
+                            </div>
+                        ) : (
+                            <div className="text-center py-6">
+                                <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <CheckCircle2 size={40} strokeWidth={3} />
+                                </div>
+                                <h3 className="text-2xl font-display font-bold text-slate-800 mb-2">¡Ya estás inscrito!</h3>
+                                <p className="text-slate-500 mb-8 text-sm">La actividad ha sido añadida a tu historial. ¡Te esperamos!</p>
+                                <button
+                                    onClick={() => setEnrollmentActivity(null)}
+                                    className="w-full py-4 bg-slate-100 text-slate-600 rounded-xl font-bold hover:bg-slate-200 transition-all text-sm"
+                                >
+                                    Volver al Dashboard
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
