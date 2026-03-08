@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { db } from '../storage'; // Now using DB
-import { Calendar, Clock, BookOpen, Star, ArrowRight, User, Settings, LogOut, CheckCircle2, Video, ExternalLink, Mic, MicOff, Camera, CameraOff, MonitorUp, MoreVertical, PhoneOff, Copy, Check, Users, Shield, MessageSquare, Image as ImageIcon, Edit3, FileText, Download, List, Info, Play, Feather, X, Heart, Grid, Save, Sparkles } from 'lucide-react';
-import { UserActivity, ContentItem, CalendarEvent, User as UserType, UserWizardProfile, BlogPost } from '../types';
+import { Calendar, Clock, BookOpen, Star, ArrowRight, User, Settings, LogOut, CheckCircle2, Video, ExternalLink, Mic, MicOff, Camera, CameraOff, MonitorUp, MoreVertical, PhoneOff, Copy, Check, Users, Shield, MessageSquare, Send, Loader2, Image as ImageIcon, Edit3, FileText, Download, List, Info, Play, Feather, X, Heart, Grid, Save, Sparkles } from 'lucide-react';
+import { UserActivity, ContentItem, CalendarEvent, User as UserType, UserWizardProfile, BlogPost, ChatMessage, ChatThread } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { ZoomWidget } from './MeetingsMemberView';
 
@@ -148,6 +148,160 @@ const MeetLobbyModal: React.FC<{ isOpen: boolean; onClose: () => void; event: Ca
     );
 };
 
+// --- CHAT COMPONENTS ---
+import { useRef } from 'react';
+
+const MemberChat: React.FC<{ member: UserType | null }> = ({ member }) => {
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [currentThread, setCurrentThread] = useState<ChatThread | null>(null);
+    const [newMessage, setNewMessage] = useState('');
+    const [loading, setLoading] = useState(true);
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!member) return;
+
+        // 1. Get or create thread
+        let thread = db.messaging.getThreadByMember(member.id);
+        if (!thread) {
+            thread = db.messaging.saveThread({
+                id: `th_${member.id}`,
+                memberId: member.id,
+                memberName: member.name || 'Miembro',
+                memberAvatar: member.avatarUrl,
+                tenantId: member.tenantId,
+                lastUpdate: new Date().toISOString(),
+                unreadAdmin: 0,
+                unreadMember: 0,
+                status: 'Open'
+            });
+        }
+        setCurrentThread(thread);
+
+        // 2. Load messages
+        const msgs = db.messaging.getMessages(thread.id);
+        setMessages(msgs);
+
+        // 3. Mark as read
+        if (thread.unreadMember > 0) {
+            db.messaging.markAsRead(thread.id, member.role);
+        }
+
+        setLoading(false);
+    }, [member]);
+
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+    }, [messages]);
+
+    const handleSendMessage = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newMessage.trim() || !currentThread || !member) return;
+
+        const sent = db.messaging.sendMessage({
+            threadId: currentThread.id,
+            senderId: member.id,
+            senderName: member.name || 'Miembro',
+            senderRole: member.role,
+            text: newMessage.trim(),
+            type: 'Text'
+        });
+
+        setMessages(prev => [...prev, sent]);
+        setNewMessage('');
+    };
+
+    if (loading) return (
+        <div className="h-[500px] flex items-center justify-center text-slate-400">
+            <Loader2 className="animate-spin" size={32} />
+        </div>
+    );
+
+    return (
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 h-[600px] flex flex-col overflow-hidden animate-fade-in-up">
+            {/* Chat Header */}
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-white z-20">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-cafh-indigo rounded-2xl flex items-center justify-center text-white shadow-lg shadow-cafh-indigo/20">
+                        <Users size={24} />
+                    </div>
+                    <div>
+                        <h3 className="font-display font-bold text-slate-800">Counselling & Acompañante</h3>
+                        <p className="text-xs text-green-500 font-bold flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                            Soporte en línea
+                        </p>
+                    </div>
+                </div>
+                <div className="hidden sm:flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1 rounded-full border border-slate-100">Canal Directo</span>
+                </div>
+            </div>
+
+            {/* Messages Area */}
+            <div
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50 scroll-smooth"
+            >
+                {messages.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center max-w-xs mx-auto space-y-4 opacity-60">
+                        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-slate-300 shadow-sm">
+                            <MessageSquare size={32} />
+                        </div>
+                        <p className="text-sm text-slate-500">Inicia una conversación con tu acompañante. Estamos aquí para asistirte en tu camino.</p>
+                    </div>
+                ) : (
+                    messages.map((msg) => {
+                        const isMember = msg.senderId === member?.id;
+                        return (
+                            <div
+                                key={msg.id}
+                                className={`flex ${isMember ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}
+                            >
+                                <div className={`max-w-[80%] sm:max-w-[70%] rounded-2xl p-4 shadow-sm ${isMember
+                                    ? 'bg-cafh-indigo text-white rounded-tr-none shadow-cafh-indigo/10'
+                                    : 'bg-white text-slate-700 rounded-tl-none border border-slate-100'
+                                    }`}>
+                                    {!isMember && (
+                                        <p className="text-[10px] font-bold uppercase tracking-widest mb-1 text-cafh-indigo">Acompañante Cafh</p>
+                                    )}
+                                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                                    <div className={`mt-2 flex items-center gap-1.5 text-[9px] font-bold uppercase opacity-60 ${isMember ? 'justify-end' : 'justify-start'}`}>
+                                        <span>{new Date(msg.timestamp).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}</span>
+                                        {isMember && (
+                                            msg.status === 'Read' ? <CheckCircle2 size={10} className="text-cafh-cyan" /> : <Check size={10} />
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
+            </div>
+
+            {/* Input Area */}
+            <form onSubmit={handleSendMessage} className="p-6 bg-white border-t border-slate-100 flex gap-4">
+                <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="Escribe tu mensaje aquí..."
+                    className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-cafh-indigo/20 focus:border-cafh-indigo transition-all"
+                />
+                <button
+                    type="submit"
+                    disabled={!newMessage.trim()}
+                    className="w-14 h-14 bg-cafh-indigo text-white rounded-2xl flex items-center justify-center shadow-xl shadow-cafh-indigo/20 hover:bg-slate-800 transition-all disabled:opacity-50 disabled:shadow-none"
+                >
+                    <Send size={24} />
+                </button>
+            </form>
+        </div>
+    );
+};
+
 export const MemberDashboard: React.FC = () => {
     // State management for DB data
     const [history, setHistory] = useState<UserActivity[]>([]);
@@ -163,7 +317,7 @@ export const MemberDashboard: React.FC = () => {
     const [isHoveringHeader, setIsHoveringHeader] = useState(false);
 
     // Tabs & Profile Edit State
-    const [activeTab, setActiveTab] = useState<'resumen' | 'historial' | 'perfil'>('resumen');
+    const [activeTab, setActiveTab] = useState<'resumen' | 'historial' | 'perfil' | 'mensajeria'>('resumen');
     const [profileForm, setProfileForm] = useState({ name: '', phone: '', city: '' });
     const [isSaving, setIsSaving] = useState(false);
     const [enrollmentActivity, setEnrollmentActivity] = useState<any | null>(null);
@@ -492,7 +646,7 @@ export const MemberDashboard: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap justify-center gap-3">
+                    <div className="flex flex-wrap justify-center gap-5">
                         <button
                             onClick={() => window.open('https://contribuciones.cafh.cl/login', '_blank')}
                             className="px-5 py-2.5 bg-cafh-peach/90 text-white rounded-full text-sm font-bold hover:bg-orange-500 flex items-center gap-2 transition-colors shadow-lg shadow-cafh-peach/20 backdrop-blur-md"
@@ -514,10 +668,11 @@ export const MemberDashboard: React.FC = () => {
 
             {/* TAB BAR NAVEGACION */}
             <div className="max-w-7xl mx-auto px-6 -mt-10 relative z-30 mb-8">
-                <div className="flex bg-white rounded-2xl p-2 shadow-lg w-full max-w-sm border border-slate-100 mx-auto md:mx-0">
+                <div className="flex bg-white rounded-2xl p-2 shadow-lg w-full max-w-2xl border border-slate-100 mx-auto md:mx-0">
                     {[
                         { id: 'resumen', label: 'Resumen', icon: Grid },
                         { id: 'historial', label: 'Historial', icon: Clock },
+                        { id: 'mensajeria', label: 'Mensajería', icon: MessageSquare },
                         { id: 'perfil', label: 'Mi Perfil', icon: User }
                     ].map(tab => (
                         <button
@@ -634,6 +789,10 @@ export const MemberDashboard: React.FC = () => {
                                     )}
                                 </div>
                             </div>
+                        )}
+
+                        {activeTab === 'mensajeria' && (
+                            <MemberChat member={currentUser} />
                         )}
 
                         {activeTab === 'perfil' && (
@@ -766,7 +925,10 @@ export const MemberDashboard: React.FC = () => {
                         <div className="p-6 bg-gradient-to-br from-cafh-indigo to-blue-900 rounded-3xl text-white shadow-xl shadow-blue-900/10">
                             <h4 className="font-bold mb-2">Comunidad Cafh</h4>
                             <p className="text-xs text-blue-100/70 leading-relaxed mb-4">¿Tienes dudas o quieres contactar con tu acompañante? Estamos para asistirte.</p>
-                            <button className="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-xs font-bold transition-all">
+                            <button
+                                onClick={() => setActiveTab('mensajeria')}
+                                className="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-xs font-bold transition-all"
+                            >
                                 ENVIAR MENSAJE
                             </button>
                         </div>

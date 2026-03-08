@@ -54,6 +54,37 @@ export interface ContentInteraction {
   timestamp: string;
 }
 
+// Messaging System
+export interface ChatMessage {
+  id: string;
+  threadId: string;
+  senderId: string;
+  senderName: string;
+  senderRole: UserRole;
+  text: string;
+  timestamp: string;
+  status: 'Sent' | 'Delivered' | 'Read';
+  type: 'Text' | 'Image' | 'Resource';
+  metadata?: {
+    assetId?: string;
+    assetType?: string;
+    imageUrl?: string;
+  };
+}
+
+export interface ChatThread {
+  id: string;
+  memberId: string;
+  memberName: string;
+  memberAvatar?: string;
+  tenantId: string;
+  lastMessage?: string;
+  lastUpdate: string;
+  unreadAdmin: number;
+  unreadMember: number;
+  status: 'Open' | 'Closed' | 'Archived';
+}
+
 // Wizard / AI Logic
 export interface WizardOption {
   label: string;

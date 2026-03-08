@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     BarChart as ReBarChart, Bar, Legend, PieChart, Pie, Cell
@@ -10,27 +10,27 @@ import {
 import {
     MoreHorizontal, Filter, Plus, Mail, ArrowUpRight, CheckCircle2,
     AlertCircle, Clock, FileText, Calendar as CalendarIcon, MapPin,
-    X, Send, Phone, Globe, User, Users, Shield, BarChart2, RefreshCw,
-    ChevronRight, ExternalLink, Trash2, Download, Search as SearchIcon,
+    X, Send, Phone, Globe, User as UserIcon, Users, Shield, BarChart2, RefreshCw,
+    ChevronRight, ExternalLink, Trash2, Download, Search,
     Grid, List, Film, Music, Image as ImageIcon, File, Instagram, Youtube,
     Layout, Type, Image, Layers, Video, Sparkles, Edit, ArrowLeft,
     GripVertical, ArrowUp, ArrowDown, Compass, BookOpen, TrendingUp,
     Hash, Activity, Play, MousePointer, ChevronDown, ChevronUp, Database, UploadCloud, Settings, Eye, Target, Percent, Zap, Pause,
     Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter, Heart, Sun, Cloud, Anchor, Feather, Coffee, Book, Headphones, Mic, LogOut, Check, ChevronLeft, Minus, Info, Settings2, Trash, Copy, Table2, FolderOpen, Columns,
-    Bold, Italic, Underline, ListOrdered, AlignLeft, AlignCenter, Type as TypeIcon, Eraser
+    Bold, Italic, Underline, ListOrdered, AlignLeft, AlignCenter, Type as TypeIcon, Eraser, MessageSquare, Paperclip, MessageCircle
 } from 'lucide-react';
 
 const LUCIDE_ICONS: Record<string, any> = {
     MoreHorizontal, Filter, Plus, Mail, ArrowUpRight, CheckCircle2,
     AlertCircle, Clock, FileText, Calendar: CalendarIcon, MapPin,
-    X, Send, Phone, Globe, User, Users, Shield, BarChart2, RefreshCw,
-    ChevronRight, ExternalLink, Trash2, Download, Search: SearchIcon,
+    X, Send, Phone, Globe, User: UserIcon, Users, Shield, BarChart2, RefreshCw,
+    ChevronRight, ExternalLink, Trash2, Download, Search,
     Grid, List, Film, Music, ImageIcon, File, Instagram, Youtube,
     Layout, Type, Image, Layers, Video, Sparkles, Edit, ArrowLeft,
     GripVertical, ArrowUp, ArrowDown, Compass, BookOpen, TrendingUp,
     Hash, Activity, Play, MousePointer, ChevronDown, ChevronUp, Database, UploadCloud, Settings, Eye, Target, Percent, Zap, Pause,
     Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter, Heart, Sun, Cloud, Anchor, Feather, Coffee, Book, Headphones, Mic, LogOut, Check, ChevronLeft, Minus, Info, Settings2, Trash, Copy, Table2, FolderOpen, Columns,
-    Bold, Italic, Underline, ListOrdered, AlignLeft, AlignCenter, TypeIcon, Eraser
+    Bold, Italic, Underline, ListOrdered, AlignLeft, AlignCenter, TypeIcon, Eraser, MessageSquare, Paperclip, MessageCircle
 };
 
 const DynamicIcon: React.FC<{ name: string; size?: number; className?: string }> = ({ name, size = 20, className }) => {
@@ -120,7 +120,7 @@ const AssetPickerModal: React.FC<{
                 <div className="p-6 pb-2 space-y-4">
                     {activeTab !== 'external' && (
                         <div className="relative">
-                            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                             <input
                                 autoFocus
                                 type="text"
@@ -333,7 +333,7 @@ const PagePickerModal: React.FC<{
 
                 <div className="p-8">
                     <div className="relative mb-6">
-                        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
                         <input
                             type="text"
                             placeholder="Buscar por título o ruta..."
@@ -504,7 +504,7 @@ import {
     AutomationRule, AutomationExecution, AutomationNode, AutomationNodeType,
     SendEmailNode, WaitNode, ConditionNode, UpdateTagNode, MoveToListNode,
     WizardQuestion, WizardOptionEditable, ProfileType, ProfileKitItem,
-    WizardConfig, UserWizardProfile, ContentCatalogItem, SiteSettings, AdminUser, UserRole
+    WizardConfig, UserWizardProfile, ContentCatalogItem, SiteSettings, AdminUser, UserRole, User, ChatMessage, ChatThread
 } from '../types';
 
 // --- DASHBOARD ---
@@ -1495,7 +1495,7 @@ export const CRMView: React.FC = () => {
                     {/* Search row */}
                     <div className="flex flex-col sm:flex-row gap-3">
                         <div className="relative flex-1">
-                            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                             <input
                                 type="text"
                                 value={searchQuery}
@@ -2945,7 +2945,7 @@ const ContactListsOffCanvas: React.FC<{ isOpen: boolean; onClose: () => void }> 
                                             <p className="text-xs text-slate-500 mt-1">{list.description}</p>
                                         </div>
                                         <div className="flex bg-cafh-indigo/5 text-cafh-indigo px-2 py-1 rounded gap-1 items-center text-xs font-bold">
-                                            <User size={12} /> {list.contactCount || 0}
+                                            <UserIcon size={12} /> {list.contactCount || 0}
                                         </div>
                                     </div>
                                     <div className="flex justify-between items-center mt-4">
@@ -4634,7 +4634,7 @@ export const MediaLibraryView: React.FC = () => {
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4 justify-between items-center">
                 <div className="flex items-center gap-4 w-full md:w-auto">
                     <div className="relative flex-1 md:w-64">
-                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
                             type="text"
                             placeholder="Buscar por nombre o etiqueta..."
@@ -4763,7 +4763,7 @@ export const MediaLibraryView: React.FC = () => {
             {assets.length === 0 && (
                 <div className="text-center py-20 bg-white rounded-xl border border-dashed border-slate-200">
                     <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
-                        <SearchIcon size={32} />
+                        <Search size={32} />
                     </div>
                     <h3 className="text-lg font-bold text-slate-800">No se encontraron archivos</h3>
                     <p className="text-slate-500">Intenta con otra búsqueda o filtro.</p>
@@ -6230,7 +6230,7 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                     {/* SEO Config */}
                     <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm">
                         <h4 className="text-sm font-bold text-slate-800 mb-6 flex items-center gap-2">
-                            <SearchIcon size={16} className="text-cafh-indigo" />
+                            <Search size={16} className="text-cafh-indigo" />
                             Configuración SEO
                         </h4>
                         <div className="space-y-4">
@@ -6432,7 +6432,7 @@ const ArticlesManager: React.FC = () => {
                             <div>
                                 <h4 className="font-bold text-slate-800">{article.title}</h4>
                                 <div className="flex items-center gap-4 text-xs text-slate-400 mt-1">
-                                    <span className="flex items-center gap-1"><User size={12} /> {article.author}</span>
+                                    <span className="flex items-center gap-1"><UserIcon size={12} /> {article.author}</span>
                                     <span className="flex items-center gap-1"><Clock size={12} /> {article.publishDate}</span>
                                     <span className="flex items-center gap-1"><BarChart2 size={12} /> {article.views} vistas</span>
                                 </div>
@@ -6852,3 +6852,296 @@ export const AnalyticsView: React.FC = () => {
         </div>
     );
 };
+
+// ============================================================
+// --- MESSAGING VIEW (ADMIN) ---
+// ============================================================
+export const AdminMessagingView: React.FC = () => {
+    const [threads, setThreads] = useState<ChatThread[]>([]);
+    const [filteredThreads, setFilteredThreads] = useState<ChatThread[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterType, setFilterType] = useState<'all' | 'unread'>('all');
+    const [selectedThread, setSelectedThread] = useState<ChatThread | null>(null);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [newMessage, setNewMessage] = useState('');
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const [memberProfile, setMemberProfile] = useState<UserWizardProfile | null>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        setCurrentUser(db.auth.getCurrentUser());
+        const allThreads = db.messaging.getThreads();
+        setThreads(allThreads);
+        setFilteredThreads(allThreads);
+    }, []);
+
+    useEffect(() => {
+        let result = [...threads];
+        if (searchTerm) {
+            result = result.filter(t => t.memberName.toLowerCase().includes(searchTerm.toLowerCase()));
+        }
+        if (filterType === 'unread') {
+            result = result.filter(t => t.unreadAdmin > 0);
+        }
+        setFilteredThreads(result);
+    }, [searchTerm, filterType, threads]);
+
+    useEffect(() => {
+        if (selectedThread && currentUser) {
+            setMessages(db.messaging.getMessages(selectedThread.id));
+            if (selectedThread.unreadAdmin > 0) {
+                db.messaging.markAsRead(selectedThread.id, currentUser.role);
+                setThreads(db.messaging.getThreads());
+            }
+            // Fetch member journey context
+            const profile = db.journey.getProfile(selectedThread.memberId);
+            setMemberProfile(profile);
+        } else {
+            setMessages([]);
+            setMemberProfile(null);
+        }
+    }, [selectedThread]);
+
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+    }, [messages]);
+
+    const handleSendMessage = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newMessage.trim() || !selectedThread || !currentUser) return;
+
+        const sent = db.messaging.sendMessage({
+            threadId: selectedThread.id,
+            senderId: currentUser.id,
+            senderName: currentUser.name || 'Admin',
+            senderRole: currentUser.role,
+            text: newMessage.trim(),
+            type: 'Text'
+        });
+
+        setMessages(prev => [...prev, sent]);
+        setNewMessage('');
+        setThreads(db.messaging.getThreads());
+    };
+
+    const threadRef = useRef<HTMLDivElement>(null);
+
+    return (
+        <div className="h-[calc(100vh-160px)] flex gap-6 animate-fade-in-up">
+            {/* Thread List */}
+            <div className="w-80 bg-white rounded-[2rem] shadow-sm border border-slate-100 flex flex-col overflow-hidden">
+                <div className="p-6 border-b border-slate-50">
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 className="font-bold text-slate-800">Conversaciones</h3>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Canal de Acompañante</p>
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setFilterType(filterType === 'unread' ? 'all' : 'unread')}
+                                className={`p-2 rounded-lg transition-colors ${filterType === 'unread' ? 'bg-red-50 text-red-500' : 'bg-slate-50 text-slate-400'}`}
+                                title="Filtrar no leídos"
+                            >
+                                <Filter size={16} />
+                            </button>
+                        </div>
+                    </div>
+                    <div className="relative">
+                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar miembro..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-slate-50 border border-slate-100 rounded-xl pl-9 pr-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-cafh-indigo/10"
+                        />
+                    </div>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                    {filteredThreads.length === 0 ? (
+                        <div className="p-10 text-center opacity-40">
+                            <MessageCircle size={32} className="mx-auto mb-2" />
+                            <p className="text-xs">Sin conversaciones.</p>
+                        </div>
+                    ) : (
+                        filteredThreads.map(thread => (
+                            <div
+                                key={thread.id}
+                                onClick={() => setSelectedThread(thread)}
+                                className={`p-4 border-b border-slate-50 cursor-pointer transition-all flex gap-3 items-center group ${selectedThread?.id === thread.id ? 'bg-cafh-indigo/5' : 'hover:bg-slate-50'
+                                    }`}
+                            >
+                                <div className="relative">
+                                    <div className="w-12 h-12 bg-cafh-light rounded-2xl flex items-center justify-center text-cafh-indigo font-bold shadow-sm group-hover:scale-105 transition-transform">
+                                        {thread.memberName.charAt(0)}
+                                    </div>
+                                    {thread.unreadAdmin > 0 && (
+                                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-2 border-white text-[10px] font-bold text-white flex items-center justify-center animate-bounce">
+                                            {thread.unreadAdmin}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex justify-between items-center mb-0.5">
+                                        <h4 className="font-bold text-slate-800 text-sm truncate">{thread.memberName}</h4>
+                                        <span className="text-[9px] text-slate-400 font-bold">{new Date(thread.lastUpdate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    </div>
+                                    <p className="text-xs text-slate-500 truncate">{thread.lastMessage || 'Sin mensajes yet'}</p>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+
+            {/* Chat Window & Context */}
+            {selectedThread ? (
+                <div className="flex-1 flex gap-6">
+                    {/* Chat Window */}
+                    <div className="flex-1 bg-white rounded-[2rem] shadow-sm border border-slate-100 flex flex-col overflow-hidden relative">
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-cafh-indigo rounded-2xl flex items-center justify-center text-white">
+                                    <UserIcon size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-slate-800">{selectedThread.memberName}</h3>
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">En línea ahora</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 transition-colors"><Phone size={18} /></button>
+                                <button className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 transition-colors"><Video size={18} /></button>
+                                <button className="p-2 hover:bg-slate-50 rounded-lg text-slate-400 transition-colors"><MoreHorizontal size={18} /></button>
+                            </div>
+                        </div>
+
+                        {/* Messages */}
+                        <div
+                            ref={scrollRef}
+                            className="flex-1 overflow-y-auto p-8 space-y-6 bg-slate-50/30 scroll-smooth"
+                        >
+                            {messages.map((msg) => {
+                                const isAdmin = msg.senderRole !== UserRole.MEMBER;
+                                return (
+                                    <div
+                                        key={msg.id}
+                                        className={`flex ${isAdmin ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}
+                                    >
+                                        <div className={`max-w-[80%] rounded-2xl p-5 shadow-sm ${isAdmin
+                                            ? 'bg-slate-800 text-white rounded-tr-none'
+                                            : 'bg-white text-slate-700 rounded-tl-none border border-slate-100'
+                                            }`}>
+                                            <p className="text-sm leading-relaxed">{msg.text}</p>
+                                            <div className="mt-2 flex items-center gap-2 text-[9px] font-bold uppercase opacity-50">
+                                                <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                {isAdmin && (
+                                                    msg.status === 'Read' ? <CheckCircle2 size={10} className="text-cafh-cyan" /> : <Check size={10} />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Input */}
+                        <form onSubmit={handleSendMessage} className="p-6 bg-white border-t border-slate-100 flex gap-4">
+                            <div className="flex-1 relative">
+                                <input
+                                    type="text"
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    placeholder="Escribe tu respuesta como acompañante..."
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-cafh-indigo/20 focus:border-cafh-indigo transition-all"
+                                />
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 text-slate-300">
+                                    <button type="button" className="hover:text-cafh-indigo transition-colors"><ImageIcon size={18} /></button>
+                                    <button type="button" className="hover:text-cafh-indigo transition-colors"><Paperclip size={18} /></button>
+                                </div>
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={!newMessage.trim()}
+                                className="w-14 h-14 bg-cafh-indigo text-white rounded-2xl flex items-center justify-center shadow-xl shadow-cafh-indigo/20 hover:bg-slate-800 transition-all disabled:opacity-50"
+                            >
+                                <Send size={24} />
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Member Context Sidebar */}
+                    <div className="w-72 space-y-6">
+                        <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100">
+                            <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2 text-sm uppercase tracking-wider">
+                                <Compass size={16} className="text-cafh-cyan" />
+                                Perfil del Miembro
+                            </h4>
+                            {memberProfile ? (
+                                <div className="space-y-6">
+                                    <div className="p-4 bg-cafh-indigo/5 rounded-2xl border border-cafh-indigo/10">
+                                        <p className="text-[10px] font-black text-cafh-indigo uppercase tracking-widest mb-2">Interés Principal</p>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-2xl">{
+                                                memberProfile.profileTypeName === 'Contemplativo' ? '🌿' :
+                                                    memberProfile.profileTypeName === 'Comunitario' ? '🤝' :
+                                                        memberProfile.profileTypeName === 'Explorador' ? '📚' :
+                                                            memberProfile.profileTypeName === 'Buscador Profundo' ? '🏔️' : '✨'
+                                            }</span>
+                                            <p className="font-bold text-slate-700">{memberProfile.profileTypeName}</p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Enfoque Actual</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {memberProfile.focusTags?.map(tag => (
+                                                <span key={tag} className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 shadow-sm">
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <button className="w-full py-3 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl text-xs font-bold transition-all border border-slate-100">
+                                        Generar respuesta c/ IA
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="p-8 text-center text-slate-400 italic text-xs">
+                                    El miembro aún no ha realizado su viaje de autoconocimiento.
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="bg-gradient-to-br from-cafh-cyan/20 to-cafh-indigo/10 rounded-[2rem] p-6 border border-white/50 backdrop-blur-sm">
+                            <h4 className="text-xs font-black text-cafh-indigo uppercase tracking-widest mb-3 flex items-center gap-2">
+                                <Shield size={14} />
+                                Guía de Acompañante
+                            </h4>
+                            <p className="text-xs text-slate-600 leading-relaxed italic">
+                                "Nuestra labor es escuchar desde el corazón, brindando un espacio de silencio y acogida."
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className="flex-1 bg-white rounded-[2rem] shadow-sm border border-slate-100 flex items-center justify-center p-20 text-center">
+                    <div className="max-w-sm space-y-4">
+                        <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center text-slate-200 mx-auto">
+                            <MessageSquare size={40} />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-800">Selecciona una conversación</h3>
+                        <p className="text-sm text-slate-400 leading-relaxed">
+                            Haz clic en un mensaje de la izquierda para comenzar a asistir a los miembros de la comunidad.
+                        </p>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+

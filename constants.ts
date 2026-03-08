@@ -524,6 +524,7 @@ export const MOCK_MEDIA: MediaAsset[] = [
 export const ADMIN_NAV_ITEMS = [
     { icon: 'LayoutDashboard', label: 'Dashboard', path: '/admin' },
     { icon: 'Users', label: 'CRM & Contactos', path: '/admin/crm' },
+    { icon: 'MessageSquare', label: 'Mensajería', path: '/admin/messaging' },
     { icon: 'MessageCircle', label: 'Automatizaciones', path: '/admin/automations' },
     { icon: 'FileText', label: 'CMS & Contenidos', path: '/admin/cms' },
     { icon: 'Image', label: 'Biblioteca Medios', path: '/admin/media' },

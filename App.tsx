@@ -11,7 +11,7 @@ const DynamicPageWrapper: React.FC = () => {
     return <DynamicPageView slug={slug || ''} />;
 };
 import { MemberDashboard } from './components/UserViews';
-import { DashboardView, CRMView, AutomationsView, CMSView, MediaLibraryView, AnalyticsView, JourneyView, SettingsView } from './components/AdminViews';
+import { DashboardView, CRMView, AutomationsView, CMSView, MediaLibraryView, AnalyticsView, JourneyView, SettingsView, AdminMessagingView } from './components/AdminViews';
 import { MeetingsAdminView } from './components/MeetingsModule';
 import { CalendarAdminView } from './components/CalendarModule';
 import { db } from './storage';
@@ -102,6 +102,7 @@ const App: React.FC = () => {
                 {/* ADMIN ROUTES (Protected) */}
                 <Route path="/admin" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><DashboardView /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/crm" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><CRMView /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/messaging" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><AdminMessagingView /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/automations" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><AutomationsView /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/cms" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><CMSView /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/media" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><MediaLibraryView /></AdminLayout></ProtectedRoute>} />

@@ -1,5 +1,5 @@
 import { MOCK_BLOG_POSTS, MOCK_EVENTS, MOCK_CONTENT, MOCK_CONTACTS, MOCK_USER_HISTORY, HERO_CONFIG, BLOG_CONFIG_DEFAULT, MOCK_MEDIA, MOCK_EMAIL_LOGS, MOCK_EMAIL_METRICS, DEFAULT_HOME_CONFIG, PUBLIC_NAV_STRUCTURE } from './constants';
-import { BlogPost, CalendarEvent, ContentItem, Contact, ContactList, UserActivity, ContentInteraction, HeroConfig, BlogConfig, User, UserRole, MediaAsset, EmailLog, EmailMetrics, ChangeLog, HomeConfig, CustomPage, MegaMenuItem, FooterConfig, SMTPConfig, Campaign, AutomationRule, AutomationExecution, AutomationNode, SendEmailNode, WaitNode, ConditionNode, UpdateTagNode, MoveToListNode, MeetingAgendaItem, MeetingMediaRef, ZoomWidgetConfig, FeedbackQuestion, FeedbackResponse, MemberBadge, BadgeType, ParticipationRecord, ActivityEvent, ActivityCategory } from './types';
+import { BlogPost, CalendarEvent, ContentItem, Contact, ContactList, UserActivity, ContentInteraction, HeroConfig, BlogConfig, User, UserRole, MediaAsset, EmailLog, EmailMetrics, ChangeLog, HomeConfig, CustomPage, MegaMenuItem, FooterConfig, SMTPConfig, Campaign, AutomationRule, AutomationExecution, AutomationNode, SendEmailNode, WaitNode, ConditionNode, UpdateTagNode, MoveToListNode, MeetingAgendaItem, MeetingMediaRef, ZoomWidgetConfig, FeedbackQuestion, FeedbackResponse, MemberBadge, BadgeType, ParticipationRecord, ActivityEvent, ActivityCategory, ChatMessage, ChatThread } from './types';
 
 // STORAGE KEYS
 const KEYS = {
@@ -35,6 +35,13 @@ const KEYS = {
     ACTIVITY_EVENTS: 'cafh_activity_events_v1',
     ACTIVITY_CATS: 'cafh_activity_cats_v1',
     USERS: 'cafh_users_v1',
+    // --- MÓDULO 3: Mensajería Interna ---
+    CHAT_THREADS: 'cafh_chat_threads_v1',
+    CHAT_MESSAGES: 'cafh_chat_messages_v1',
+    WIZARD_PROFILES: 'cafh_user_wizard_profiles_v1',
+    JOURNEY_QUESTIONS: 'cafh_journey_questions_v1',
+    JOURNEY_PROFILES: 'cafh_journey_profiles_v1',
+    WIZARD_CONFIG: 'cafh_wizard_config_v1',
     SEED_VERSION: 'cafh_seed_version', // Version control for initial data
 };
 
@@ -296,7 +303,11 @@ export const db = {
         initStorage(KEYS.ZOOM_WIDGET, defaultZoomWidgetConfig);
         initStorage(KEYS.FEEDBACK_QUESTIONS, defaultFeedbackQuestions);
         initStorage(KEYS.ACTIVITY_CATS, defaultActivityCategories);
-        initStorage(KEYS.ACTIVITY_EVENTS, []);
+        initStorage(KEYS.CHAT_THREADS, []);
+        initStorage(KEYS.CHAT_MESSAGES, []);
+        initStorage(KEYS.WIZARD_PROFILES, []);
+        initStorage(KEYS.JOURNEY_QUESTIONS, []);
+        initStorage(KEYS.JOURNEY_PROFILES, []);
 
         console.log("Cafh Local Memory System: Initialized (Simulated 200MB Persistence)");
     },
@@ -1515,6 +1526,78 @@ export const db = {
             return activity.startDate;
         },
     },
+    messaging: {
+        getThreads: (): ChatThread[] => {
+            const all: ChatThread[] = JSON.parse(localStorage.getItem(KEYS.CHAT_THREADS) || '[]');
+            return filterByTenant(all);
+        },
+        getThreadByMember: (memberId: string): ChatThread | null => {
+            return db.messaging.getThreads().find(t => t.memberId === memberId) || null;
+        },
+        getMessages: (threadId: string): ChatMessage[] => {
+            const all: ChatMessage[] = JSON.parse(localStorage.getItem(KEYS.CHAT_MESSAGES) || '[]');
+            return all.filter(m => m.threadId === threadId).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+        },
+        saveThread: (thread: ChatThread): ChatThread => {
+            const all = db.messaging.getThreads().filter(t => t.id !== thread.id);
+            all.unshift(thread);
+            localStorage.setItem(KEYS.CHAT_THREADS, JSON.stringify(all));
+            return thread;
+        },
+        sendMessage: (msg: Omit<ChatMessage, 'id' | 'timestamp' | 'status'>): ChatMessage => {
+            const newMessage: ChatMessage = {
+                ...msg,
+                id: `msg_${Date.now()}`,
+                timestamp: new Date().toISOString(),
+                status: 'Sent'
+            };
+            const all: ChatMessage[] = JSON.parse(localStorage.getItem(KEYS.CHAT_MESSAGES) || '[]');
+            all.push(newMessage);
+            localStorage.setItem(KEYS.CHAT_MESSAGES, JSON.stringify(all));
+
+            // Update thread metadata
+            const thread = db.messaging.getThreads().find(t => t.id === msg.threadId);
+            if (thread) {
+                db.messaging.saveThread({
+                    ...thread,
+                    lastMessage: msg.text,
+                    lastUpdate: newMessage.timestamp,
+                    unreadAdmin: msg.senderRole === UserRole.MEMBER ? thread.unreadAdmin + 1 : thread.unreadAdmin,
+                    unreadMember: msg.senderRole !== UserRole.MEMBER ? thread.unreadMember + 1 : thread.unreadMember
+                });
+            }
+            return newMessage;
+        },
+        markAsRead: (threadId: string, role: UserRole): void => {
+            const threads = db.messaging.getThreads();
+            const thread = threads.find(t => t.id === threadId);
+            if (thread) {
+                db.messaging.saveThread({
+                    ...thread,
+                    unreadAdmin: (role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN) ? 0 : thread.unreadAdmin,
+                    unreadMember: (role === UserRole.MEMBER) ? 0 : thread.unreadMember
+                });
+            }
+            // Mark individual messages as read (simplified: matching role would be better but status is global per thread in this mock)
+            const allMsgs: ChatMessage[] = JSON.parse(localStorage.getItem(KEYS.CHAT_MESSAGES) || '[]');
+            // Only mark messages sent by OTHER as read by ME
+            const updated = allMsgs.map(m => {
+                if (m.threadId === threadId) {
+                    const isMessageForMe = (role === UserRole.MEMBER && m.senderRole !== UserRole.MEMBER) ||
+                        ((role === UserRole.ADMIN || role === UserRole.SUPER_ADMIN) && m.senderRole === UserRole.MEMBER);
+                    if (isMessageForMe) return { ...m, status: 'Read' as const };
+                }
+                return m;
+            });
+            localStorage.setItem(KEYS.CHAT_MESSAGES, JSON.stringify(updated));
+        }
+    },
+    journey: {
+        getProfile: (userId: string): UserWizardProfile | null => {
+            const all: UserWizardProfile[] = JSON.parse(localStorage.getItem(KEYS.WIZARD_PROFILES) || '[]');
+            return all.find(p => p.userId === userId) || null;
+        }
+    }
 };
 
 // Immediately initialize to ensure data exists before any UI renders
