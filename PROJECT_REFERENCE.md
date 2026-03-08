@@ -57,5 +57,9 @@ La persistencia se maneja actualmente vía `localStorage` mediante el objeto glo
   - La lista de **Novedades para ti** muestra el contenido consumible del blog y además, ahora muestra los próximos eventos que tengan modalidad "Presencial", permitiendo a los usuarios encontrar sus actividades offline fácilmente.
 - **Footer y Compliance**: Se agregó en `Layout.tsx` la declaración de seguridad de datos, protección de la privacidad y aceptación de cookies en la zona de copyright, según los estándares globales vigentes.
 
+- **Sistema de Datos Híbrido (Cloud Sync)**: Se implementó un panel en `JourneyAndSettings.tsx` para sincronización con GitHub via `external_db.json`. Permite dos modos: `Smart Merge` (preserva datos locales) y `Master Overwrite` (sobreescribe con la nube).
+- **Bitácora de Auditoría Global**: Nuevo sistema de logs de sistema accesible en el panel de datos, que registra cambios en el CMS, sincronizaciones y limpiezas de logs.
+- **Mix de Datos Históricos**: Se integró la data de recuperación del fin de semana (7-8 marzo) con los avances del sistema de nube en un solo `external_db.json` consolidado.
+
 ---
-*Ultima actualización: 2026-03-05 (Validación de Flujos, UX y Perfiles)*
+*Ultima actualización: 2026-03-08 (Sync Híbrido, Fix JSX y Mix de Datos)*
