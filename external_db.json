@@ -1,0 +1,31 @@
+{
+  "activities": [
+    {
+      "id": "act_cloud_001",
+      "title": "Masterclass: Mística y Bienestar (Cloud)",
+      "description": "Esta actividad viene directamente del archivo externo en GitHub. Si cambias este JSON, el sistema lo mezclará automáticamente.",
+      "category": "Mística",
+      "tags": ["Cloud", "Sincronización"],
+      "startDate": "2026-03-08",
+      "endDate": "2026-03-08",
+      "startTime": "20:00",
+      "endTime": "21:30",
+      "modality": "Virtual",
+      "status": "Publicado",
+      "featuredInDashboard": true,
+      "recurrence": { "frequency": "none", "interval": 1, "daysOfWeek": [], "endType": "never" }
+    }
+  ],
+  "content": [
+    {
+      "id": "c_cloud_001",
+      "title": "Guía de Sincronización Híbrida v1",
+      "type": "Article",
+      "status": "Published",
+      "author": "Sistema Híbrido",
+      "publishDate": "2026-03-08",
+      "views": 1,
+      "tags": ["Tutorial", "GitHub"]
+    }
+  ]
+}
