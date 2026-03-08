@@ -1,31 +1,77 @@
 {
+  "sections": {
+    "home": {
+      "hero": {
+        "title": "Un camino hacia el interior",
+        "subtitle": "Descubre el método de vida de Cafh Chile",
+        "imageUrl": "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=2000&auto=format&fit=crop"
+      }
+    }
+  },
   "activities": [
     {
-      "id": "act_cloud_001",
-      "title": "Masterclass: Mística y Bienestar (Cloud)",
-      "description": "Esta actividad viene directamente del archivo externo en GitHub. Si cambias este JSON, el sistema lo mezclará automáticamente.",
-      "category": "Mística",
-      "tags": ["Cloud", "Sincronización"],
-      "startDate": "2026-03-08",
-      "endDate": "2026-03-08",
-      "startTime": "20:00",
-      "endTime": "21:30",
+      "id": "act_recovery_1",
+      "title": "Taller de Meditación Discursiva (Sesión Sábado)",
+      "description": "Sesión de práctica intensiva restaurada del 7 de marzo.",
+      "category": "Meditación",
+      "tags": [
+        "Práctica",
+        "Silencio"
+      ],
+      "startDate": "2026-03-07",
       "modality": "Virtual",
       "status": "Publicado",
-      "featuredInDashboard": true,
-      "recurrence": { "frequency": "none", "interval": 1, "daysOfWeek": [], "endType": "never" }
+      "featuredInDashboard": true
+    },
+    {
+      "id": "act_recovery_2",
+      "title": "Reunión Semanal de Comunidad",
+      "description": "Encuentro recurrente programado para domingos.",
+      "category": "Comunidad",
+      "tags": [
+        "Grupos",
+        "Diálogo"
+      ],
+      "startDate": "2026-03-08",
+      "modality": "Híbrida",
+      "status": "Publicado",
+      "featuredInDashboard": true
+    },
+    {
+      "id": "act_cloud_01",
+      "title": "Masterclass: Mística y Bienestar (Cloud)",
+      "description": "Explorando la conexión entre el silencio interior y la salud emocional.",
+      "category": "Masterclass",
+      "tags": [
+        "Mística",
+        "Bienestar"
+      ],
+      "startDate": "2026-04-15",
+      "modality": "Virtual",
+      "status": "Publicado",
+      "featuredInDashboard": true
     }
   ],
   "content": [
     {
-      "id": "c_cloud_001",
+      "id": "cont_cloud_01",
       "title": "Guía de Sincronización Híbrida v1",
       "type": "Article",
-      "status": "Published",
-      "author": "Sistema Híbrido",
-      "publishDate": "2026-03-08",
-      "views": 1,
-      "tags": ["Tutorial", "GitHub"]
+      "tags": [
+        "Técnico",
+        "Infraestructura"
+      ],
+      "status": "Published"
+    }
+  ],
+  "history": [
+    {
+      "id": "log_seed",
+      "action": "Sync",
+      "section": "System",
+      "details": "Sincronización inicial con GitHub Cloud",
+      "timestamp": "2026-03-08T14:30:00Z",
+      "userName": "Sistema"
     }
   ]
 }
