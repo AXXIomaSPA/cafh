@@ -110,12 +110,16 @@ export interface SEOConfig {
 export interface ChangeLog {
   id: string;
   userId: string;
+  userEmail: string;
   userName: string;
-  section: string; // e.g., 'Home > Hero', 'CMS > Article #12'
-  action: 'Create' | 'Update' | 'Delete' | 'Rollback';
+  section: string;
+  entityType?: string;
+  entityId?: string;
+  action: 'Create' | 'Update' | 'Delete' | 'Rollback' | 'Sync';
   timestamp: string;
   details: string;
-  previousState?: string; // JSON stringified state for rollback
+  changes?: any;
+  previousState?: string;
 }
 
 export interface ContentItem {

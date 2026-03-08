@@ -662,8 +662,9 @@ export const db = {
             }
 
             const newLog: ChangeLog = {
-                id: Math.random().toString(36).substr(2, 9),
+                id: Math.random().toString(36).substring(2, 9),
                 userId: user?.id || 'system',
+                userEmail: user?.email || 'system',
                 userName: user?.name || 'Sistema',
                 section,
                 action,
@@ -1782,15 +1783,42 @@ export const db = {
             });
             return data;
         },
-        syncRemote: async () => {
+        getHistory: () => {
+            return JSON.parse(localStorage.getItem(KEYS.CHANGE_LOG) || '[]') as ChangeLog[];
+        },
+        logChange: (log: Omit<ChangeLog, 'id' | 'timestamp' | 'userEmail' | 'userName'>) => {
+            const user = db.auth.getCurrentUser();
+            const fullLog: ChangeLog = {
+                id: `log_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+                timestamp: new Date().toISOString(),
+                userId: user?.id || 'system',
+                userEmail: user?.email || 'system',
+                userName: user?.name || 'Sistema Híbrido',
+                ...log
+            };
+            const currentLogs = JSON.parse(localStorage.getItem(KEYS.CHANGE_LOG) || '[]');
+            const updated = [fullLog, ...currentLogs].slice(0, 200);
+            safeSetItem(KEYS.CHANGE_LOG, updated);
+        },
+        syncRemote: async (mode: 'merge' | 'master' = 'merge') => {
             const url = localStorage.getItem(KEYS.REMOTE_SYNC_URL);
             if (!url) return { status: 'no_url' };
+
+            // Intento de obtener token si el repositorio es privado
+            const token = localStorage.getItem('cafh_github_token');
+            const headers: any = {};
+            if (token) headers['Authorization'] = `token ${token}`;
+
             try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('Fetch failed');
+                const response = await fetch(url, { headers });
+                if (!response.ok) {
+                    if (response.status === 404) throw new Error('Archivo no encontrado. Verifica la URL.');
+                    if (response.status === 401 || response.status === 403) throw new Error('Acceso denegado. Se requiere Token de GitHub.');
+                    throw new Error(`Error ${response.status}: Fallo en la descarga.`);
+                }
                 const remote = await response.json();
 
-                // Generic Merge for common keys
+                let changesDetected = 0;
                 const syncKeys = [
                     { key: KEYS.ACTIVITY_EVENTS, remoteKey: 'activities' },
                     { key: KEYS.CONTENT, remoteKey: 'content' },
@@ -1800,23 +1828,49 @@ export const db = {
                 ];
 
                 syncKeys.forEach(({ key, remoteKey }) => {
-                    if (remote[remoteKey] || remote[key]) {
-                        const rData = remote[remoteKey] || remote[key];
+                    const rData = remote[remoteKey] || remote[key];
+                    if (rData && Array.isArray(rData)) {
                         const local = JSON.parse(localStorage.getItem(key) || '[]');
-                        let merged = [...local];
-                        rData.forEach((ra: any) => {
-                            const idx = merged.findIndex(la => la.id === ra.id);
-                            if (idx >= 0) merged[idx] = ra;
-                            else merged.push(ra);
-                        });
-                        safeSetItem(key, merged);
+                        let result = [...local];
+
+                        if (mode === 'master') {
+                            // MODO MASTER: El archivo externo manda. Borra local si no está en remoto (para esa categoría)
+                            result = rData;
+                            changesDetected += rData.length;
+                        } else {
+                            // MODO MERGE (Default): Mezcla inteligente. Si existe actualiza, si no añade. No borra local.
+                            rData.forEach((ra: any) => {
+                                const idx = result.findIndex(la => la.id === ra.id);
+                                if (idx >= 0) {
+                                    if (JSON.stringify(result[idx]) !== JSON.stringify(ra)) {
+                                        result[idx] = ra;
+                                        changesDetected++;
+                                    }
+                                } else {
+                                    result.push(ra);
+                                    changesDetected++;
+                                }
+                            });
+                        }
+                        safeSetItem(key, result);
                     }
                 });
 
+                if (changesDetected > 0) {
+                    db.system.logChange({
+                        section: 'Sistema > Sincronización',
+                        entityType: 'System',
+                        entityId: 'RemoteSync',
+                        action: 'Sync',
+                        details: `Sincronización remota (${mode}): ${changesDetected} registros procesados.`,
+                        changes: { url, mode, count: changesDetected }
+                    });
+                }
+
                 localStorage.setItem(KEYS.LAST_SYNC, new Date().toISOString());
-                return { status: 'success' };
-            } catch (err) {
-                return { status: 'error', err };
+                return { status: 'success', changes: changesDetected };
+            } catch (err: any) {
+                return { status: 'error', message: err.message || 'Error desconocido' };
             }
         }
     }

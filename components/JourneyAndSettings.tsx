@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Save, X, ChevronRight, Settings, Globe2, Bell, Lock, Users, Database, Compass, Tag, Package, Star, Sliders, CheckCircle2, AlertCircle, Film, Image as ImageIcon, Palette } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, ChevronRight, Settings, Globe2, Bell, Lock, Users, Database, Compass, Tag, Package, Star, Sliders, CheckCircle2, AlertCircle, Film, Image as ImageIcon, Palette, History, ArrowRight, Globe } from 'lucide-react';
 import { db, safeSetItem, KEYS } from '../storage';
 import type { WizardQuestion, WizardOptionEditable, ProfileType, ProfileKitItem, SiteSettings, AdminUser, UserRole, WizardSplashConfig } from '../types';
 
@@ -479,7 +479,7 @@ const ProfileEditor: React.FC<{ p: ProfileType; onSave: (p: ProfileType) => void
 };
 
 // ─── SETTINGS VIEW ───────────────────────────────────────────
-type STab = 'general' | 'social' | 'admins' | 'smtp' | 'notifications' | 'data';
+type STab = 'general' | 'social' | 'admins' | 'smtp' | 'notifications' | 'data' | 'history';
 
 export const SettingsView: React.FC = () => {
     const [tab, setTab] = useState<STab>('general');
@@ -500,6 +500,7 @@ export const SettingsView: React.FC = () => {
         ['admins', 'Administradores', Users],
         ['notifications', 'Notificaciones', Bell],
         ['data', 'Datos & Export', Database],
+        ['history', 'Histórico Global', History],
     ];
 
     const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
@@ -701,78 +702,176 @@ export const SettingsView: React.FC = () => {
 
                             <div className="p-6 space-y-6">
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">URL del JSON Externo (GitHub/Drive)</label>
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            placeholder="https://raw.githubusercontent.com/..."
-                                            className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                                            defaultValue={db.system.getRemoteUrl()}
-                                            onBlur={(e) => db.system.setRemoteUrl(e.target.value)}
-                                        />
-                                        <button
-                                            onClick={async () => {
-                                                const res = await db.system.syncRemote();
-                                                if (res.status === 'success') alert('Sincronización Git exitosa.');
-                                                else alert('Error en sincronización. Revisa la URL.');
-                                            }}
-                                            className="px-6 py-2.5 bg-emerald-500 text-white rounded-xl font-bold text-sm hover:bg-emerald-600 transition-all flex items-center gap-2 shrink-0"
-                                        >
-                                            <ArrowRight size={16} /> Mezclar Ahora
-                                        </button>
-                                    </div>
-                                    <p className="text-[10px] text-slate-400 mt-2">
-                                        El sistema mezclará los datos locales con este archivo. Los IDs del servidor tienen prioridad absoluta.
-                                    </p>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">Última Sincronización</span>
-                                        <span className="text-sm font-bold text-slate-700">{localStorage.getItem('cafh_last_sync') || 'Nunca'}</span>
-                                    </div>
-                                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">Backup GitHub</span>
-                                        <button
-                                            onClick={() => {
-                                                const data = db.system.exportAll();
-                                                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                                                const url = URL.createObjectURL(blob);
-                                                const a = document.createElement('a'); a.href = url; a.download = 'external_db.json'; a.click();
-                                            }}
-                                            className="text-xs font-bold text-emerald-600 hover:text-emerald-700 underline"
-                                        >
-                                            Descargar external_db.json para Commit
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-span-2 p-6 bg-slate-50 border border-slate-100 rounded-3xl overflow-hidden">
-                            <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Detalle de llaves en memoria</h4>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                {Object.entries(db.system.getStorageUsage().details || {}).map(([key, size]) => (
-                                    <div key={key} className="p-3 bg-white border border-slate-100 rounded-xl flex items-center justify-between">
-                                        <div className="flex flex-col">
-                                            <span className="text-[9px] font-mono text-slate-400 truncate w-32">{key}</span>
-                                            <span className="text-xs font-bold text-slate-700">{size as number} KB</span>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="col-span-full">
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">URL del JSON Externo (GitHub Raw)</label>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    id="remote_url_input"
+                                                    type="text"
+                                                    className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                                    defaultValue={db.system.getRemoteUrl()}
+                                                    onBlur={(e) => db.system.setRemoteUrl(e.target.value)}
+                                                />
+                                                <button
+                                                    onClick={() => {
+                                                        const detected = "https://raw.githubusercontent.com/AXXIomaSPA/cafh/feature/unification-and-dashboard-refactor/external_db.json";
+                                                        const input = document.getElementById('remote_url_input') as HTMLInputElement;
+                                                        if (input) { input.value = detected; db.system.setRemoteUrl(detected); alert('URL Aplicada.'); }
+                                                    }}
+                                                    className="px-3 bg-emerald-50 text-emerald-600 rounded-xl font-black text-[10px] uppercase hover:bg-emerald-100 transition-all"
+                                                >
+                                                    ⚡ Sugerir
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 opacity-50" />
+
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 flex items-center gap-2">
+                                                <Lock size={10} /> GitHub Token (opcional)
+                                            </label>
+                                            <input
+                                                type="password"
+                                                placeholder="ghp_xxxxxxxxxxxx"
+                                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono focus:outline-none"
+                                                defaultValue={localStorage.getItem('cafh_github_token') || ''}
+                                                onChange={(e) => localStorage.setItem('cafh_github_token', e.target.value)}
+                                            />
+                                            <p className="text-[9px] text-slate-400 mt-1">Requerido solo si el repositorio es Privado.</p>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Modo de Sincronización</label>
+                                            <select
+                                                id="sync_mode_select"
+                                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 focus:outline-none"
+                                            >
+                                                <option value="merge">Smart Merge (Mantiene locales)</option>
+                                                <option value="master">Master Overwrite (Forzar Nube)</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="col-span-full pt-4 border-t border-slate-100 flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                                                    <span className="text-[9px] font-black uppercase text-slate-400 block mb-0.5">Última Sincronización</span>
+                                                    <span className="text-xs font-bold text-slate-700">{localStorage.getItem('cafh_last_sync') || 'Nunca'}</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        const data = db.system.exportAll();
+                                                        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                                                        const url = URL.createObjectURL(blob);
+                                                        const a = document.createElement('a'); a.href = url; a.download = 'external_db.json'; a.click();
+                                                    }}
+                                                    className="flex flex-col items-start px-4 py-2 hover:bg-slate-50 rounded-xl transition-colors"
+                                                >
+                                                    <span className="text-[9px] font-black uppercase text-slate-400">Exportar para Git</span>
+                                                    <span className="text-xs font-bold text-emerald-600 underline">external_db.json</span>
+                                                </button>
+                                            </div>
+
+                                            <button
+                                                onClick={async () => {
+                                                    const mode = (document.getElementById('sync_mode_select') as HTMLSelectElement).value as any;
+                                                    const res = await (db.system as any).syncRemote(mode);
+                                                    if (res.status === 'success') alert(`Sincronización exitosa (${mode}). Registros procesados: ${res.changes}`);
+                                                    else alert(`Error: ${res.message}`);
+                                                }}
+                                                className="px-8 py-3 bg-emerald-500 text-white rounded-2xl font-black text-sm hover:bg-emerald-600 shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-3"
+                                            >
+                                                <Globe size={18} /> Iniciar Sincronización
+                                            </button>
+                                        </div>
                                     </div>
-                                ))}
+                                </div>
+                            </div>
+                            <div className="col-span-2 p-6 bg-slate-50 border border-slate-100 rounded-3xl overflow-hidden">
+                                <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Detalle de llaves en memoria</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    {Object.entries(db.system.getStorageUsage().details || {}).map(([key, size]) => (
+                                        <div key={key} className="p-3 bg-white border border-slate-100 rounded-xl flex items-center justify-between">
+                                            <div className="flex flex-col">
+                                                <span className="text-[9px] font-mono text-slate-400 truncate w-32">{key}</span>
+                                                <span className="text-xs font-bold text-slate-700">{size as number} KB</span>
+                                            </div>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 opacity-50" />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="col-span-2 bg-red-50 border border-red-200 rounded-2xl p-5">
+                                <p className="text-sm font-bold text-red-700 mb-1">⚠️ Zona de Peligro</p>
+                                <p className="text-xs text-red-500 mb-3">Estas acciones son irreversibles. Úsalas solo en desarrollo.</p>
+                                <button onClick={() => { if (confirm('¿Limpiar logs de email? Esta acción es irreversible.')) { localStorage.removeItem('cafh_email_logs_v1'); alert('Logs eliminados.'); } }}
+                                    className="px-4 py-2 bg-red-100 text-red-600 rounded-xl font-bold text-xs hover:bg-red-200 transition-colors">
+                                    Limpiar Email Logs
+                                </button>
                             </div>
                         </div>
-                        <div className="col-span-2 bg-red-50 border border-red-200 rounded-2xl p-5">
-                            <p className="text-sm font-bold text-red-700 mb-1">⚠️ Zona de Peligro</p>
-                            <p className="text-xs text-red-500 mb-3">Estas acciones son irreversibles. Úsalas solo en desarrollo.</p>
-                            <button onClick={() => { if (confirm('¿Limpiar logs de email? Esta acción es irreversible.')) { localStorage.removeItem('cafh_email_logs_v1'); alert('Logs eliminados.'); } }}
-                                className="px-4 py-2 bg-red-100 text-red-600 rounded-xl font-bold text-xs hover:bg-red-200 transition-colors">
-                                Limpiar Email Logs
-                            </button>
+                    </>}
+                    {tab === 'history' && <>
+                        <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                            <h3 className="text-lg font-bold text-slate-800">Historial Global del Sistema</h3>
+                            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 px-3 py-1 rounded-full flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Auditoría en Tiempo Real
+                            </div>
                         </div>
+
+                        <div className="mt-6 space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                            {db.system.getHistory().length === 0 ? (
+                                <div className="p-16 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+                                    <History className="mx-auto text-slate-300 mb-4" size={56} />
+                                    <p className="text-slate-500 font-bold text-lg">Bitácora Vacía</p>
+                                    <p className="text-slate-400 text-sm mt-1 max-w-xs mx-auto">Realiza cambios en el CMS o sincroniza con GitHub para ver los registros aquí.</p>
+                                </div>
+                            ) : (
+                                db.system.getHistory().map((log: any) => (
+                                    <div key={log.id} className="group relative bg-white border border-slate-100 rounded-3xl p-6 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-500/5 transition-all">
+                                        <div className="flex items-start gap-5">
+                                            <div className={`mt-1 w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${log.action === 'Sync' ? 'bg-emerald-50 text-emerald-600' :
+                                                log.action === 'Create' ? 'bg-indigo-50 text-indigo-600' :
+                                                    log.action === 'Delete' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600'
+                                                }`}>
+                                                {log.action === 'Sync' ? <Globe size={24} /> :
+                                                    log.action === 'Create' ? <Plus size={24} /> :
+                                                        log.action === 'Delete' ? <Trash2 size={24} /> : <Edit size={24} />}
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{log.section}</span>
+                                                        <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider ${log.action === 'Sync' ? 'bg-emerald-500/10 text-emerald-600' :
+                                                            log.action === 'Create' ? 'bg-indigo-500/10 text-indigo-600' :
+                                                                log.action === 'Update' ? 'bg-blue-500/10 text-blue-600' :
+                                                                    'bg-slate-100 text-slate-500'
+                                                            }`}>{log.action}</span>
+                                                    </div>
+                                                    <span className="text-xs font-medium text-slate-400 flex items-center gap-1.5">
+                                                        <Compass size={12} />
+                                                        {new Date(log.timestamp).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm text-slate-700 font-bold mb-3 leading-relaxed">{log.details}</p>
+                                                <div className="flex items-center gap-6">
+                                                    <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold bg-slate-50 px-2.5 py-1 rounded-lg">
+                                                        {log.userName}
+                                                    </div>
+                                                    {log.changes?.count && (
+                                                        <div className="flex items-center gap-1.5 text-[10px] text-emerald-500 font-black uppercase tracking-tighter">
+                                                            <CheckCircle2 size={12} />
+                                                            {log.changes.count} registros afectados
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="absolute top-6 right-6 w-2 h-2 rounded-full bg-emerald-400 animate-pulse opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </div>
+                                ))
                     </div>
-                </>}
+                    </>}
+                </div>
             </div>
-        </div>
-    );
+            );
 };
