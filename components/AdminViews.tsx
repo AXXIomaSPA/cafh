@@ -17,7 +17,8 @@ import {
     GripVertical, ArrowUp, ArrowDown, Compass, BookOpen, TrendingUp,
     Hash, Activity, Play, MousePointer, ChevronDown, ChevronUp, Database, UploadCloud, Settings, Eye, Target, Percent, Zap, Pause,
     Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter, Heart, Sun, Cloud, Anchor, Feather, Coffee, Book, Headphones, Mic, LogOut, Check, ChevronLeft, Minus, Info, Settings2, Trash, Copy, Table2, FolderOpen, Columns,
-    Bold, Italic, Underline, ListOrdered, AlignLeft, AlignCenter, Type as TypeIcon, Eraser, MessageSquare, Paperclip, MessageCircle
+    Bold, Italic, Underline, ListOrdered, AlignLeft, AlignCenter, Type as TypeIcon, Eraser, MessageSquare, Paperclip, MessageCircle,
+    PlusSquare, PlaySquare
 } from 'lucide-react';
 
 const LUCIDE_ICONS: Record<string, any> = {
@@ -30,7 +31,8 @@ const LUCIDE_ICONS: Record<string, any> = {
     GripVertical, ArrowUp, ArrowDown, Compass, BookOpen, TrendingUp,
     Hash, Activity, Play, MousePointer, ChevronDown, ChevronUp, Database, UploadCloud, Settings, Eye, Target, Percent, Zap, Pause,
     Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter, Heart, Sun, Cloud, Anchor, Feather, Coffee, Book, Headphones, Mic, LogOut, Check, ChevronLeft, Minus, Info, Settings2, Trash, Copy, Table2, FolderOpen, Columns,
-    Bold, Italic, Underline, ListOrdered, AlignLeft, AlignCenter, TypeIcon, Eraser, MessageSquare, Paperclip, MessageCircle
+    Bold, Italic, Underline, ListOrdered, AlignLeft, AlignCenter, TypeIcon, Eraser, MessageSquare, Paperclip, MessageCircle,
+    PlusSquare, PlaySquare
 };
 
 const DynamicIcon: React.FC<{ name: string; size?: number; className?: string }> = ({ name, size = 20, className }) => {
@@ -3787,7 +3789,14 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
     const [localConfig, setLocalConfig] = useState<HomeConfig>(config);
     const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
     const [isAssetPickerOpen, setIsAssetPickerOpen] = useState(false);
-    const [activeSelector, setActiveSelector] = useState<{ type: 'search' | 'columns' | 'social' | 'hero'; index: number } | null>(null);
+    const [isPagePickerOpen, setIsPagePickerOpen] = useState(false);
+    const [allPages, setAllPages] = useState<CustomPage[]>([]);
+    const [activeSelector, setActiveSelector] = useState<{ type: 'search' | 'columns' | 'social' | 'hero' | 'dynamic'; index: number; subIndex?: number } | null>(null);
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+    useEffect(() => {
+        setAllPages(db.cms.getPages());
+    }, []);
 
     const handleIconSelect = (iconName: string, assetType?: string) => {
         if (!activeSelector) return;
@@ -3804,7 +3813,43 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
             const newLinks = [...localConfig.footer.socialLinks];
             newLinks[index].icon = iconName;
             setLocalConfig({ ...localConfig, footer: { ...localConfig.footer, socialLinks: newLinks } });
+        } else if (type === 'dynamic') {
+            const newDynamic = [...(localConfig.dynamicSections || [])];
+            const field = activeSelector.field || 'icon';
+            if (activeSelector.subIndex !== undefined) {
+                newDynamic[index].content.items[activeSelector.subIndex][field] = iconName;
+            } else {
+                newDynamic[index].content[field] = iconName;
+            }
+            setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
         }
+        setIsIconPickerOpen(false);
+    };
+
+    const handlePageLinkSelect = (path: string) => {
+        if (!activeSelector) return;
+        const { type, index } = activeSelector;
+
+        if (type === 'search') {
+            const newItems = [...localConfig.searchItems];
+            newItems[index].path = path;
+            setLocalConfig({ ...localConfig, searchItems: newItems });
+        } else if (type === 'columns') {
+            const newCols = [...localConfig.threeColumns];
+            newCols[index].link = path;
+            setLocalConfig({ ...localConfig, threeColumns: newCols });
+        } else if (type === 'hero') {
+            setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, ctaLink: path } });
+        } else if (type === 'dynamic') {
+            const newDynamic = [...(localConfig.dynamicSections || [])];
+            if (activeSelector.subIndex !== undefined) {
+                newDynamic[index].content.items[activeSelector.subIndex].link = path;
+            } else {
+                newDynamic[index].content.link = path;
+            }
+            setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+        }
+        setIsPagePickerOpen(false);
     };
 
     const handleAssetSelect = (assetUrl: string, assetType?: string) => {
@@ -3833,7 +3878,30 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                 };
             }
             setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, backgrounds: newBgs } });
+        } else if (type === 'dynamic') {
+            const newDynamic = [...(localConfig.dynamicSections || [])];
+            const section = newDynamic[index];
+            const field = activeSelector.field || 'imageUrl';
+
+            if (activeSelector.subIndex !== undefined) {
+                const item = section.content.items[activeSelector.subIndex];
+                if (field === 'images') {
+                    if (!item.images) item.images = [];
+                    item.images.push(assetUrl);
+                } else {
+                    item[field] = assetUrl;
+                }
+            } else {
+                if (field === 'images') {
+                    if (!section.content.images) section.content.images = [];
+                    section.content.images.push(assetUrl);
+                } else {
+                    section.content[field] = assetUrl;
+                }
+            }
+            setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
         }
+        setIsAssetPickerOpen(false);
     };
 
     const handleSave = () => {
@@ -3854,6 +3922,57 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
             [newOrder[index], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[index]];
             setLocalConfig({ ...localConfig, sectionOrder: newOrder });
         }
+    };
+
+    const addDynamicSection = (type: PageSection['type']) => {
+        const id = Math.random().toString(36).substr(2, 9);
+        const newSection: PageSection = {
+            id,
+            type,
+            order: (localConfig.dynamicSections?.length || 0) + 1,
+            content: type === 'Text' ? { title: 'Nueva Sección', text: 'Contenido aquí...' } :
+                type === 'IconGrid' ? { title: 'Nuestra Propuesta', subtitle: 'Descubre más', items: [{ label: 'Item 1', icon: 'Activity' }] } :
+                    type === 'Accordion' ? { title: 'Preguntas Frecuentes', items: [{ title: '¿Pregunta?', content: 'Respuesta' }] } :
+                        type === 'ImageText' ? { title: 'Imagen y Texto', text: '...', imageUrl: 'https://images.unsplash.com/photo-1518133910546-b6c2fb7d79e3', imagePosition: 'left' } :
+                            type === 'CTA' ? { title: 'Llamado a la Acción', text: 'Únete a nosotros', buttonText: 'Saber más', buttonLink: '/' } :
+                                type === 'Stats' ? { title: 'Nuestros Logros', items: [{ label: 'Impacto', value: '100+', icon: 'Activity' }] } :
+                                    type === 'Cards' ? { title: 'Características', items: [{ title: 'Card 1', description: 'Info', icon: 'Star' }] } :
+                                        type === 'Video' ? { title: 'Video', videoId: '' } :
+                                            type === 'VideoGrid' ? { title: 'Galería de Videos', items: [{ title: 'Video 1', videoId: '' }] } :
+                                                type === 'Table' ? { title: 'Cronograma', headers: ['Horario', 'Actividad', 'Lugar'], rows: [['08:00', 'Meditación', 'Sala A']] } :
+                                                    type === 'Tabs' ? { title: 'Información', items: [{ title: 'Misión', content: 'Contenido...' }] } :
+                                                        type === 'Gallery' ? { title: 'Galería', images: [] } :
+                                                            type === 'Hero' ? { title: 'Banner', subtitle: '', imageUrl: '', ctaText: '', ctaLink: '' } :
+                                                                type === 'ResourcesGrid' || type === 'EventsCalendar' || type === 'Timeline' || type === 'MethodPillars' ? { title: sectionTitles[type] } :
+                                                                    { title: sectionTitles[type] || 'Nueva Sección' },
+            settings: { backgroundColor: 'bg-white', padding: 'medium', containerSize: 'standard' }
+        };
+
+        const newDynamic = [...(localConfig.dynamicSections || []), newSection];
+        const newOrder = [...localConfig.sectionOrder, `dynamic_${id}`];
+        setLocalConfig({ ...localConfig, dynamicSections: newDynamic, sectionOrder: newOrder });
+    };
+
+    const removeDynamicSection = (id: string) => {
+        const newDynamic = localConfig.dynamicSections?.filter(s => s.id !== id);
+        const newOrder = localConfig.sectionOrder.filter(sid => sid !== `dynamic_${id}`);
+        setLocalConfig({ ...localConfig, dynamicSections: newDynamic, sectionOrder: newOrder });
+    };
+
+    const duplicateDynamicSection = (section: PageSection) => {
+        const id = Math.random().toString(36).substr(2, 9);
+        const newSection = { ...section, id, order: section.order + 1 };
+        const newDynamic = [...(localConfig.dynamicSections || []), newSection];
+        const newOrder = [...localConfig.sectionOrder, `dynamic_${id}`];
+        setLocalConfig({ ...localConfig, dynamicSections: newDynamic, sectionOrder: newOrder });
+    };
+
+    const sectionTitles: any = {
+        'Hero': 'Banner Hero', 'Text': 'Bloque de Texto', 'Image': 'Imagen / Video', 'ImageText': 'Imagen + Texto',
+        'Table': 'Tabla Pro', 'Tabs': 'Pestañas', 'VideoGrid': 'Galería de Videos', 'Stats': 'Datos Numéricos',
+        'Cards': 'Grid de Cards', 'IconGrid': 'Grid de Iconos', 'Gallery': 'Galería de Fotos', 'CTA': 'Llamado a la Acción',
+        'Accordion': 'Acordeón / FAQ', 'ResourcesGrid': 'Grid de Recursos', 'EventsCalendar': 'Calendario de Eventos',
+        'Timeline': 'Línea de Tiempo', 'MethodPillars': 'Pilares del Método', 'Video': 'Video YouTube'
     };
 
     return (
@@ -3939,12 +4058,23 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Link Botón CTA</label>
-                                <input
-                                    type="text"
-                                    value={localConfig.hero.ctaLink}
-                                    onChange={e => setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, ctaLink: e.target.value } })}
-                                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
-                                />
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={localConfig.hero.ctaLink}
+                                        onChange={e => setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, ctaLink: e.target.value } })}
+                                        className="w-full pl-5 pr-12 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none transition-all"
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            setActiveSelector({ type: 'hero', index: 0 });
+                                            setIsPagePickerOpen(true);
+                                        }}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-white text-cafh-indigo rounded-xl shadow-sm hover:scale-110 transition-transform"
+                                    >
+                                        <Link2 size={16} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <div>
@@ -4027,9 +4157,29 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                             <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Iconos / Accesos Directos (8 sugeridos)</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {localConfig.searchItems.map((item, idx) => (
-                                    <div key={idx} className="p-4 bg-slate-50 rounded-2xl space-y-3 border border-slate-100">
+                                    <div
+                                        key={idx}
+                                        draggable
+                                        onDragStart={() => setDraggedIndex(idx)}
+                                        onDragOver={(e) => {
+                                            e.preventDefault();
+                                            if (draggedIndex === null || draggedIndex === idx) return;
+                                            const newItems = [...localConfig.searchItems];
+                                            const draggedItem = newItems.splice(draggedIndex, 1)[0];
+                                            newItems.splice(idx, 0, draggedItem);
+                                            setDraggedIndex(idx);
+                                            setLocalConfig({ ...localConfig, searchItems: newItems });
+                                        }}
+                                        onDragEnd={() => setDraggedIndex(null)}
+                                        className={`p-4 bg-slate-50 rounded-2xl space-y-3 border transition-all ${draggedIndex === idx ? 'opacity-50 ring-2 ring-cafh-indigo' : 'border-slate-100 hover:border-cafh-indigo/30'}`}
+                                    >
                                         <div className="flex items-center justify-between">
-                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Acceso {idx + 1}</span>
+                                            <div className="flex items-center gap-2">
+                                                <div className="p-1 cursor-grab active:cursor-grabbing text-slate-300">
+                                                    <GripVertical size={14} />
+                                                </div>
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Acceso {idx + 1}</span>
+                                            </div>
                                             <button
                                                 onClick={() => {
                                                     const newItems = localConfig.searchItems.filter((_, i) => i !== idx);
@@ -4075,17 +4225,28 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                                 </button>
                                             </div>
                                         </div>
-                                        <input
-                                            type="text"
-                                            value={item.path}
-                                            onChange={e => {
-                                                const newItems = [...localConfig.searchItems];
-                                                newItems[idx].path = e.target.value;
-                                                setLocalConfig({ ...localConfig, searchItems: newItems });
-                                            }}
-                                            placeholder="Ruta (ej: /activities)"
-                                            className="w-full px-3 py-2 bg-white border border-slate-100 rounded-xl text-xs outline-none focus:ring-2 focus:ring-cafh-indigo"
-                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                value={item.path}
+                                                onChange={e => {
+                                                    const newItems = [...localConfig.searchItems];
+                                                    newItems[idx].path = e.target.value;
+                                                    setLocalConfig({ ...localConfig, searchItems: newItems });
+                                                }}
+                                                placeholder="Ruta (ej: /activities)"
+                                                className="w-full pl-3 pr-10 py-2 bg-white border border-slate-100 rounded-xl text-xs outline-none focus:ring-2 focus:ring-cafh-indigo"
+                                            />
+                                            <button
+                                                onClick={() => {
+                                                    setActiveSelector({ type: 'search', index: idx });
+                                                    setIsPagePickerOpen(true);
+                                                }}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cafh-indigo transition-colors"
+                                            >
+                                                <Link2 size={14} />
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -4148,9 +4309,27 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                     </div>
                     <div className="p-8 space-y-8">
                         {localConfig.threeColumns.map((col, idx) => (
-                            <div key={idx} className="p-6 bg-slate-50 rounded-3xl space-y-4">
+                            <div
+                                key={idx}
+                                draggable
+                                onDragStart={() => setDraggedIndex(idx)}
+                                onDragOver={(e) => {
+                                    e.preventDefault();
+                                    if (draggedIndex === null || draggedIndex === idx) return;
+                                    const newCols = [...localConfig.threeColumns];
+                                    const draggedItem = newCols.splice(draggedIndex, 1)[0];
+                                    newCols.splice(idx, 0, draggedItem);
+                                    setDraggedIndex(idx);
+                                    setLocalConfig({ ...localConfig, threeColumns: newCols });
+                                }}
+                                onDragEnd={() => setDraggedIndex(null)}
+                                className={`p-6 bg-slate-50 transition-all rounded-3xl space-y-4 border ${draggedIndex === idx ? 'opacity-50 ring-2 ring-cafh-indigo border-cafh-indigo' : 'border-transparent hover:border-cafh-indigo/30'}`}
+                            >
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-3">
+                                        <div className="p-1 cursor-grab active:cursor-grabbing text-slate-300">
+                                            <GripVertical size={14} />
+                                        </div>
                                         <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Columna 0{idx + 1}</span>
                                         <select
                                             value={col.alignment}
@@ -4216,17 +4395,28 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                     placeholder="Escribe la descripción de la columna..."
                                 />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input
-                                        type="text"
-                                        value={col.link || ''}
-                                        onChange={e => {
-                                            const newCols = [...localConfig.threeColumns];
-                                            newCols[idx].link = e.target.value;
-                                            setLocalConfig({ ...localConfig, threeColumns: newCols });
-                                        }}
-                                        placeholder="Enlace (Opcional)"
-                                        className="w-full px-4 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={col.link || ''}
+                                            onChange={e => {
+                                                const newCols = [...localConfig.threeColumns];
+                                                newCols[idx].link = e.target.value;
+                                                setLocalConfig({ ...localConfig, threeColumns: newCols });
+                                            }}
+                                            placeholder="Enlace (Opcional)"
+                                            className="w-full pl-4 pr-10 py-3 bg-white border border-slate-100 rounded-xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm"
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                setActiveSelector({ type: 'columns', index: idx });
+                                                setIsPagePickerOpen(true);
+                                            }}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cafh-indigo transition-colors"
+                                        >
+                                            <Link2 size={16} />
+                                        </button>
+                                    </div>
                                     <input
                                         type="number"
                                         value={col.order}
@@ -4350,6 +4540,844 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                         </div>
                     </div>
                 </div>
+
+                {/* DYNAMIC SECTIONS MANAGER (Synchronized with PageEditor) */}
+                <div className="space-y-6">
+                    <h3 className="text-xl font-display font-bold text-slate-800 flex items-center gap-3">
+                        <PlusSquare className="text-cafh-indigo" size={24} />
+                        Bloques Personalizados Adaptables
+                    </h3>
+                    <div className="space-y-4">
+                        {(localConfig.dynamicSections || []).map((section, idx) => (
+                            <div
+                                key={section.id}
+                                draggable
+                                onDragStart={() => setDraggedIndex(idx)}
+                                onDragOver={(e) => {
+                                    e.preventDefault();
+                                    if (draggedIndex === null || draggedIndex === idx) return;
+                                    const newDynamic = [...(localConfig.dynamicSections || [])];
+                                    const draggedItem = newDynamic.splice(draggedIndex, 1)[0];
+                                    newDynamic.splice(idx, 0, draggedItem);
+                                    setDraggedIndex(idx);
+                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                }}
+                                onDragEnd={() => setDraggedIndex(null)}
+                                className={`bg-white rounded-[2rem] border transition-all overflow-hidden group ${draggedIndex === idx ? 'opacity-50 ring-2 ring-cafh-indigo' : 'border-slate-200 shadow-sm hover:border-cafh-indigo/30'}`}
+                            >
+                                <div className="p-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-1 cursor-grab active:cursor-grabbing text-slate-300">
+                                            <GripVertical size={16} />
+                                        </div>
+                                        <div className="p-2 bg-white rounded-xl text-cafh-indigo shadow-sm shrink-0">
+                                            <DynamicIcon name={
+                                                section.type === 'Text' ? 'Type' :
+                                                    section.type === 'Accordion' ? 'ChevronDown' :
+                                                        section.type === 'Table' ? 'Table2' :
+                                                            section.type === 'Tabs' ? 'FolderOpen' :
+                                                                section.type === 'VideoGrid' ? 'PlaySquare' :
+                                                                    section.type === 'Stats' ? 'Activity' :
+                                                                        section.type === 'Cards' ? 'Grid' :
+                                                                            section.type === 'IconGrid' ? 'Heart' :
+                                                                                section.type === 'CTA' ? 'MousePointer' :
+                                                                                    section.type === 'Gallery' ? 'Image' :
+                                                                                        section.type === 'ImageText' ? 'Columns' :
+                                                                                            section.type === 'Hero' ? 'Layout' :
+                                                                                                'Layers'
+                                            } size={18} />
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Bloque Dinámico</span>
+                                            <h4 className="text-sm font-bold text-slate-800 leading-none">{sectionTitles[section.type]}</h4>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => duplicateDynamicSection(section)} className="p-2 text-slate-400 hover:text-cafh-indigo hover:bg-white rounded-lg transition-all" title="Duplicar">
+                                            <Copy size={16} />
+                                        </button>
+                                        <button onClick={() => removeDynamicSection(section.id)} className="p-2 text-slate-400 hover:text-red-500 hover:bg-white rounded-lg transition-all" title="Eliminar">
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="p-8">
+                                    {/* Simplified Dynamic Editor for Home (Focus on Content) */}
+                                    <div className="space-y-4">
+                                        <input
+                                            type="text"
+                                            value={section.content.title}
+                                            onChange={e => {
+                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                newDynamic[idx].content.title = e.target.value;
+                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                            }}
+                                            placeholder="Título del bloque"
+                                            className="w-full text-lg font-bold bg-transparent border-none outline-none focus:placeholder-transparent text-slate-800"
+                                        />
+                                        {section.content.subtitle !== undefined && (
+                                            <input
+                                                type="text"
+                                                value={section.content.subtitle}
+                                                onChange={e => {
+                                                    const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                    newDynamic[idx].content.subtitle = e.target.value;
+                                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                }}
+                                                placeholder="Subtítulo..."
+                                                className="w-full text-xs font-bold text-cafh-indigo uppercase tracking-widest bg-transparent border-none outline-none"
+                                            />
+                                        )}
+                                        {/* TEXT EDITOR */}
+                                        {section.type === 'Text' && (
+                                            <RichTextEditor
+                                                value={section.content.text}
+                                                onChange={val => {
+                                                    const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                    newDynamic[idx].content.text = val;
+                                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                }}
+                                            />
+                                        )}
+
+                                        {/* IMAGE / VIDEO EDITOR */}
+                                        {(section.type === 'Image' || section.type === 'Video') && (
+                                            <div className="space-y-4">
+                                                <div className="relative group/media overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 aspect-video flex items-center justify-center">
+                                                    {section.content.videoId ? (
+                                                        <img src={`https://img.youtube.com/vi/${section.content.videoId}/maxresdefault.jpg`} className="w-full h-full object-cover" alt="" />
+                                                    ) : section.content.imageUrl ? (
+                                                        <img src={section.content.imageUrl} className="w-full h-full object-cover" alt="" />
+                                                    ) : (
+                                                        <div className="text-center p-6">
+                                                            <Upload size={32} className="mx-auto text-slate-300 mb-2" />
+                                                            <p className="text-[10px] font-bold text-slate-400 uppercase">Sin Media Seleccionada</p>
+                                                        </div>
+                                                    )}
+                                                    <button
+                                                        onClick={() => {
+                                                            setActiveSelector({ type: 'dynamic', index: idx, field: 'imageUrl' });
+                                                            setIsAssetPickerOpen(true);
+                                                        }}
+                                                        className="absolute inset-0 bg-cafh-indigo/60 text-white opacity-0 group-hover/media:opacity-100 flex items-center justify-center gap-2 transition-all font-bold text-xs"
+                                                    >
+                                                        <Sparkles size={16} /> CAMBIAR MEDIA
+                                                    </button>
+                                                </div>
+                                                <div className="grid grid-cols-1 gap-3">
+                                                    <input
+                                                        type="text"
+                                                        value={section.content.videoId || ''}
+                                                        onChange={e => {
+                                                            const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                            newDynamic[idx].content.videoId = e.target.value;
+                                                            setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                        }}
+                                                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs outline-none font-mono"
+                                                        placeholder="O ingresa ID de Video YouTube (ej: dQw4w9WgXcQ)"
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        value={section.content.caption || ''}
+                                                        onChange={e => {
+                                                            const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                            newDynamic[idx].content.caption = e.target.value;
+                                                            setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                        }}
+                                                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs outline-none"
+                                                        placeholder="Pie de foto / descripción corta..."
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* TABLE EDITOR */}
+                                        {section.type === 'Table' && (
+                                            <div className="space-y-4">
+                                                <div className="overflow-x-auto bg-slate-50 rounded-xl p-4 border border-slate-100">
+                                                    <table className="w-full text-xs text-left">
+                                                        <thead>
+                                                            <tr>
+                                                                {(section.content.headers || []).map((h: string, hi: number) => (
+                                                                    <th key={hi} className="p-2">
+                                                                        <input
+                                                                            type="text"
+                                                                            value={h}
+                                                                            onChange={e => {
+                                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                                if (newDynamic[idx].content.headers) {
+                                                                                    newDynamic[idx].content.headers[hi] = e.target.value;
+                                                                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                                }
+                                                                            }}
+                                                                            className="w-full bg-white border border-slate-200 rounded p-1 outline-none font-bold"
+                                                                        />
+                                                                    </th>
+                                                                ))}
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {(section.content.rows || []).map((row: string[], ri: number) => (
+                                                                <tr key={ri}>
+                                                                    {row.map((cell, ci) => (
+                                                                        <td key={ci} className="p-1">
+                                                                            <input
+                                                                                type="text"
+                                                                                value={cell}
+                                                                                onChange={e => {
+                                                                                    const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                                    newDynamic[idx].content.rows[ri][ci] = e.target.value;
+                                                                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                                }}
+                                                                                className="w-full bg-slate-100/50 border border-transparent hover:border-slate-200 rounded p-1 outline-none"
+                                                                            />
+                                                                        </td>
+                                                                    ))}
+                                                                    <td className="p-1 text-right">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                                newDynamic[idx].content.rows.splice(ri, 1);
+                                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                            }}
+                                                                            className="p-1 text-slate-300 hover:text-red-500"
+                                                                        >
+                                                                            <Trash2 size={12} />
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                    <button
+                                                        onClick={() => {
+                                                            const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                            const colCount = section.content.headers?.length || 1;
+                                                            newDynamic[idx].content.rows.push(new Array(colCount).fill(''));
+                                                            setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                        }}
+                                                        className="mt-4 flex items-center gap-2 text-[10px] font-bold text-cafh-indigo hover:text-cafh-indigo-dark transition-all px-3 py-1 bg-white rounded-lg shadow-sm border border-slate-100"
+                                                    >
+                                                        <Plus size={10} /> AÑADIR FILA
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* ACCORDION EDITOR */}
+                                        {section.type === 'Accordion' && (
+                                            <div className="space-y-4">
+                                                {(section.content.items || []).map((item: any, i: number) => (
+                                                    <div key={i} className="p-4 bg-slate-50 rounded-xl space-y-3 border border-slate-100 relative group">
+                                                        <button
+                                                            onClick={() => {
+                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                newDynamic[idx].content.items.splice(i, 1);
+                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                            }}
+                                                            className="absolute top-2 right-2 p-1 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all z-10"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                        <input
+                                                            type="text"
+                                                            value={item.title}
+                                                            onChange={e => {
+                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                newDynamic[idx].content.items[i].title = e.target.value;
+                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                            }}
+                                                            className="w-full bg-white px-3 py-2 border border-slate-100 rounded-lg font-bold text-sm outline-none shadow-sm"
+                                                            placeholder="Título / Pregunta"
+                                                        />
+                                                        <RichTextEditor
+                                                            value={item.content}
+                                                            onChange={val => {
+                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                newDynamic[idx].content.items[i].content = val;
+                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                            }}
+                                                            placeholder="Contenido / Respuesta..."
+                                                        />
+                                                    </div>
+                                                ))}
+                                                <button
+                                                    onClick={() => {
+                                                        const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                        if (!newDynamic[idx].content.items) newDynamic[idx].content.items = [];
+                                                        newDynamic[idx].content.items.push({ title: 'Nueva Pregunta', content: '' });
+                                                        setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                    }}
+                                                    className="w-full py-2 border border-dashed border-slate-200 rounded-xl text-[10px] font-bold text-slate-400 hover:border-cafh-indigo hover:text-cafh-indigo transition-all"
+                                                >
+                                                    + AÑADIR ITEM FAQ
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {/* TABS EDITOR */}
+                                        {section.type === 'Tabs' && (
+                                            <div className="space-y-4">
+                                                {(section.content.items || []).map((item: any, i: number) => (
+                                                    <div key={i} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 relative group space-y-3">
+                                                        <button
+                                                            onClick={() => {
+                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                newDynamic[idx].content.items.splice(i, 1);
+                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                            }}
+                                                            className="absolute top-2 right-2 p-1 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all z-10"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                        <input
+                                                            type="text"
+                                                            value={item.title}
+                                                            onChange={e => {
+                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                newDynamic[idx].content.items[i].title = e.target.value;
+                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                            }}
+                                                            className="w-full p-3 bg-white border border-slate-100 rounded-xl text-xs font-bold shadow-sm outline-none"
+                                                            placeholder="Título de la Pestaña"
+                                                        />
+                                                        <RichTextEditor
+                                                            value={item.content}
+                                                            onChange={val => {
+                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                newDynamic[idx].content.items[i].content = val;
+                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                            }}
+                                                            placeholder="Contenido detallado..."
+                                                        />
+                                                    </div>
+                                                ))}
+                                                <button
+                                                    onClick={() => {
+                                                        const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                        if (!newDynamic[idx].content.items) newDynamic[idx].content.items = [];
+                                                        newDynamic[idx].content.items.push({ title: 'Nueva Opción', content: '' });
+                                                        setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                    }}
+                                                    className="w-full py-3 border border-dashed border-slate-200 rounded-2xl text-slate-400 hover:text-cafh-indigo hover:border-cafh-indigo transition-all text-xs font-bold"
+                                                >
+                                                    + AÑADIR NUEVA PESTAÑA
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {/* STATS EDITOR */}
+                                        {section.type === 'Stats' && (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                {(section.content.items || []).map((item: any, i: number) => (
+                                                    <div key={i} className="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm space-y-2 relative group">
+                                                        <input
+                                                            type="text"
+                                                            value={item.value}
+                                                            onChange={e => {
+                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                newDynamic[idx].content.items[i].value = e.target.value;
+                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                            }}
+                                                            className="w-full px-2 py-1 text-lg font-black text-cafh-indigo focus:bg-slate-50 outline-none rounded"
+                                                            placeholder="15k+"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={item.label}
+                                                            onChange={e => {
+                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                newDynamic[idx].content.items[i].label = e.target.value;
+                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                            }}
+                                                            className="w-full px-2 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest focus:bg-slate-50 outline-none rounded"
+                                                            placeholder="Estudiantes"
+                                                        />
+                                                        <div className="flex items-center justify-between pt-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    setActiveSelector({ type: 'dynamic', index: idx, subIndex: i, field: 'icon' });
+                                                                    setIsIconPickerOpen(true);
+                                                                }}
+                                                                className="p-1.5 bg-slate-50 text-cafh-indigo rounded-lg hover:bg-cafh-indigo hover:text-white transition-all"
+                                                            >
+                                                                <DynamicIcon name={item.icon || 'TrendingUp'} size={14} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                    newDynamic[idx].content.items.splice(i, 1);
+                                                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                }}
+                                                                className="p-1.5 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                                            >
+                                                                <Trash2 size={12} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                <button
+                                                    onClick={() => {
+                                                        const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                        if (!newDynamic[idx].content.items) newDynamic[idx].content.items = [];
+                                                        newDynamic[idx].content.items.push({ value: '100+', label: 'Dato', icon: 'Star' });
+                                                        setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                    }}
+                                                    className="p-4 border-2 border-dashed border-slate-100 rounded-2xl text-slate-300 hover:border-cafh-indigo hover:text-cafh-indigo transition-all flex items-center justify-center aspect-square"
+                                                >
+                                                    <Plus size={24} />
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {/* CARDS EDITOR */}
+                                        {section.type === 'Cards' && (
+                                            <div className="space-y-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {(section.content.items || []).map((item: any, i: number) => (
+                                                        <div key={i} className="p-5 bg-slate-50 border border-slate-100 rounded-[1.5rem] relative group space-y-3">
+                                                            <button
+                                                                onClick={() => {
+                                                                    const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                    newDynamic[idx].content.items.splice(i, 1);
+                                                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                }}
+                                                                className="absolute top-3 right-3 p-1.5 bg-white text-slate-300 hover:text-red-500 rounded-xl opacity-0 group-hover:opacity-100 shadow-sm transition-all z-10"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                            <div className="flex gap-4">
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setActiveSelector({ type: 'dynamic', index: idx, subIndex: i, field: 'icon' });
+                                                                        setIsIconPickerOpen(true);
+                                                                    }}
+                                                                    className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-cafh-indigo hover:bg-cafh-indigo hover:text-white transition-all shrink-0 border border-slate-100"
+                                                                >
+                                                                    <DynamicIcon name={item.icon || 'Star'} size={20} />
+                                                                </button>
+                                                                <div className="flex-1 space-y-2">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={item.title}
+                                                                        onChange={e => {
+                                                                            const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                            newDynamic[idx].content.items[i].title = e.target.value;
+                                                                            setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                        }}
+                                                                        className="w-full bg-transparent font-bold text-sm outline-none"
+                                                                        placeholder="Título"
+                                                                    />
+                                                                    <RichTextEditor
+                                                                        value={item.description}
+                                                                        onChange={val => {
+                                                                            const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                            newDynamic[idx].content.items[i].description = val;
+                                                                            setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                        }}
+                                                                        placeholder="Descripción..."
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                        if (!newDynamic[idx].content.items) newDynamic[idx].content.items = [];
+                                                        newDynamic[idx].content.items.push({ title: 'Título', description: 'Contenido', icon: 'Star' });
+                                                        setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                    }}
+                                                    className="w-full py-3 border border-dashed border-slate-200 rounded-2xl text-slate-400 hover:text-cafh-indigo transition-all text-xs font-bold"
+                                                >
+                                                    + AÑADIR NUEVA TARJETA
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {/* ICON GRID EDITOR */}
+                                        {section.type === 'IconGrid' && (
+                                            <div className="space-y-4">
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                                    {(section.content.items || []).map((item: any, i: number) => (
+                                                        <div key={i} className="p-3 bg-white border border-slate-100 rounded-2xl flex flex-col items-center gap-2 relative group shadow-sm">
+                                                            <button
+                                                                onClick={() => {
+                                                                    const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                    newDynamic[idx].content.items.splice(i, 1);
+                                                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                }}
+                                                                className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 shadow-lg transition-all z-10 scale-75"
+                                                            >
+                                                                <X size={10} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setActiveSelector({ type: 'dynamic', index: idx, subIndex: i, field: 'icon' });
+                                                                    setIsIconPickerOpen(true);
+                                                                }}
+                                                                className="w-10 h-10 bg-slate-50 text-cafh-indigo rounded-xl flex items-center justify-center hover:bg-cafh-indigo hover:text-white transition-all shadow-inner"
+                                                            >
+                                                                <DynamicIcon name={item.icon || 'Heart'} size={18} />
+                                                            </button>
+                                                            <input
+                                                                type="text"
+                                                                value={item.label}
+                                                                onChange={e => {
+                                                                    const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                    newDynamic[idx].content.items[i].label = e.target.value;
+                                                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                }}
+                                                                className="w-full text-[10px] text-center font-bold text-slate-600 bg-transparent outline-none"
+                                                                placeholder="Nombre"
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                    <button
+                                                        onClick={() => {
+                                                            const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                            if (!newDynamic[idx].content.items) newDynamic[idx].content.items = [];
+                                                            newDynamic[idx].content.items.push({ label: 'Nuevo', icon: 'Heart' });
+                                                            setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                        }}
+                                                        className="p-4 border-2 border-dashed border-slate-100 rounded-2xl text-slate-300 hover:border-cafh-indigo hover:text-cafh-indigo transition-all flex items-center justify-center"
+                                                    >
+                                                        <Plus size={20} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* VIDEO GRID EDITOR */}
+                                        {section.type === 'VideoGrid' && (
+                                            <div className="space-y-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {(section.content.items || []).map((v: any, vi: number) => (
+                                                        <div key={vi} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 relative group space-y-3">
+                                                            <button
+                                                                onClick={() => {
+                                                                    const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                    newDynamic[idx].content.items.splice(vi, 1);
+                                                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                }}
+                                                                className="absolute top-2 right-2 p-1.5 bg-white text-slate-300 hover:text-red-500 shadow-sm rounded-xl opacity-0 group-hover:opacity-100 transition-all z-10"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                            <div className="aspect-video bg-slate-200 rounded-xl overflow-hidden relative shadow-inner">
+                                                                <img src={`https://img.youtube.com/vi/${v.videoId}/mqdefault.jpg`} className="w-full h-full object-cover" alt="" />
+                                                                <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                                                                    <Play size={28} className="text-white drop-shadow-2xl" />
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <input
+                                                                    type="text"
+                                                                    value={v.title}
+                                                                    onChange={e => {
+                                                                        const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                        newDynamic[idx].content.items[vi].title = e.target.value;
+                                                                        setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                    }}
+                                                                    className="w-full p-2.5 bg-white border border-slate-100 rounded-xl text-xs font-bold outline-none shadow-sm"
+                                                                    placeholder="Título del Video"
+                                                                />
+                                                                <input
+                                                                    type="text"
+                                                                    value={v.videoId}
+                                                                    onChange={e => {
+                                                                        const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                        newDynamic[idx].content.items[vi].videoId = e.target.value;
+                                                                        setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                    }}
+                                                                    className="w-full p-2.5 bg-white border border-slate-100 rounded-xl text-xs font-mono outline-none shadow-sm"
+                                                                    placeholder="YouTube ID (ej: dQw4w9WgXcQ)"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                        if (!newDynamic[idx].content.items) newDynamic[idx].content.items = [];
+                                                        newDynamic[idx].content.items.push({ title: 'Nueva Presentación', videoId: '' });
+                                                        setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                    }}
+                                                    className="w-full py-4 border border-dashed border-slate-200 rounded-[1.5rem] text-slate-400 hover:text-cafh-indigo transition-all text-xs font-bold"
+                                                >
+                                                    + AÑADIR VIDEO A LA SECCIÓN
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {/* CTA EDITOR */}
+                                        {section.type === 'CTA' && (
+                                            <div className="space-y-4">
+                                                <RichTextEditor
+                                                    value={section.content.text}
+                                                    onChange={val => {
+                                                        const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                        newDynamic[idx].content.text = val;
+                                                        setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                    }}
+                                                    placeholder="Detalles del llamado a la acción..."
+                                                />
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <input
+                                                        type="text"
+                                                        value={section.content.buttonText}
+                                                        onChange={e => {
+                                                            const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                            newDynamic[idx].content.buttonText = e.target.value;
+                                                            setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                        }}
+                                                        placeholder="Texto del botón"
+                                                        className="w-full p-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold shadow-inner outline-none"
+                                                    />
+                                                    <div className="relative">
+                                                        <input
+                                                            type="text"
+                                                            value={section.content.buttonLink || section.content.link}
+                                                            onChange={e => {
+                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                const val = e.target.value;
+                                                                if (newDynamic[idx].content.buttonLink !== undefined) newDynamic[idx].content.buttonLink = val;
+                                                                if (newDynamic[idx].content.link !== undefined) newDynamic[idx].content.link = val;
+                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                            }}
+                                                            placeholder="Destino..."
+                                                            className="w-full pl-4 pr-12 p-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-mono shadow-inner outline-none"
+                                                        />
+                                                        <button
+                                                            onClick={() => {
+                                                                setActiveSelector({ type: 'dynamic', index: idx, field: 'buttonLink' });
+                                                                setIsPagePickerOpen(true);
+                                                            }}
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 bg-white text-cafh-indigo rounded-xl shadow-sm hover:bg-cafh-indigo hover:text-white transition-all"
+                                                        >
+                                                            <Link2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* IMAGETEXT EDITOR (Adapted from PageEditor) */}
+                                        {section.type === 'ImageText' && (
+                                            <div className="space-y-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="space-y-3">
+                                                        <RichTextEditor
+                                                            value={section.content.text}
+                                                            onChange={val => {
+                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                newDynamic[idx].content.text = val;
+                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                            }}
+                                                            placeholder="Descripción aquí..."
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-3">
+                                                        <div className="relative group/it overflow-hidden rounded-2xl border border-slate-100 shadow-inner aspect-video flex items-center justify-center bg-slate-50">
+                                                            {section.content.imageUrl ? (
+                                                                <img src={section.content.imageUrl} className="w-full h-full object-cover" alt="" />
+                                                            ) : (
+                                                                <Image size={40} className="text-slate-200" />
+                                                            )}
+                                                            <button
+                                                                onClick={() => {
+                                                                    setActiveSelector({ type: 'dynamic', index: idx, field: 'imageUrl' });
+                                                                    setIsAssetPickerOpen(true);
+                                                                }}
+                                                                className="absolute inset-0 bg-cafh-indigo/60 text-white opacity-0 group-hover/it:opacity-100 flex items-center justify-center gap-2 transition-all font-bold text-xs"
+                                                            >
+                                                                <Sparkles size={16} /> MEDIA
+                                                            </button>
+                                                        </div>
+                                                        <div className="flex bg-slate-100 p-1 rounded-xl">
+                                                            <button
+                                                                onClick={() => {
+                                                                    const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                    newDynamic[idx].content.imagePosition = 'left';
+                                                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                }}
+                                                                className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all ${section.content.imagePosition !== 'right' ? 'bg-white text-cafh-indigo shadow-sm' : 'text-slate-400'}`}
+                                                            >
+                                                                IZQUIERDA
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                    newDynamic[idx].content.imagePosition = 'right';
+                                                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                }}
+                                                                className={`flex-1 py-1.5 text-[10px] font-bold rounded-lg transition-all ${section.content.imagePosition === 'right' ? 'bg-white text-cafh-indigo shadow-sm' : 'text-slate-400'}`}
+                                                            >
+                                                                DERECHA
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* GALLERY EDITOR */}
+                                        {section.type === 'Gallery' && (
+                                            <div className="space-y-4">
+                                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                                                    {(section.content.images || []).map((img: string, i: number) => (
+                                                        <div key={i} className="relative aspect-square rounded-xl overflow-hidden group shadow-sm">
+                                                            <img src={img} alt="" className="w-full h-full object-cover" />
+                                                            <button
+                                                                onClick={() => {
+                                                                    const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                    newDynamic[idx].content.images.splice(i, 1);
+                                                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                }}
+                                                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                                            >
+                                                                <X size={10} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                    <button
+                                                        onClick={() => {
+                                                            setActiveSelector({ type: 'dynamic', index: idx, field: 'images' });
+                                                            setIsAssetPickerOpen(true);
+                                                        }}
+                                                        className="aspect-square border-2 border-dashed border-slate-100 rounded-xl flex items-center justify-center text-slate-300 hover:border-cafh-indigo hover:text-cafh-indigo transition-all"
+                                                    >
+                                                        <Plus size={20} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* AUTOMATIC SECTIONS (Master Blocks) */}
+                                        {(section.type === 'ResourcesGrid' || section.type === 'EventsCalendar' || section.type === 'Timeline' || section.type === 'MethodPillars') && (
+                                            <div className="p-6 bg-purple-50/50 rounded-[1.5rem] border border-purple-100 text-center">
+                                                <Layers className="mx-auto text-purple-400 mb-2" size={32} />
+                                                <p className="text-[10px] font-black text-purple-600 uppercase tracking-widest">Bloque Automatizado Maestro</p>
+                                                <p className="text-[10px] text-purple-500 italic mt-1 max-w-xs mx-auto">Este contenido se inyecta dinámicamente desde el centro de datos de la plataforma. No requiere edición manual.</p>
+                                            </div>
+                                        )}
+                                        <div className="pt-6 mt-6 border-t border-slate-100 flex items-center justify-between">
+                                            <div className="flex gap-4 items-center">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase mb-1">Fondo</span>
+                                                    <select
+                                                        value={section.settings?.backgroundColor || 'bg-white'}
+                                                        onChange={e => {
+                                                            const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                            newDynamic[idx].settings = { ...(newDynamic[idx].settings || {}), backgroundColor: e.target.value };
+                                                            setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                        }}
+                                                        className="px-2 py-1 text-[10px] bg-slate-50 border border-slate-100 rounded-lg outline-none cursor-pointer hover:bg-slate-100 transition-colors"
+                                                    >
+                                                        <option value="bg-white">Blanco</option>
+                                                        <option value="bg-slate-50">Gris Suave</option>
+                                                        <option value="bg-cafh-indigo text-white">Azul Cafh</option>
+                                                        <option value="bg-slate-900 text-white">Oscuro</option>
+                                                        <option value="bg-amber-50">Crema</option>
+                                                    </select>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] font-bold text-slate-400 uppercase mb-1">Padding</span>
+                                                    <select
+                                                        value={section.settings?.padding || 'medium'}
+                                                        onChange={e => {
+                                                            const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                            newDynamic[idx].settings = { ...(newDynamic[idx].settings || {}), padding: e.target.value };
+                                                            setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                        }}
+                                                        className="px-2 py-1 text-[10px] bg-slate-50 border border-slate-100 rounded-lg outline-none cursor-pointer hover:bg-slate-100 transition-colors"
+                                                    >
+                                                        <option value="none">Sin Espacio</option>
+                                                        <option value="small">Mínimo</option>
+                                                        <option value="medium">Estándar</option>
+                                                        <option value="large">Amplio</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Settings size={14} className="text-slate-300" />
+                                                <p className="text-[10px] text-slate-400 italic">V1.0 • Paridad Estructural Lograda</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-[9px] text-slate-300 italic text-center mt-4">Para ediciones estructurales avanzadas, usa el editor de páginas internas y clona bloques si es necesario.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="bg-slate-100/50 p-8 rounded-[2rem] border-2 border-dashed border-slate-200">
+                        <h4 className="text-sm font-bold text-slate-500 mb-6 flex items-center gap-2 justify-center">
+                            <PlusSquare size={16} />
+                            Añadir Bloque Modular al Inicio
+                        </h4>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                            <button onClick={() => addDynamicSection('Text')} className="flex flex-col items-center gap-2 p-4 bg-white hover:bg-cafh-indigo/5 rounded-2xl transition-all group shadow-sm border border-slate-100">
+                                <Type size={18} className="text-slate-400 group-hover:text-cafh-indigo" />
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">Texto</span>
+                            </button>
+                            <button onClick={() => addDynamicSection('Accordion')} className="flex flex-col items-center gap-2 p-4 bg-white hover:bg-cafh-indigo/5 rounded-2xl transition-all group shadow-sm border border-slate-100">
+                                <ChevronDown size={18} className="text-slate-400 group-hover:text-cafh-indigo" />
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">Acordeón</span>
+                            </button>
+                            <button onClick={() => addDynamicSection('Table')} className="flex flex-col items-center gap-2 p-4 bg-white hover:bg-cafh-indigo/5 rounded-2xl transition-all group shadow-sm border border-slate-100">
+                                <Table2 size={18} className="text-slate-400 group-hover:text-cafh-indigo" />
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">Tabla</span>
+                            </button>
+                            <button onClick={() => addDynamicSection('Tabs')} className="flex flex-col items-center gap-2 p-4 bg-white hover:bg-cafh-indigo/5 rounded-2xl transition-all group shadow-sm border border-slate-100">
+                                <FolderOpen size={18} className="text-slate-400 group-hover:text-cafh-indigo" />
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">Pestañas</span>
+                            </button>
+                            <button onClick={() => addDynamicSection('VideoGrid')} className="flex flex-col items-center gap-2 p-4 bg-white hover:bg-cafh-indigo/5 rounded-2xl transition-all group shadow-sm border border-slate-100">
+                                <PlaySquare size={18} className="text-slate-400 group-hover:text-cafh-indigo" />
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">Galería Video</span>
+                            </button>
+                            <button onClick={() => addDynamicSection('Stats')} className="flex flex-col items-center gap-2 p-4 bg-white hover:bg-cafh-indigo/5 rounded-2xl transition-all group shadow-sm border border-slate-100">
+                                <Activity size={18} className="text-slate-400 group-hover:text-cafh-indigo" />
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">Métricas</span>
+                            </button>
+                            <button onClick={() => addDynamicSection('Cards')} className="flex flex-col items-center gap-2 p-4 bg-white hover:bg-cafh-indigo/5 rounded-2xl transition-all group shadow-sm border border-slate-100">
+                                <Grid size={18} className="text-slate-400 group-hover:text-cafh-indigo" />
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">Tarjetas</span>
+                            </button>
+                            <button onClick={() => addDynamicSection('IconGrid')} className="flex flex-col items-center gap-2 p-4 bg-white hover:bg-cafh-indigo/5 rounded-2xl transition-all group shadow-sm border border-slate-100">
+                                <Heart size={18} className="text-slate-400 group-hover:text-cafh-indigo" />
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">Iconos</span>
+                            </button>
+                            <button onClick={() => addDynamicSection('CTA')} className="flex flex-col items-center gap-2 p-4 bg-white hover:bg-cafh-indigo/5 rounded-2xl transition-all group shadow-sm border border-slate-100">
+                                <MousePointer size={18} className="text-slate-400 group-hover:text-cafh-indigo" />
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">Botón CTA</span>
+                            </button>
+                            <button onClick={() => addDynamicSection('Gallery')} className="flex flex-col items-center gap-2 p-4 bg-white hover:bg-cafh-indigo/5 rounded-2xl transition-all group shadow-sm border border-slate-100">
+                                <Image size={18} className="text-slate-400 group-hover:text-cafh-indigo" />
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">Galería Fotos</span>
+                            </button>
+                            <button onClick={() => addDynamicSection('ResourcesGrid')} className="flex flex-col items-center gap-2 p-4 bg-purple-50 hover:bg-purple-100 rounded-2xl transition-all group shadow-sm border border-purple-200">
+                                <Layers size={18} className="text-purple-400 group-hover:text-purple-600" />
+                                <span className="text-[10px] font-bold text-purple-600 uppercase">Recursos</span>
+                            </button>
+                            <button onClick={() => addDynamicSection('EventsCalendar')} className="flex flex-col items-center gap-2 p-4 bg-purple-50 hover:bg-purple-100 rounded-2xl transition-all group shadow-sm border border-purple-200">
+                                <CalendarIcon size={18} className="text-purple-400 group-hover:text-purple-600" />
+                                <span className="text-[10px] font-bold text-purple-600 uppercase">Calendario</span>
+                            </button>
+                            <button onClick={() => addDynamicSection('Timeline')} className="flex flex-col items-center gap-2 p-4 bg-purple-50 hover:bg-purple-100 rounded-2xl transition-all group shadow-sm border border-purple-200">
+                                <Clock size={18} className="text-purple-400 group-hover:text-purple-600" />
+                                <span className="text-[10px] font-bold text-purple-600 uppercase">Timeline</span>
+                            </button>
+                            <button onClick={() => addDynamicSection('MethodPillars')} className="flex flex-col items-center gap-2 p-4 bg-purple-50 hover:bg-purple-100 rounded-2xl transition-all group shadow-sm border border-purple-200">
+                                <Zap size={18} className="text-purple-400 group-hover:text-purple-600" />
+                                <span className="text-[10px] font-bold text-purple-600 uppercase">Pilares</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div className="space-y-8">
@@ -4408,6 +5436,29 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                     onChange={e => setLocalConfig({ ...localConfig, footer: { ...localConfig.footer, leadSourceTag: e.target.value } })}
                                     className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-xs outline-none font-mono"
                                     placeholder="ej: Footer_Home"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Local SEO for Home */}
+                        <div className="space-y-4">
+                            <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-widest">SEO de la Home</h4>
+                            <div>
+                                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Meta Title</label>
+                                <input
+                                    type="text"
+                                    value={localConfig.seo?.title || ''}
+                                    onChange={e => setLocalConfig({ ...localConfig, seo: { ...(localConfig.seo || { title: '', description: '' }), title: e.target.value } })}
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-xs outline-none"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Meta Description</label>
+                                <textarea
+                                    rows={3}
+                                    value={localConfig.seo?.description || ''}
+                                    onChange={e => setLocalConfig({ ...localConfig, seo: { ...(localConfig.seo || { title: '', description: '' }), description: e.target.value } })}
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-xs outline-none resize-none"
                                 />
                             </div>
                         </div>
@@ -4573,6 +5624,13 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                 allowedMediaTypes={['image', 'video']}
                 title="Seleccionar Fondo o Recurso"
                 description="Elige una imagen o video para el fondo, o un ícono del sistema si lo prefieres."
+            />
+
+            <PagePickerModal
+                isOpen={isPagePickerOpen}
+                onClose={() => setIsPagePickerOpen(false)}
+                onSelect={handlePageLinkSelect}
+                pages={allPages}
             />
         </div>
     );
@@ -5128,6 +6186,7 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
     const [isPagePickerOpen, setIsPagePickerOpen] = useState(false);
     const [allPages, setAllPages] = useState<CustomPage[]>([]);
     const [activeSelector, setActiveSelector] = useState<{ sectionIdx: number; itemIdx: number | null; field?: string } | null>(null);
+    const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
 
     useEffect(() => {
         setAllPages(db.cms.getPages());

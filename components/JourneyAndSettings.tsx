@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Save, X, ChevronRight, Settings, Globe2, Bell, Lock, Users, Database, Compass, Tag, Package, Star, Sliders, CheckCircle2, AlertCircle, Film, Image as ImageIcon, Palette } from 'lucide-react';
-import { db } from '../storage';
+import { db, safeSetItem, KEYS } from '../storage';
 import type { WizardQuestion, WizardOptionEditable, ProfileType, ProfileKitItem, SiteSettings, AdminUser, UserRole, WizardSplashConfig } from '../types';
 
 // ─── DEFAULTS ────────────────────────────────────────────────
@@ -48,7 +48,7 @@ const LS_PROFILES = 'cafh_journey_profiles_v1';
 const LS_SETTINGS = 'cafh_site_settings_v1';
 
 function loadLS<T>(key: string, def: T): T { try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : def; } catch { return def; } }
-function saveLS(key: string, val: any) { try { localStorage.setItem(key, JSON.stringify(val)); } catch { } }
+function saveLS(key: string, val: any) { safeSetItem(key, val); }
 
 // ─── JOURNEY VIEW ─────────────────────────────────────────────
 type JTab = 'questions' | 'profiles' | 'splash';
@@ -678,8 +678,89 @@ export const SettingsView: React.FC = () => {
                         </button>
                         <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl">
                             <p className="text-sm font-bold text-slate-700 mb-1 flex items-center gap-2"><Database size={16} /> Almacenamiento usado</p>
-                            <p className="text-3xl font-extrabold text-cafh-indigo">{(JSON.stringify(localStorage).length / 1024).toFixed(0)} KB</p>
-                            <p className="text-xs text-slate-400 mt-1">de ~5 MB disponibles en localStorage</p>
+                            <p className="text-3xl font-extrabold text-cafh-indigo">{db.system.getStorageUsage().totalKB} KB</p>
+                            <p className="text-xs text-slate-400 mt-1">de ~{db.system.getStorageUsage().totalMB} MB usados</p>
+                        </div>
+
+                        {/* CLOUD SYNC & GLOBAL HISTORY */}
+                        <div className="col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mt-2">
+                            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-emerald-50/30">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+                                        <Globe size={18} />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-slate-800">Cloud Sync & Regla Superior</h4>
+                                        <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Base de Datos Híbrida (Git + Local)</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[9px] bg-emerald-500/10 text-emerald-600 px-2 py-0.5 rounded-full font-bold">Activo</span>
+                                </div>
+                            </div>
+
+                            <div className="p-6 space-y-6">
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">URL del JSON Externo (GitHub/Drive)</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="https://raw.githubusercontent.com/..."
+                                            className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                                            defaultValue={db.system.getRemoteUrl()}
+                                            onBlur={(e) => db.system.setRemoteUrl(e.target.value)}
+                                        />
+                                        <button
+                                            onClick={async () => {
+                                                const res = await db.system.syncRemote();
+                                                if (res.status === 'success') alert('Sincronización Git exitosa.');
+                                                else alert('Error en sincronización. Revisa la URL.');
+                                            }}
+                                            className="px-6 py-2.5 bg-emerald-500 text-white rounded-xl font-bold text-sm hover:bg-emerald-600 transition-all flex items-center gap-2 shrink-0"
+                                        >
+                                            <ArrowRight size={16} /> Mezclar Ahora
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-slate-400 mt-2">
+                                        El sistema mezclará los datos locales con este archivo. Los IDs del servidor tienen prioridad absoluta.
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">Última Sincronización</span>
+                                        <span className="text-sm font-bold text-slate-700">{localStorage.getItem('cafh_last_sync') || 'Nunca'}</span>
+                                    </div>
+                                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">Backup GitHub</span>
+                                        <button
+                                            onClick={() => {
+                                                const data = db.system.exportAll();
+                                                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                                                const url = URL.createObjectURL(blob);
+                                                const a = document.createElement('a'); a.href = url; a.download = 'external_db.json'; a.click();
+                                            }}
+                                            className="text-xs font-bold text-emerald-600 hover:text-emerald-700 underline"
+                                        >
+                                            Descargar external_db.json para Commit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="col-span-2 p-6 bg-slate-50 border border-slate-100 rounded-3xl overflow-hidden">
+                            <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Detalle de llaves en memoria</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                {Object.entries(db.system.getStorageUsage().details || {}).map(([key, size]) => (
+                                    <div key={key} className="p-3 bg-white border border-slate-100 rounded-xl flex items-center justify-between">
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] font-mono text-slate-400 truncate w-32">{key}</span>
+                                            <span className="text-xs font-bold text-slate-700">{size as number} KB</span>
+                                        </div>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 opacity-50" />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                         <div className="col-span-2 bg-red-50 border border-red-200 rounded-2xl p-5">
                             <p className="text-sm font-bold text-red-700 mb-1">⚠️ Zona de Peligro</p>

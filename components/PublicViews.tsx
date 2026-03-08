@@ -4,7 +4,7 @@ import * as Lucide from 'lucide-react';
 import { Play, ArrowRight, Heart, Users, BookOpen, MapPin, Mail, ChevronRight, Flower2, Sparkles, Wind, Sun, X, Loader2, Check, Calendar, Mic, FileText, User, Headphones, Activity, Clock, Lock, ArrowLeft, AlertCircle, ChevronLeft, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { MOCK_WIZARD_STEPS, MOCK_EVENTS } from '../constants';
-import { db } from '../storage';
+import { db, safeSetItem, KEYS } from '../storage';
 import { UserRole, HeroConfig, BlogPost, BlogConfig, HomeConfig, CustomPage, PageSection, WizardQuestion, ProfileType, UserWizardProfile, WizardSplashConfig } from '../types';
 import Markdown from 'react-markdown';
 
@@ -641,18 +641,254 @@ const VideoGridSection = ({ section, bgClass, paddingClass, containerClass, onVi
 
 // --- END DYNAMIC PREDEFINED BLOCKS ---
 
+// --- SHARED SECTION RENDERER ---
+export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section }) => {
+    const navigate = useNavigate();
+    const { type, content, settings } = section;
+    const bgClass = settings?.backgroundColor || 'bg-white';
+    const paddingClass = settings?.padding === 'small' ? 'py-10' : settings?.padding === 'large' ? 'py-32' : 'py-20';
+    const containerClass = settings?.containerSize === 'narrow' ? 'max-w-3xl' : settings?.containerSize === 'full' ? 'max-w-none px-0' : 'max-w-7xl';
+
+    switch (type) {
+        case 'Hero':
+            return (
+                <section key={section.id} className="relative h-[60vh] md:h-[70vh] flex items-center overflow-hidden">
+                    <div className="absolute inset-0 z-0">
+                        <img src={content.imageUrl} alt={content.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-cafh-indigo/90 to-transparent"></div>
+                    </div>
+                    <div className="max-w-7xl mx-auto px-6 relative z-10 text-white">
+                        <h1 className="text-5xl md:text-7xl font-display font-bold mb-6 animate-fade-in-up">{content.title}</h1>
+                        {content.subtitle && <p className="text-xl md:text-2xl text-white/80 max-w-2xl mb-10 animate-fade-in-up delay-100">{content.subtitle}</p>}
+                        {content.ctaText && (
+                            <button onClick={() => navigate(content.ctaLink)} className="px-8 py-4 bg-cafh-cyan text-cafh-indigo rounded-2xl font-bold hover:bg-white transition-all animate-fade-in-up delay-200">
+                                {content.ctaText}
+                            </button>
+                        )}
+                    </div>
+                </section>
+            );
+        case 'Text':
+            return (
+                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                    <div className={`${containerClass} mx-auto px-6`}>
+                        <div
+                            className="markdown-body prose prose-slate prose-lg max-w-none"
+                            dangerouslySetInnerHTML={{ __html: content.text || '' }}
+                        />
+                    </div>
+                </section>
+            );
+        case 'Image':
+            return (
+                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                    <div className={`${containerClass} mx-auto px-6`}>
+                        <div className="rounded-[2.5rem] overflow-hidden shadow-2xl">
+                            <img src={content.imageUrl} alt={content.caption} className="w-full h-auto" referrerPolicy="no-referrer" />
+                        </div>
+                        {content.caption && <p className="text-center text-slate-400 mt-6 text-sm italic">{content.caption}</p>}
+                    </div>
+                </section>
+            );
+        case 'ImageText':
+            return (
+                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                    <div className={`${containerClass} mx-auto px-6`}>
+                        <div className={`flex flex-col md:flex-row items-center gap-12 ${content.imagePosition === 'right' ? 'md:flex-row-reverse' : ''}`}>
+                            <div className="flex-1 space-y-6">
+                                <h2 className="text-3xl md:text-5xl font-display font-bold text-slate-800 leading-tight">{content.title}</h2>
+                                <div
+                                    className="text-slate-600 text-lg leading-relaxed prose prose-slate max-w-none"
+                                    dangerouslySetInnerHTML={{ __html: content.text || '' }}
+                                />
+                            </div>
+                            <div className="flex-1 w-full">
+                                <div className="rounded-[2.5rem] overflow-hidden shadow-2xl hover:scale-[1.02] transition-transform duration-500">
+                                    <img src={content.imageUrl} alt={content.title} className="w-full h-auto object-cover max-h-[500px]" referrerPolicy="no-referrer" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        case 'Stats':
+            return (
+                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                    <div className={`${containerClass} mx-auto px-6`}>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                            {content.items.map((item: any, i: number) => {
+                                const Icon = (Lucide as any)[item.icon] || Lucide.Activity;
+                                return (
+                                    <div key={i} className="text-center space-y-3">
+                                        <div className="w-16 h-16 bg-cafh-light rounded-2xl flex items-center justify-center text-cafh-indigo mx-auto shadow-sm">
+                                            <Icon size={32} strokeWidth={1.5} />
+                                        </div>
+                                        <div className="text-4xl font-display font-bold text-slate-800">{item.value}</div>
+                                        <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">{item.label}</div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+            );
+        case 'Cards':
+            return (
+                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                    <div className={`${containerClass} mx-auto px-6`}>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {content.items.map((item: any, i: number) => {
+                                const Icon = (Lucide as any)[item.icon] || Lucide.Star;
+                                return (
+                                    <div key={i} className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
+                                        <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-cafh-indigo mb-6 group-hover:scale-110 transition-transform">
+                                            <Icon size={28} strokeWidth={1.5} />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-slate-800 mb-4">{item.title}</h3>
+                                        <div
+                                            className="text-slate-500 leading-relaxed prose prose-slate prose-sm max-w-none"
+                                            dangerouslySetInnerHTML={{ __html: item.description || '' }}
+                                        />
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+            );
+        case 'CTA':
+            return (
+                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                    <div className={`${containerClass} mx-auto px-6`}>
+                        <div className="bg-cafh-indigo rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-cafh-cyan/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                            <div className="relative z-10 space-y-8">
+                                <h3 className="text-4xl md:text-6xl font-display font-bold text-white max-w-4xl mx-auto leading-tight">{content.title}</h3>
+                                {content.text && <p className="text-xl text-blue-100/80 max-w-2xl mx-auto leading-relaxed">{content.text}</p>}
+                                <button
+                                    onClick={() => navigate(content.link)}
+                                    className="inline-flex items-center gap-2 px-10 py-5 bg-cafh-cyan text-cafh-indigo rounded-2xl font-bold hover:bg-white hover:scale-105 transition-all shadow-[0_20px_40px_rgba(111,207,235,0.3)]"
+                                >
+                                    {content.buttonText || 'Saber Más'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        case 'IconGrid':
+            return (
+                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                    <div className={`${containerClass} mx-auto px-6`}>
+                        <div className="text-center mb-16">
+                            {content.subtitle && <span className="text-xs font-bold text-cafh-indigo uppercase tracking-widest bg-cafh-indigo/5 px-4 py-2 rounded-full">{content.subtitle}</span>}
+                            <h2 className="text-4xl md:text-5xl font-display font-bold text-slate-800 mt-6">{content.title}</h2>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            {content.items.map((item: any, i: number) => {
+                                const Icon = (Lucide as any)[item.icon] || Lucide.Activity;
+                                return (
+                                    <div key={i} className="bg-slate-50/50 p-8 rounded-[2rem] border border-slate-100 hover:bg-white hover:shadow-xl transition-all group">
+                                        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-cafh-indigo mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                                            <Icon size={32} strokeWidth={1.5} />
+                                        </div>
+                                        <h4 className="text-xl font-bold text-slate-800 mb-3">{item.label}</h4>
+                                        <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+            );
+        case 'Gallery':
+            return (
+                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                    <div className={`${containerClass} mx-auto px-6`}>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {content.images.map((img: string, i: number) => (
+                                <div key={i} className="aspect-square rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all group cursor-pointer">
+                                    <img src={img} alt={`Gallery ${i}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            );
+        case 'Video':
+            return (
+                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                    <div className={`${containerClass} mx-auto px-6`}>
+                        {content.title && <h3 className="text-2xl font-bold text-slate-800 mb-8 text-center">{content.title}</h3>}
+                        <div className="aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl bg-slate-900">
+                            <iframe
+                                className="w-full h-full"
+                                src={`https://www.youtube.com/embed/${content.videoId}`}
+                                title={content.title || "Video"}
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                            ></iframe>
+                        </div>
+                    </div>
+                </section>
+            );
+        case 'Accordion':
+            return (
+                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                    <div className={`${containerClass} mx-auto px-6`}>
+                        <div className="max-w-4xl mx-auto">
+                            <h2 className="text-4xl font-display font-bold text-slate-800 text-center mb-12">{content.title}</h2>
+                            <div className="space-y-4">
+                                {content.items?.map((item: any, i: number) => (
+                                    <details key={i} className="group bg-slate-50 rounded-3xl border border-slate-100 overflow-hidden [&_summary::-webkit-details-marker]:hidden transition-all">
+                                        <summary className="flex items-center justify-between p-6 cursor-pointer hover:bg-white transition-colors duration-300">
+                                            <h3 className="text-xl font-bold text-slate-700">{item.title}</h3>
+                                            <span className="p-2 bg-white rounded-xl shadow-sm group-open:rotate-180 transition-all duration-300">
+                                                <Lucide.ChevronDown size={20} className="text-cafh-indigo" />
+                                            </span>
+                                        </summary>
+                                        <div className="px-6 pb-6 text-slate-600 leading-relaxed border-t border-slate-100 pt-6">
+                                            <div dangerouslySetInnerHTML={{ __html: item.content || '' }} />
+                                        </div>
+                                    </details>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        case 'Table': return <TableSection section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
+        case 'VideoGrid': return <VideoGridSection section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
+        case 'Tabs': return <TabsSection section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
+        // Specialized Blocks
+        case 'ResourcesGrid': return <DynamicResourcesGrid bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
+        case 'Timeline': return <DynamicTimeline bgClass="bg-slate-900" paddingClass={paddingClass} containerClass={containerClass} />;
+        case 'MethodPillars': return <DynamicMethodPillars bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
+        default: return null;
+    }
+};
+
 export const DynamicPageView: React.FC<{ slug: string }> = ({ slug }) => {
     const navigate = useNavigate();
     const [page, setPage] = useState<CustomPage | undefined>(undefined);
     const [isLoading, setIsLoading] = useState(true);
-    const [videoModal, setVideoModal] = useState({ isOpen: false, videoId: '' });
-    const [imageModal, setImageModal] = useState({ isOpen: false, imageUrl: '' });
 
     useEffect(() => {
         const p = db.cms.getPageBySlug(slug);
         setPage(p);
         setIsLoading(false);
         window.scrollTo(0, 0);
+
+        if (p?.seo) {
+            document.title = p.seo.title || (p.title + ' — Cafh');
+            const metaDescription = document.querySelector('meta[name="description"]');
+            if (metaDescription) {
+                metaDescription.setAttribute('content', p.seo.description || '');
+            }
+        } else if (p) {
+            document.title = p.title + ' — Cafh';
+        }
     }, [slug]);
 
     if (isLoading) {
@@ -678,245 +914,11 @@ export const DynamicPageView: React.FC<{ slug: string }> = ({ slug }) => {
         );
     }
 
-    const renderPageSection = (section: PageSection) => {
-        const { type, content, settings } = section;
-        const bgClass = settings?.backgroundColor || 'bg-white';
-        const paddingClass = settings?.padding === 'small' ? 'py-10' : settings?.padding === 'large' ? 'py-32' : 'py-20';
-        const containerClass = settings?.containerSize === 'narrow' ? 'max-w-3xl' : settings?.containerSize === 'full' ? 'max-w-none px-0' : 'max-w-7xl';
-
-        switch (type) {
-            case 'Hero':
-                return (
-                    <section key={section.id} className="relative h-[60vh] md:h-[70vh] flex items-center overflow-hidden">
-                        <div className="absolute inset-0 z-0">
-                            <img src={content.imageUrl} alt={content.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                            <div className="absolute inset-0 bg-gradient-to-r from-cafh-indigo/90 to-transparent"></div>
-                        </div>
-                        <div className="max-w-7xl mx-auto px-6 relative z-10 text-white">
-                            <h1 className="text-5xl md:text-7xl font-display font-bold mb-6 animate-fade-in-up">{content.title}</h1>
-                            {content.subtitle && <p className="text-xl md:text-2xl text-white/80 max-w-2xl mb-10 animate-fade-in-up delay-100">{content.subtitle}</p>}
-                            {content.ctaText && (
-                                <button onClick={() => navigate(content.ctaLink)} className="px-8 py-4 bg-cafh-cyan text-cafh-indigo rounded-2xl font-bold hover:bg-white transition-all animate-fade-in-up delay-200">
-                                    {content.ctaText}
-                                </button>
-                            )}
-                        </div>
-                    </section>
-                );
-            case 'Text':
-                return (
-                    <section key={section.id} className={`${bgClass} ${paddingClass}`}>
-                        <div className={`${containerClass} mx-auto px-6`}>
-                            <div
-                                className="markdown-body prose prose-slate prose-lg max-w-none"
-                                dangerouslySetInnerHTML={{ __html: content.text || '' }}
-                            />
-                        </div>
-                    </section>
-                );
-            case 'Image':
-                return (
-                    <section key={section.id} className={`${bgClass} ${paddingClass}`}>
-                        <div className={`${containerClass} mx-auto px-6`}>
-                            <div className="rounded-[2.5rem] overflow-hidden shadow-2xl">
-                                <img src={content.imageUrl} alt={content.caption} className="w-full h-auto" referrerPolicy="no-referrer" />
-                            </div>
-                            {content.caption && <p className="text-center text-slate-400 mt-6 text-sm italic">{content.caption}</p>}
-                        </div>
-                    </section>
-                );
-            case 'ImageText':
-                return (
-                    <section key={section.id} className={`${bgClass} ${paddingClass}`}>
-                        <div className={`${containerClass} mx-auto px-6`}>
-                            <div className={`flex flex-col md:flex-row items-center gap-12 ${content.imagePosition === 'right' ? 'md:flex-row-reverse' : ''}`}>
-                                <div className="flex-1 space-y-6">
-                                    <h2 className="text-3xl md:text-5xl font-display font-bold text-slate-800 leading-tight">{content.title}</h2>
-                                    <div
-                                        className="text-slate-600 text-lg leading-relaxed prose prose-slate max-w-none"
-                                        dangerouslySetInnerHTML={{ __html: content.text || '' }}
-                                    />
-                                </div>
-                                <div className="flex-1 w-full">
-                                    <div className="rounded-[2.5rem] overflow-hidden shadow-2xl hover:scale-[1.02] transition-transform duration-500">
-                                        <img src={content.imageUrl} alt={content.title} className="w-full h-auto object-cover max-h-[500px]" referrerPolicy="no-referrer" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                );
-            case 'Stats':
-                return (
-                    <section key={section.id} className={`${bgClass} ${paddingClass}`}>
-                        <div className={`${containerClass} mx-auto px-6`}>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                                {content.items.map((item: any, i: number) => {
-                                    const Icon = (Lucide as any)[item.icon] || Lucide.Activity;
-                                    return (
-                                        <div key={i} className="text-center space-y-3">
-                                            <div className="w-16 h-16 bg-cafh-light rounded-2xl flex items-center justify-center text-cafh-indigo mx-auto shadow-sm">
-                                                <Icon size={32} strokeWidth={1.5} />
-                                            </div>
-                                            <div className="text-4xl font-display font-bold text-slate-800">{item.value}</div>
-                                            <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">{item.label}</div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </section>
-                );
-            case 'Cards':
-                return (
-                    <section key={section.id} className={`${bgClass} ${paddingClass}`}>
-                        <div className={`${containerClass} mx-auto px-6`}>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                {content.items.map((item: any, i: number) => {
-                                    const Icon = (Lucide as any)[item.icon] || Lucide.Star;
-                                    return (
-                                        <div key={i} className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
-                                            <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-cafh-indigo mb-6 group-hover:scale-110 transition-transform">
-                                                <Icon size={28} strokeWidth={1.5} />
-                                            </div>
-                                            <h3 className="text-xl font-bold text-slate-800 mb-4">{item.title}</h3>
-                                            <div
-                                                className="text-slate-500 leading-relaxed prose prose-slate prose-sm max-w-none"
-                                                dangerouslySetInnerHTML={{ __html: item.description || '' }}
-                                            />
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </section>
-                );
-            case 'CTA':
-                return (
-                    <section key={section.id} className={`${bgClass} ${paddingClass}`}>
-                        <div className={`${containerClass} mx-auto px-6`}>
-                            <div className="bg-cafh-indigo rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-cafh-cyan/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
-                                <div className="relative z-10">
-                                    <h2 className="text-4xl md:text-5xl font-display font-bold text-white mb-6">{content.title}</h2>
-                                    <div
-                                        className="text-white/70 text-lg mb-10 max-w-2xl mx-auto prose prose-invert max-w-none"
-                                        dangerouslySetInnerHTML={{ __html: content.text || '' }}
-                                    />
-                                    <button onClick={() => navigate(content.buttonLink)} className="px-10 py-5 bg-cafh-cyan text-cafh-indigo rounded-2xl font-bold hover:bg-white transition-all shadow-xl shadow-cafh-cyan/20">
-                                        {content.buttonText}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                );
-            case 'IconGrid':
-                return (
-                    <section key={section.id} className={`${bgClass} ${paddingClass}`}>
-                        <div className={`${containerClass} mx-auto px-6`}>
-                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                                {content.items.map((item: any, i: number) => {
-                                    const Icon = (Lucide as any)[item.icon] || Lucide.HelpCircle;
-                                    return (
-                                        <div key={i} className="flex flex-col items-center text-center p-6 bg-white rounded-3xl border border-slate-50 shadow-sm hover:shadow-md transition-all">
-                                            <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-cafh-indigo mb-3">
-                                                <Icon size={24} strokeWidth={1.5} />
-                                            </div>
-                                            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{item.label}</span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </section>
-                );
-            case 'Gallery':
-                return (
-                    <section key={section.id} className={`${bgClass} ${paddingClass}`}>
-                        <div className={`${containerClass} mx-auto px-6`}>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                                {content.images.map((img: string, i: number) => (
-                                    <div key={i} className="aspect-square rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all group cursor-pointer" onClick={() => setImageModal({ isOpen: true, imageUrl: img })}>
-                                        <img src={img} alt={`Gallery ${i}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </section>
-                );
-            case 'Video':
-                return (
-                    <section key={section.id} className={`${bgClass} ${paddingClass}`}>
-                        <div className={`${containerClass} mx-auto px-6`}>
-                            {content.title && <h3 className="text-2xl font-bold text-slate-800 mb-8 text-center">{content.title}</h3>}
-                            <div className="aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl bg-slate-900">
-                                <iframe
-                                    className="w-full h-full"
-                                    src={`https://www.youtube.com/embed/${content.videoId}`}
-                                    title={content.title || "Video"}
-                                    frameBorder="0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                ></iframe>
-                            </div>
-                        </div>
-                    </section>
-                );
-            case 'Accordion':
-                return (
-                    <section key={section.id} className={`${bgClass} ${paddingClass}`}>
-                        <div className={`${containerClass} mx-auto px-6`}>
-                            <div className="space-y-4">
-                                {content.items.map((item: any, i: number) => (
-                                    <details key={i} className="group bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                                        <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
-                                            <span className="font-bold text-slate-800">{item.title}</span>
-                                            <ChevronDown size={20} className="text-slate-400 group-open:rotate-180 transition-transform" />
-                                        </summary>
-                                        <div
-                                            className="px-6 pb-6 text-slate-600 leading-relaxed border-t border-slate-50 pt-4 prose prose-slate max-w-none prose-p:my-2"
-                                            dangerouslySetInnerHTML={{ __html: item.content || '' }}
-                                        />
-                                    </details>
-                                ))}
-                            </div>
-                        </div>
-                    </section>
-                );
-
-            case 'ResourcesGrid':
-                return <DynamicResourcesGrid key={section.id} section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
-            case 'EventsCalendar':
-                return <DynamicEventsCalendar key={section.id} section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
-            case 'Timeline':
-                return <DynamicTimeline key={section.id} section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
-            case 'MethodPillars':
-                return <DynamicMethodPillars key={section.id} section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
-            case 'Table':
-                return <TableSection key={section.id} section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
-            case 'Tabs':
-                return <TabsSection key={section.id} section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
-            case 'VideoGrid':
-                return <VideoGridSection key={section.id} section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} onVideoSelect={(id: string) => setVideoModal({ isOpen: true, videoId: id })} />;
-            default:
-                return null;
-        }
-    };
-
     return (
-        <div className="w-full bg-slate-50">
-            {page.sections.sort((a, b) => a.order - b.order).map(section => renderPageSection(section))}
-            <VideoModal
-                isOpen={videoModal.isOpen}
-                onClose={() => setVideoModal({ ...videoModal, isOpen: false })}
-                videoId={videoModal.videoId}
-            />
-            <ImageModal
-                isOpen={imageModal.isOpen}
-                onClose={() => setImageModal({ ...imageModal, isOpen: false })}
-                imageUrl={imageModal.imageUrl}
-            />
+        <div className="w-full">
+            {page.sections.sort((a, b) => a.order - b.order).map(section => (
+                <SectionRenderer key={section.id} section={section} />
+            ))}
         </div>
     );
 };
@@ -1406,7 +1408,7 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                     finalUser = { ...result.user!, interests: derivedTags };
 
                     // Actualizar sesión con los interests
-                    localStorage.setItem('cafh_user_session_v1', JSON.stringify(finalUser));
+                    safeSetItem(KEYS.SESSION, finalUser);
 
                     // Store password manually for mock login simulation
                     const allUsers = JSON.parse(localStorage.getItem('cafh_users_v1') || '[]');
@@ -1414,7 +1416,7 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                     if (userIndex >= 0) {
                         allUsers[userIndex].password = regPass;
                         allUsers[userIndex].interests = derivedTags;
-                        localStorage.setItem('cafh_users_v1', JSON.stringify(allUsers));
+                        safeSetItem(KEYS.USERS, allUsers);
                     }
                 } else {
                     // Update existing user interests
@@ -1422,7 +1424,7 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                         ...currentUser,
                         interests: Array.from(new Set([...(currentUser.interests || []), ...derivedTags]))
                     };
-                    localStorage.setItem('cafh_user_session_v1', JSON.stringify(finalUser));
+                    safeSetItem(KEYS.SESSION, finalUser);
                 }
 
                 // 2. Save UserWizardProfile (Update or Create)
@@ -1450,7 +1452,7 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                 // Replace if exists, otherwise push
                 const otherProfiles = existingProfiles.filter(p => p.userId !== userId);
                 otherProfiles.push(wizardProfile);
-                localStorage.setItem('cafh_user_wizard_profiles_v1', JSON.stringify(otherProfiles));
+                safeSetItem(KEYS.WIZARD_PROFILES, otherProfiles);
 
                 // 3. Update CRM contact with profile tags
                 const crmTags = [
@@ -1831,6 +1833,15 @@ export const HomeView: React.FC = () => {
         const config = db.cms.getHomeConfig();
         setHomeConfig(config);
 
+        // Update SEO Tags
+        if (config.seo) {
+            document.title = config.seo.title || 'Cafh — Espiritualidad y Método';
+            const metaDescription = document.querySelector('meta[name="description"]');
+            if (metaDescription) {
+                metaDescription.setAttribute('content', config.seo.description || '');
+            }
+        }
+
         let posts = db.blog.getAll();
         if (posts.length === 0) {
             db.init();
@@ -2138,6 +2149,13 @@ export const HomeView: React.FC = () => {
                     </section>
                 );
             default:
+                if (sectionId.startsWith('dynamic_')) {
+                    const dynamicId = sectionId.replace('dynamic_', '');
+                    const dynamicSection = homeConfig.dynamicSections?.find(s => s.id === dynamicId);
+                    if (dynamicSection) {
+                        return <SectionRenderer key={sectionId} section={dynamicSection} />;
+                    }
+                }
                 return null;
         }
     };

@@ -117,19 +117,38 @@ const ActividadesTab: React.FC = () => {
     useEffect(() => { load(); }, [load]);
 
     const openNew = () => { setEditing(null); setForm(emptyEvent()); setTagInput(''); setShowForm(true); };
-    const openEdit = (ev: ActivityEvent) => { setEditing(ev); setForm({ ...ev }); setTagInput(''); setShowForm(true); };
+    const openEdit = (ev: ActivityEvent) => {
+        setEditing(ev);
+        // Garantizar que todos los campos del formulario existan, especialmente recurrence
+        setForm({
+            ...emptyEvent(),
+            ...ev,
+            recurrence: ev.recurrence || emptyEvent().recurrence
+        });
+        setTagInput('');
+        setShowForm(true);
+    };
 
     const handleSave = () => {
-        if (!form.title.trim()) return;
-        if (editing) {
-            db.activities.save({ ...editing, ...form });
-        } else {
-            db.activities.create(form);
+        if (!form.title.trim()) {
+            alert('Por favor, ingresa al menos un título para la actividad.');
+            return;
         }
-        setSaved(true);
-        setTimeout(() => setSaved(false), 1800);
-        setShowForm(false);
-        load();
+
+        try {
+            if (editing) {
+                db.activities.save({ ...editing, ...form });
+            } else {
+                db.activities.create(form);
+            }
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2000);
+            setShowForm(false);
+            load();
+        } catch (err) {
+            console.error("Error al guardar actividad:", err);
+            alert('Hubo un error al guardar la actividad. Revisa la consola para más detalles.');
+        }
     };
 
     const handleDelete = (id: string) => {
@@ -287,7 +306,14 @@ const ActividadesTab: React.FC = () => {
                                                     const d = new Date(form.startDate + 'T12:00:00');
                                                     days = [d.getDay()];
                                                 }
-                                                setForm(f => ({ ...f, recurrence: { ...f.recurrence!, frequency: freq, daysOfWeek: days } }));
+                                                setForm(f => ({
+                                                    ...f,
+                                                    recurrence: {
+                                                        ...(f.recurrence || emptyEvent().recurrence),
+                                                        frequency: freq,
+                                                        daysOfWeek: days
+                                                    }
+                                                }));
                                             }}
                                             className={select}
                                         >
@@ -297,11 +323,17 @@ const ActividadesTab: React.FC = () => {
                                             <option value="monthly">Mensual</option>
                                         </select>
                                     </SField>
-                                    {form.recurrence?.frequency !== 'none' && (
+                                    {form.recurrence?.frequency && form.recurrence.frequency !== 'none' && (
                                         <SField label="Finaliza">
                                             <select
                                                 value={form.recurrence?.endType || 'never'}
-                                                onChange={e => setForm(f => ({ ...f, recurrence: { ...f.recurrence!, endType: e.target.value as any } }))}
+                                                onChange={e => setForm(f => ({
+                                                    ...f,
+                                                    recurrence: {
+                                                        ...(f.recurrence || emptyEvent().recurrence),
+                                                        endType: e.target.value as any
+                                                    }
+                                                }))}
                                                 className={select}
                                             >
                                                 <option value="never">Nunca (Permanente)</option>
@@ -323,7 +355,13 @@ const ActividadesTab: React.FC = () => {
                                                         onClick={() => {
                                                             const current = form.recurrence?.daysOfWeek || [];
                                                             const next = isActive ? current.filter(d => d !== i) : [...current, i];
-                                                            setForm(f => ({ ...f, recurrence: { ...f.recurrence!, daysOfWeek: next } }));
+                                                            setForm(f => ({
+                                                                ...f,
+                                                                recurrence: {
+                                                                    ...(f.recurrence || emptyEvent().recurrence),
+                                                                    daysOfWeek: next
+                                                                }
+                                                            }));
                                                         }}
                                                         className={`w-8 h-8 rounded-lg text-[10px] font-bold border transition-all ${isActive ? 'bg-cafh-indigo text-white border-cafh-indigo shadow-sm shadow-indigo-100' : 'bg-white text-slate-400 border-slate-100 hover:border-slate-200'
                                                             }`}
@@ -336,11 +374,11 @@ const ActividadesTab: React.FC = () => {
                                     </SField>
                                 )}
 
-                                {form.recurrence?.frequency !== 'none' && (
+                                {form.recurrence?.frequency && form.recurrence.frequency !== 'none' && (
                                     <div className="text-xs font-medium text-cafh-indigo/80 bg-cafh-indigo/5 p-3 rounded-xl border border-cafh-indigo/10 flex items-center gap-2">
                                         <div className="w-1.5 h-1.5 rounded-full bg-cafh-indigo animate-pulse" />
-                                        Se repetirá {form.recurrence?.frequency === 'daily' ? 'diariamente' :
-                                            form.recurrence?.frequency === 'weekly' ? `cada semana el ${form.recurrence.daysOfWeek?.map(d => ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][d]).join(', ')}` :
+                                        Se repetirá {form.recurrence.frequency === 'daily' ? 'diariamente' :
+                                            form.recurrence.frequency === 'weekly' ? `cada semana el ${form.recurrence.daysOfWeek?.map(d => ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][d]).join(', ')}` :
                                                 'cada mes'} a las {form.startTime} hrs.
                                     </div>
                                 )}
@@ -350,7 +388,7 @@ const ActividadesTab: React.FC = () => {
                                         <input
                                             type="date"
                                             value={form.recurrence?.endDate || ''}
-                                            onChange={e => setForm(f => ({ ...f, recurrence: { ...f.recurrence!, endDate: e.target.value } }))}
+                                            onChange={e => setForm(f => ({ ...f, recurrence: { ...(f.recurrence || emptyEvent().recurrence), endDate: e.target.value } }))}
                                             className={input}
                                         />
                                     </SField>
@@ -750,8 +788,8 @@ const ParticipantesTab: React.FC = () => {
                                 key={ev.id}
                                 onClick={() => setSelectedEventId(ev.id)}
                                 className={`p-3 rounded-xl cursor-pointer transition-all border ${selectedEventId === ev.id
-                                        ? 'bg-cafh-indigo/5 border-cafh-indigo/20 text-cafh-indigo'
-                                        : 'bg-white border-slate-100 text-slate-600 hover:border-slate-200'
+                                    ? 'bg-cafh-indigo/5 border-cafh-indigo/20 text-cafh-indigo'
+                                    : 'bg-white border-slate-100 text-slate-600 hover:border-slate-200'
                                     }`}
                             >
                                 <p className="text-sm font-bold truncate">{ev.title}</p>

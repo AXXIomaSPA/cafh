@@ -209,6 +209,8 @@ export interface HomeConfig {
     order: number;
   };
   sectionOrder: string[]; // ['hero', 'search', 'threeColumns', 'blog', 'activities']
+  dynamicSections?: PageSection[];
+  seo?: SEOConfig;
   footer: FooterConfig;
 }
 

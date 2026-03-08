@@ -1,8 +1,8 @@
 import { MOCK_BLOG_POSTS, MOCK_EVENTS, MOCK_CONTENT, MOCK_CONTACTS, MOCK_USER_HISTORY, HERO_CONFIG, BLOG_CONFIG_DEFAULT, MOCK_MEDIA, MOCK_EMAIL_LOGS, MOCK_EMAIL_METRICS, DEFAULT_HOME_CONFIG, PUBLIC_NAV_STRUCTURE } from './constants';
-import { BlogPost, CalendarEvent, ContentItem, Contact, ContactList, UserActivity, ContentInteraction, HeroConfig, BlogConfig, User, UserRole, MediaAsset, EmailLog, EmailMetrics, ChangeLog, HomeConfig, CustomPage, MegaMenuItem, FooterConfig, SMTPConfig, Campaign, AutomationRule, AutomationExecution, AutomationNode, SendEmailNode, WaitNode, ConditionNode, UpdateTagNode, MoveToListNode, MeetingAgendaItem, MeetingMediaRef, ZoomWidgetConfig, FeedbackQuestion, FeedbackResponse, MemberBadge, BadgeType, ParticipationRecord, ActivityEvent, ActivityCategory, ChatMessage, ChatThread } from './types';
+import { BlogPost, CalendarEvent, ContentItem, Contact, ContactList, UserActivity, ContentInteraction, HeroConfig, BlogConfig, User, UserRole, MediaAsset, EmailLog, EmailMetrics, ChangeLog, HomeConfig, CustomPage, MegaMenuItem, FooterConfig, SMTPConfig, Campaign, AutomationRule, AutomationExecution, AutomationNode, SendEmailNode, WaitNode, ConditionNode, UpdateTagNode, MoveToListNode, MeetingAgendaItem, MeetingMediaRef, ZoomWidgetConfig, FeedbackQuestion, FeedbackResponse, MemberBadge, BadgeType, ParticipationRecord, ActivityEvent, ActivityCategory, ChatMessage, ChatThread, UserWizardProfile } from './types';
 
 // STORAGE KEYS
-const KEYS = {
+export const KEYS = {
     BLOG: 'cafh_blog_v1',
     BLOG_CONFIG: 'cafh_blog_config_v1',
     EVENTS: 'cafh_events_v1',
@@ -42,7 +42,9 @@ const KEYS = {
     JOURNEY_QUESTIONS: 'cafh_journey_questions_v1',
     JOURNEY_PROFILES: 'cafh_journey_profiles_v1',
     WIZARD_CONFIG: 'cafh_wizard_config_v1',
-    SEED_VERSION: 'cafh_seed_version', // Version control for initial data
+    SEED_VERSION: 'cafh_seed_version',
+    REMOTE_SYNC_URL: 'cafh_remote_url', // URL for external JSON
+    LAST_SYNC: 'cafh_last_sync'
 };
 
 // MOCK USERS FOR AUTHENTICATION
@@ -69,19 +71,69 @@ const MOCK_USERS: User[] = [
     }
 ];
 
+// SAFE STORAGE WRAPPER - Protects essential content
+export const safeSetItem = (key: string, value: any): boolean => {
+    const essentialKeys = [
+        KEYS.BLOG, KEYS.BLOG_CONFIG, KEYS.EVENTS, KEYS.CONTENT, KEYS.CONTACTS,
+        KEYS.HERO, KEYS.MEDIA, KEYS.HOME_CONFIG, KEYS.CUSTOM_PAGES, KEYS.MEGA_MENU,
+        KEYS.ACTIVITY_EVENTS, KEYS.ACTIVITY_CATS, KEYS.USERS, KEYS.CRM_LISTS,
+        KEYS.CAMPAIGNS, KEYS.AUTOMATIONS, KEYS.CHAT_THREADS, KEYS.CHAT_MESSAGES,
+        KEYS.WIZARD_PROFILES, KEYS.JOURNEY_QUESTIONS, KEYS.JOURNEY_PROFILES, KEYS.WIZARD_CONFIG
+    ];
+
+    const purgeableKeys = [
+        KEYS.HISTORY, KEYS.EMAIL_LOGS, KEYS.EMAIL_METRICS, KEYS.CONTENT_INTERACTIONS,
+        KEYS.CHANGE_LOG, KEYS.AUTOMATION_EXECUTIONS, KEYS.FEEDBACK_RESPONSES, KEYS.PARTICIPATION
+    ];
+
+    try {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+    } catch (e: any) {
+        if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+            console.error(`[STORAGE] Quota exceeded for key: ${key}`);
+
+            if (essentialKeys.includes(key)) {
+                console.warn(`[STORAGE] Essential data failure. Purging temporary logs to make space...`);
+                purgeableKeys.forEach(pk => localStorage.removeItem(pk));
+
+                // Try one last time after purge
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                    console.log(`[STORAGE] Successfully saved ${key} after purge.`);
+                    return true;
+                } catch (retryErr) {
+                    console.error(`[STORAGE] CRITICAL: Even after purge, could not save ${key}`);
+                }
+            } else if (purgeableKeys.includes(key)) {
+                // If it's purgeable data, just truncate it or ignore it
+                console.warn(`[STORAGE] Purging ${key} to save space.`);
+                const truncated = Array.isArray(value) ? value.slice(0, 5) : null;
+                if (truncated) {
+                    try { localStorage.setItem(key, JSON.stringify(truncated)); return true; } catch { }
+                }
+            }
+            // If we are here, we couldn't save or it was already alerted
+            alert("Atención: El almacenamiento está casi lleno. Se han eliminado registros temporales para proteger tus contenidos.");
+        } else {
+            console.error(`[STORAGE] Error saving ${key}`, e);
+        }
+        return false;
+    }
+};
+
 // HELPER TO INIT DATA IF EMPTY
 const initStorage = <T>(key: string, initialData: T): T => {
     try {
         const stored = localStorage.getItem(key);
         if (!stored || stored === 'undefined' || stored === 'null') {
-            localStorage.setItem(key, JSON.stringify(initialData));
+            safeSetItem(key, initialData);
             return initialData;
         }
         return JSON.parse(stored);
     } catch (e) {
         console.error(`Error accessing storage for ${key}`, e);
-        // If parsing fails due to corruption, try to reset to initial
-        try { localStorage.setItem(key, JSON.stringify(initialData)); } catch { }
+        safeSetItem(key, initialData);
         return initialData;
     }
 };
@@ -113,7 +165,7 @@ const defaultActivityCategories: ActivityCategory[] = [
 ];
 
 // SEED VERSION CONTROL
-const SEED_VERSION_VALUE = "1.0.9"; // Incrementar para forzar actualizaciones de la data inicial
+const SEED_VERSION_VALUE = "1.1.0"; // Incrementado para restauración de datos 8 marzo
 
 const SEED_DATA = {
     pages: [
@@ -281,7 +333,43 @@ export const db = {
             initStorage(KEYS.USERS, MOCK_USERS);
             initStorage(KEYS.HOME_CONFIG, DEFAULT_HOME_CONFIG);
             initStorage(KEYS.MEGA_MENU, PUBLIC_NAV_STRUCTURE);
-            initStorage(KEYS.ACTIVITY_EVENTS, []);
+            initStorage(KEYS.ACTIVITY_EVENTS, [
+                {
+                    id: 'act_recovery_1',
+                    title: 'Taller de Meditación Discursiva (Sesión Sábado)',
+                    description: 'Sesión de práctica intensiva restaurada del 7 de marzo.',
+                    category: 'Meditación',
+                    tags: ['Práctica', 'Silencio'],
+                    startDate: '2026-03-07',
+                    endDate: '2026-03-07',
+                    startTime: '10:00',
+                    endTime: '12:00',
+                    modality: 'Virtual',
+                    status: 'Publicado',
+                    imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800&auto=format&fit=crop',
+                    featuredInDashboard: true,
+                    recurrence: { frequency: 'none', interval: 1, daysOfWeek: [], endType: 'never' },
+                    createdAt: '2026-03-07T10:00:00.000Z',
+                    updatedAt: '2026-03-07T10:00:00.000Z'
+                },
+                {
+                    id: 'act_recovery_2',
+                    title: 'Reunión Semanal de Comunidad',
+                    description: 'Encuentro recurrente programado para domingos.',
+                    category: 'Comunidad',
+                    tags: ['Grupos', 'Diálogo'],
+                    startDate: '2026-03-08',
+                    endDate: '2026-03-08',
+                    startTime: '18:00',
+                    endTime: '19:30',
+                    modality: 'Híbrida',
+                    status: 'Publicado',
+                    featuredInDashboard: true,
+                    recurrence: { frequency: 'weekly', interval: 1, daysOfWeek: [0], endType: 'never' },
+                    createdAt: '2026-03-07T15:00:00.000Z',
+                    updatedAt: '2026-03-07T15:00:00.000Z'
+                }
+            ]);
 
             // Specific Page Seeding
             const storedPagesStr = localStorage.getItem(KEYS.CUSTOM_PAGES);
@@ -293,13 +381,28 @@ export const db = {
                     mergedPages.push(seedPage);
                 }
             });
-            localStorage.setItem(KEYS.CUSTOM_PAGES, JSON.stringify(mergedPages));
-            localStorage.setItem(KEYS.SEED_VERSION, SEED_VERSION_VALUE);
+            safeSetItem(KEYS.USERS, [
+                ...MOCK_USERS,
+                {
+                    id: 'u_victor_test',
+                    name: 'Victor 3 Test',
+                    email: 'admin@cafh.cl',
+                    role: UserRole.SUPER_ADMIN,
+                    avatarUrl: '',
+                    tenantId: 't_santiago_01',
+                    interests: ['Meditación', 'Bienestar'],
+                    joinedDate: '2026-03-06',
+                    status: 'Active'
+                }
+            ]);
+            safeSetItem(KEYS.CUSTOM_PAGES, mergedPages);
+            safeSetItem(KEYS.SEED_VERSION, SEED_VERSION_VALUE);
         } else {
             initStorage(KEYS.BLOG, MOCK_BLOG_POSTS);
             initStorage(KEYS.HOME_CONFIG, DEFAULT_HOME_CONFIG);
         }
 
+        // Inits for secondary modules
         initStorage(KEYS.ZOOM_WIDGET, defaultZoomWidgetConfig);
         initStorage(KEYS.FEEDBACK_QUESTIONS, defaultFeedbackQuestions);
         initStorage(KEYS.ACTIVITY_CATS, defaultActivityCategories);
@@ -308,6 +411,9 @@ export const db = {
         initStorage(KEYS.WIZARD_PROFILES, []);
         initStorage(KEYS.JOURNEY_QUESTIONS, []);
         initStorage(KEYS.JOURNEY_PROFILES, []);
+
+        // Intento de Sincronización Remota (Opcional si hay URL configurada)
+        db.system.syncRemote();
 
         console.log("Cafh Local Memory System: Initialized (Simulated 200MB Persistence)");
     },
@@ -330,7 +436,7 @@ export const db = {
                     : pass.length >= 6; // for newly registered users
 
                 if (passValid) {
-                    localStorage.setItem(KEYS.SESSION, JSON.stringify(user));
+                    safeSetItem(KEYS.SESSION, user);
                     return user;
                 }
             }
@@ -362,7 +468,7 @@ export const db = {
 
             // Save to Users table
             allUsers.push(newUser);
-            localStorage.setItem(KEYS.USERS, JSON.stringify(allUsers));
+            safeSetItem(KEYS.USERS, allUsers);
 
             // Automatically map/create CRM Contact
             if (!allContacts.find(c => c.email.toLowerCase() === newUser.email)) {
@@ -417,14 +523,14 @@ export const db = {
                     const updated = { ...current, ...updates };
 
                     // Update session
-                    localStorage.setItem(KEYS.SESSION, JSON.stringify(updated));
+                    safeSetItem(KEYS.SESSION, updated);
 
                     // Update user in USERS array
                     const allUsers: User[] = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
                     const idx = allUsers.findIndex(u => u.id === updated.id);
                     if (idx !== -1) {
                         allUsers[idx] = updated;
-                        localStorage.setItem(KEYS.USERS, JSON.stringify(allUsers));
+                        safeSetItem(KEYS.USERS, allUsers);
                     }
 
                     return updated;
@@ -443,7 +549,7 @@ export const db = {
             return stored ? JSON.parse(stored) : HERO_CONFIG;
         },
         update: (newConfig: HeroConfig) => {
-            localStorage.setItem(KEYS.HERO, JSON.stringify(newConfig));
+            safeSetItem(KEYS.HERO, newConfig);
             return newConfig;
         }
     },
@@ -456,13 +562,13 @@ export const db = {
             return stored ? JSON.parse(stored) : BLOG_CONFIG_DEFAULT;
         },
         updateConfig: (config: BlogConfig) => {
-            localStorage.setItem(KEYS.BLOG_CONFIG, JSON.stringify(config));
+            safeSetItem(KEYS.BLOG_CONFIG, config);
             return config;
         },
         add: (post: BlogPost) => {
             const current = db.blog.getAll();
             const updated = [post, ...current];
-            localStorage.setItem(KEYS.BLOG, JSON.stringify(updated));
+            safeSetItem(KEYS.BLOG, updated);
             return updated;
         }
     },
@@ -471,7 +577,7 @@ export const db = {
         add: (event: CalendarEvent) => {
             const current = db.events.getAll();
             const updated = [...current, event];
-            localStorage.setItem(KEYS.EVENTS, JSON.stringify(updated));
+            safeSetItem(KEYS.EVENTS, updated);
             return updated;
         }
     },
@@ -495,13 +601,13 @@ export const db = {
                 uploadedAt: new Date().toISOString().split('T')[0]
             };
             const updated = [newAsset, ...current];
-            localStorage.setItem(KEYS.MEDIA, JSON.stringify(updated));
+            safeSetItem(KEYS.MEDIA, updated);
             return updated;
         },
         delete: (id: string) => {
             const current = db.media.getAll();
             const updated = current.filter(m => m.id !== id);
-            localStorage.setItem(KEYS.MEDIA, JSON.stringify(updated));
+            safeSetItem(KEYS.MEDIA, updated);
             return updated;
         },
         search: (query: string, type?: string) => {
@@ -521,7 +627,7 @@ export const db = {
             };
             // Limit array to prevent localstorage crash
             const updated = [newInteraction, ...history].slice(0, 5000);
-            localStorage.setItem(KEYS.CONTENT_INTERACTIONS, JSON.stringify(updated));
+            safeSetItem(KEYS.CONTENT_INTERACTIONS, updated);
 
             // Also increment views on the content/media item directly if possible
             if (interaction.assetType === 'Article' || interaction.assetType === 'Resource' || interaction.assetType === 'Page' || interaction.assetType === 'Event') {
@@ -529,7 +635,7 @@ export const db = {
                 const contentIndex = currentContent.findIndex(c => c.id === interaction.assetId);
                 if (contentIndex !== -1) {
                     currentContent[contentIndex].views = (currentContent[contentIndex].views || 0) + 1;
-                    localStorage.setItem(KEYS.CONTENT, JSON.stringify(currentContent));
+                    safeSetItem(KEYS.CONTENT, currentContent);
                 }
             }
 
@@ -567,9 +673,9 @@ export const db = {
             };
             logs.unshift(newLog);
             try {
-                localStorage.setItem(KEYS.CHANGE_LOG, JSON.stringify(logs.slice(0, 50))); // Reduced to 50 for safety
+                safeSetItem(KEYS.CHANGE_LOG, logs.slice(0, 50)); // Reduced to 50 for safety
             } catch (e) {
-                localStorage.setItem(KEYS.CHANGE_LOG, JSON.stringify(logs.slice(0, 5))); // Emergency fallback
+                safeSetItem(KEYS.CHANGE_LOG, logs.slice(0, 5)); // Emergency fallback
             }
             return newLog;
         },
@@ -618,7 +724,7 @@ export const db = {
         updateHomeConfig: (config: HomeConfig) => {
             const prev = db.cms.getHomeConfig();
             try {
-                localStorage.setItem(KEYS.HOME_CONFIG, JSON.stringify(config));
+                safeSetItem(KEYS.HOME_CONFIG, config);
             } catch (err) {
                 console.error('CRITICAL: LocalStorage is full. Changes NOT saved permanently.', err);
                 alert("⚠️ Error: El almacenamiento del navegador está lleno. Los cambios se perderán al recargar. Por favor, elimina recursos pesados o limpia tu caché.");
@@ -644,7 +750,7 @@ export const db = {
             else pages.push(page);
 
             try {
-                localStorage.setItem(KEYS.CUSTOM_PAGES, JSON.stringify(pages));
+                safeSetItem(KEYS.CUSTOM_PAGES, pages);
             } catch (e) {
                 console.error("Storage full saving page", e);
                 alert("⚠️ Error: No hay espacio para guardar la página.");
@@ -656,7 +762,7 @@ export const db = {
             const pages = db.cms.getPages();
             const page = pages.find(p => p.id === id);
             const updated = pages.filter(p => p.id !== id);
-            localStorage.setItem(KEYS.CUSTOM_PAGES, JSON.stringify(updated));
+            safeSetItem(KEYS.CUSTOM_PAGES, updated);
             db.cms.logChange(`Página: ${page?.title}`, 'Delete', `Eliminación de página ${page?.slug}`, page);
             return updated;
         },
@@ -670,7 +776,7 @@ export const db = {
         },
         updateMenu: (menu: MegaMenuItem[]) => {
             const prev = db.cms.getMenu();
-            localStorage.setItem(KEYS.MEGA_MENU, JSON.stringify(menu));
+            safeSetItem(KEYS.MEGA_MENU, menu);
             db.cms.logChange('Mega Menú', 'Update', 'Actualización de estructura de navegación', prev);
             return menu;
         },
@@ -725,7 +831,7 @@ export const db = {
                 activity.userId = user.id;
             }
             const updated = [activity, ...allHistory];
-            localStorage.setItem(KEYS.HISTORY, JSON.stringify(updated));
+            safeSetItem(KEYS.HISTORY, updated);
         },
         getPreferences: () => JSON.parse(localStorage.getItem(KEYS.USER_PREFS) || '{}')
     },
@@ -741,7 +847,7 @@ export const db = {
             const index = all.findIndex(c => c.id === contact.id);
             if (index !== -1) {
                 all[index] = contact;
-                localStorage.setItem(KEYS.CONTACTS, JSON.stringify(all));
+                safeSetItem(KEYS.CONTACTS, all);
             }
             return all;
         },
@@ -749,14 +855,14 @@ export const db = {
         delete: (id: string) => {
             const all = JSON.parse(localStorage.getItem(KEYS.CONTACTS) || '[]');
             const updated = all.filter((c: any) => c.id !== id);
-            localStorage.setItem(KEYS.CONTACTS, JSON.stringify(updated));
+            safeSetItem(KEYS.CONTACTS, updated);
             return updated;
         },
         add: (contact: Omit<Contact, 'id'>) => {
             const all = db.crm.getAll();
             const newContact = { ...contact, id: Math.random().toString(36).substr(2, 9) } as Contact;
             all.push(newContact);
-            localStorage.setItem(KEYS.CONTACTS, JSON.stringify(all));
+            safeSetItem(KEYS.CONTACTS, all);
             return newContact;
         },
         addLead: async (lead: { email: string; source: string; date: string; status: string }) => {
@@ -773,7 +879,7 @@ export const db = {
                 notes: `Suscrito desde el footer. Origen: ${lead.source}`
             };
             contacts.push(newContact);
-            localStorage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
+            safeSetItem(KEYS.CONTACTS, contacts);
             return newContact;
         },
         addMultiple: (newContacts: Omit<Contact, 'id'>[]) => {
@@ -789,7 +895,7 @@ export const db = {
                 console.warn("CRM Storage limit warning. Optimizing array.");
             }
 
-            localStorage.setItem(KEYS.CONTACTS, JSON.stringify(updated));
+            safeSetItem(KEYS.CONTACTS, updated);
             return hydratedContacts;
         },
         getLists: (): ContactList[] => {
@@ -807,7 +913,7 @@ export const db = {
                 contactCount: 0
             };
             all.push(newList);
-            localStorage.setItem(KEYS.CRM_LISTS, JSON.stringify(all));
+            safeSetItem(KEYS.CRM_LISTS, all);
             return newList;
         },
         updateList: (list: ContactList) => {
@@ -815,13 +921,13 @@ export const db = {
             const idx = all.findIndex(l => l.id === list.id);
             if (idx !== -1) {
                 all[idx] = list;
-                localStorage.setItem(KEYS.CRM_LISTS, JSON.stringify(all));
+                safeSetItem(KEYS.CRM_LISTS, all);
             }
             return all;
         },
         deleteList: (listId: string) => {
             const all = db.crm.getLists().filter(l => l.id !== listId);
-            localStorage.setItem(KEYS.CRM_LISTS, JSON.stringify(all));
+            safeSetItem(KEYS.CRM_LISTS, all);
 
             // Remove listId from all contacts
             const contacts = db.crm.getAll();
@@ -833,7 +939,7 @@ export const db = {
                 }
             }
             if (changed) {
-                localStorage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
+                safeSetItem(KEYS.CONTACTS, contacts);
             }
             return all;
         }
@@ -854,7 +960,7 @@ export const db = {
             const userIndex = allUsers.findIndex(u => u.email.toLowerCase() === contact.email.toLowerCase());
             if (userIndex !== -1) {
                 allUsers[userIndex].status = 'Active';
-                localStorage.setItem(KEYS.USERS, JSON.stringify(allUsers));
+                safeSetItem(KEYS.USERS, allUsers);
 
                 // If currently logged in as this user, update session
                 const currentUser = db.auth.getCurrentUser();
@@ -889,7 +995,7 @@ export const db = {
             return JSON.parse(localStorage.getItem(KEYS.SMTP_CONFIG) || JSON.stringify(defaultSMTP));
         },
         updateSMTPConfig: (config: SMTPConfig) => {
-            localStorage.setItem(KEYS.SMTP_CONFIG, JSON.stringify(config));
+            safeSetItem(KEYS.SMTP_CONFIG, config);
             return config;
         },
         getQueueStatus: async () => {
@@ -918,7 +1024,7 @@ export const db = {
                 campaignName: 'Direct Message' // Identificador de envío unitario
             };
             logs.unshift(newLog);
-            localStorage.setItem(KEYS.EMAIL_LOGS, JSON.stringify(logs));
+            safeSetItem(KEYS.EMAIL_LOGS, logs);
 
             try {
                 await fetch('/api/email/queue', {
@@ -951,7 +1057,7 @@ export const db = {
                     });
                 }
             });
-            localStorage.setItem(KEYS.EMAIL_LOGS, JSON.stringify(logs));
+            safeSetItem(KEYS.EMAIL_LOGS, logs);
 
             try {
                 await fetch('/api/email/queue', {
@@ -992,7 +1098,7 @@ export const db = {
             const idx = all.findIndex(c => c.id === campaign.id);
             if (idx !== -1) all[idx] = campaign;
             else all.unshift(campaign);
-            localStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(all));
+            safeSetItem(KEYS.CAMPAIGNS, all);
             return campaign;
         },
         create: (data: Omit<Campaign, 'id' | 'createdAt' | 'metrics'>): Campaign => {
@@ -1006,7 +1112,7 @@ export const db = {
         },
         delete: (id: string) => {
             const updated = db.campaigns.getAll().filter(c => c.id !== id);
-            localStorage.setItem(KEYS.CAMPAIGNS, JSON.stringify(updated));
+            safeSetItem(KEYS.CAMPAIGNS, updated);
         },
         sendTest: async (campaignId: string, testEmail: string): Promise<void> => {
             const campaign = db.campaigns.getById(campaignId);
@@ -1050,7 +1156,7 @@ export const db = {
                     campaignName: campaign.name
                 });
             });
-            localStorage.setItem(KEYS.EMAIL_LOGS, JSON.stringify(logs));
+            safeSetItem(KEYS.EMAIL_LOGS, logs);
 
             // Try backend
             try {
@@ -1087,7 +1193,7 @@ export const db = {
         save: (rule: AutomationRule): AutomationRule => {
             const all = db.automations.getAll().filter(a => a.id !== rule.id);
             all.unshift({ ...rule, updatedAt: new Date().toISOString() });
-            localStorage.setItem(KEYS.AUTOMATIONS, JSON.stringify(all));
+            safeSetItem(KEYS.AUTOMATIONS, all);
             return rule;
         },
         create: (data: Omit<AutomationRule, 'id' | 'createdAt' | 'updatedAt' | 'stats'>): AutomationRule => {
@@ -1100,12 +1206,12 @@ export const db = {
             };
             const all = db.automations.getAll();
             all.unshift(rule);
-            localStorage.setItem(KEYS.AUTOMATIONS, JSON.stringify(all));
+            safeSetItem(KEYS.AUTOMATIONS, all);
             return rule;
         },
         delete: (id: string): void => {
             const all = db.automations.getAll().filter(a => a.id !== id);
-            localStorage.setItem(KEYS.AUTOMATIONS, JSON.stringify(all));
+            safeSetItem(KEYS.AUTOMATIONS, all);
         },
         // ── EXECUTIONS ──────────────────────────────────────────
         getExecutions: (): AutomationExecution[] => {
@@ -1115,7 +1221,7 @@ export const db = {
             const all = db.automations.getExecutions().filter(e => e.id !== exec.id);
             all.unshift(exec);
             // Keep max 500 executions
-            localStorage.setItem(KEYS.AUTOMATION_EXECUTIONS, JSON.stringify(all.slice(0, 500)));
+            safeSetItem(KEYS.AUTOMATION_EXECUTIONS, all.slice(0, 500));
         },
         // ── ENGINE: evaluate nodes for a single contact ─────────
         _evaluateNodes: async (
@@ -1140,7 +1246,7 @@ export const db = {
                         sentAt: new Date().toISOString(),
                         campaignName: `[Auto] ${automationId}`,
                     });
-                    localStorage.setItem(KEYS.EMAIL_LOGS, JSON.stringify(logs));
+                    safeSetItem(KEYS.EMAIL_LOGS, logs);
                     execLog.push(`📧 Email enviado: "${n.subject}" → ${contact.email}`);
                     emailsSent++;
 
@@ -1196,7 +1302,7 @@ export const db = {
                         } else if (n.action === 'remove') {
                             contacts[idx].tags = tags.filter(t => t !== n.tag);
                         }
-                        localStorage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
+                        safeSetItem(KEYS.CONTACTS, contacts);
                         contact.tags = contacts[idx].tags;
                     }
                     execLog.push(`🏷️ Tag ${n.action === 'add' ? 'añadido' : 'removido'}: "${n.tag}" → ${contact.email}`);
@@ -1210,7 +1316,7 @@ export const db = {
                         const listIds = contacts[idx].listIds || [];
                         if (!listIds.includes(n.listId)) {
                             contacts[idx].listIds = [...listIds, n.listId];
-                            localStorage.setItem(KEYS.CONTACTS, JSON.stringify(contacts));
+                            safeSetItem(KEYS.CONTACTS, contacts);
                         }
                     }
                     execLog.push(`📋 Movido a lista "${n.listId}" → ${contact.email}`);
@@ -1294,18 +1400,18 @@ export const db = {
             const all: CalendarEvent[] = JSON.parse(localStorage.getItem(KEYS.EVENTS) || '[]');
             const idx = all.findIndex(e => e.id === event.id);
             if (idx !== -1) all[idx] = event; else all.push(event);
-            localStorage.setItem(KEYS.EVENTS, JSON.stringify(all));
+            safeSetItem(KEYS.EVENTS, all);
             return event;
         },
         delete: (id: string): void => {
             const updated = (JSON.parse(localStorage.getItem(KEYS.EVENTS) || '[]') as CalendarEvent[]).filter(e => e.id !== id);
-            localStorage.setItem(KEYS.EVENTS, JSON.stringify(updated));
+            safeSetItem(KEYS.EVENTS, updated);
         },
         create: (data: Omit<CalendarEvent, 'id'>): CalendarEvent => {
             const event: CalendarEvent = { ...data, id: `ev_${Date.now()}` };
             const all: CalendarEvent[] = JSON.parse(localStorage.getItem(KEYS.EVENTS) || '[]');
             all.push(event);
-            localStorage.setItem(KEYS.EVENTS, JSON.stringify(all));
+            safeSetItem(KEYS.EVENTS, all);
             return event;
         },
         getZoomConfig: (): ZoomWidgetConfig => {
@@ -1313,7 +1419,7 @@ export const db = {
             catch { return defaultZoomWidgetConfig; }
         },
         updateZoomConfig: (cfg: ZoomWidgetConfig): ZoomWidgetConfig => {
-            localStorage.setItem(KEYS.ZOOM_WIDGET, JSON.stringify(cfg));
+            safeSetItem(KEYS.ZOOM_WIDGET, cfg);
             return cfg;
         },
     },
@@ -1327,7 +1433,7 @@ export const db = {
             catch { return defaultFeedbackQuestions; }
         },
         saveQuestions: (questions: FeedbackQuestion[]): FeedbackQuestion[] => {
-            localStorage.setItem(KEYS.FEEDBACK_QUESTIONS, JSON.stringify(questions));
+            safeSetItem(KEYS.FEEDBACK_QUESTIONS, questions);
             return questions;
         },
         getResponses: (eventId?: string): FeedbackResponse[] => {
@@ -1340,11 +1446,11 @@ export const db = {
             const all: FeedbackResponse[] = JSON.parse(localStorage.getItem(KEYS.FEEDBACK_RESPONSES) || '[]');
             const response: FeedbackResponse = { ...data, id: `fr_${Date.now()}` };
             all.unshift(response);
-            localStorage.setItem(KEYS.FEEDBACK_RESPONSES, JSON.stringify(all));
+            safeSetItem(KEYS.FEEDBACK_RESPONSES, all);
             // Marcar participación como respondida
             const partAll: ParticipationRecord[] = JSON.parse(localStorage.getItem(KEYS.PARTICIPATION) || '[]');
             const rec = partAll.find(p => p.userId === data.userId && p.eventId === data.eventId);
-            if (rec) { rec.feedbackSubmitted = true; rec.feedbackBlocksNext = false; localStorage.setItem(KEYS.PARTICIPATION, JSON.stringify(partAll)); }
+            if (rec) { rec.feedbackSubmitted = true; rec.feedbackBlocksNext = false; safeSetItem(KEYS.PARTICIPATION, partAll); }
             return response;
         },
         hasBlockingFeedback: (userId: string): boolean => {
@@ -1367,12 +1473,12 @@ export const db = {
             const all: MemberBadge[] = JSON.parse(localStorage.getItem(KEYS.MEMBER_BADGES) || '[]');
             const badge: MemberBadge = { ...data, id: `badge_${Date.now()}` };
             all.unshift(badge);
-            localStorage.setItem(KEYS.MEMBER_BADGES, JSON.stringify(all));
+            safeSetItem(KEYS.MEMBER_BADGES, all);
             return badge;
         },
         removeBadge: (id: string): void => {
             const updated = (JSON.parse(localStorage.getItem(KEYS.MEMBER_BADGES) || '[]') as MemberBadge[]).filter(b => b.id !== id);
-            localStorage.setItem(KEYS.MEMBER_BADGES, JSON.stringify(updated));
+            safeSetItem(KEYS.MEMBER_BADGES, updated);
         },
         getParticipation: (userId?: string): ParticipationRecord[] => {
             try {
@@ -1391,7 +1497,7 @@ export const db = {
             const all: ParticipationRecord[] = JSON.parse(localStorage.getItem(KEYS.PARTICIPATION) || '[]');
             const record: ParticipationRecord = { ...data, id: `part_${Date.now()}` };
             all.unshift(record);
-            localStorage.setItem(KEYS.PARTICIPATION, JSON.stringify(all));
+            safeSetItem(KEYS.PARTICIPATION, all);
 
             // Sincronizar con Historial de Usuario si es Miembro
             if (record.userId && record.userType === 'Miembro') {
@@ -1410,7 +1516,7 @@ export const db = {
         updateParticipationRecord: (id: string, updates: Partial<ParticipationRecord>): void => {
             const all: ParticipationRecord[] = JSON.parse(localStorage.getItem(KEYS.PARTICIPATION) || '[]');
             const idx = all.findIndex(p => p.id === id);
-            if (idx !== -1) { all[idx] = { ...all[idx], ...updates }; localStorage.setItem(KEYS.PARTICIPATION, JSON.stringify(all)); }
+            if (idx !== -1) { all[idx] = { ...all[idx], ...updates }; safeSetItem(KEYS.PARTICIPATION, all); }
         },
         getRanking: (): { userId: string; userName: string; points: number; badges: number; participations: number }[] => {
             const allPart: ParticipationRecord[] = JSON.parse(localStorage.getItem(KEYS.PARTICIPATION) || '[]');
@@ -1437,49 +1543,92 @@ export const db = {
     // ============================================================
     activities: {
         getAll: (): ActivityEvent[] => {
-            try { return JSON.parse(localStorage.getItem(KEYS.ACTIVITY_EVENTS) || '[]'); }
-            catch { return []; }
+            try {
+                const stored = localStorage.getItem(KEYS.ACTIVITY_EVENTS);
+                if (!stored || stored === 'undefined' || stored === 'null') return [];
+                const parsed = JSON.parse(stored);
+                return Array.isArray(parsed) ? parsed : [];
+            }
+            catch (e) {
+                console.error("Error loading activities", e);
+                return [];
+            }
         },
         getById: (id: string): ActivityEvent | undefined =>
-            (JSON.parse(localStorage.getItem(KEYS.ACTIVITY_EVENTS) || '[]') as ActivityEvent[]).find(a => a.id === id),
+            db.activities.getAll().find(a => a.id === id),
         save(activity: ActivityEvent): ActivityEvent {
-            const all: ActivityEvent[] = JSON.parse(localStorage.getItem(KEYS.ACTIVITY_EVENTS) || '[]');
-            const updated = { ...activity, updatedAt: new Date().toISOString() };
-            const idx = all.findIndex(a => a.id === activity.id);
-            if (idx !== -1) all[idx] = updated; else all.unshift(updated);
-            localStorage.setItem(KEYS.ACTIVITY_EVENTS, JSON.stringify(all));
-            if (activity.modality === 'Virtual' && activity.zoomUrl) this._syncToMeetings(updated);
-            return updated;
+            try {
+                const all = db.activities.getAll();
+                const now = new Date().toISOString();
+                const updated = { ...activity, updatedAt: now };
+                if (!updated.createdAt) updated.createdAt = now;
+
+                const idx = all.findIndex(a => a.id === activity.id);
+                if (idx !== -1) all[idx] = updated; else all.unshift(updated);
+
+                safeSetItem(KEYS.ACTIVITY_EVENTS, all);
+
+                if (activity.modality === 'Virtual' && activity.zoomUrl) {
+                    db.activities._syncToMeetings(updated);
+                }
+                return updated;
+            } catch (e) {
+                console.error("Error saving activity", e);
+                throw e;
+            }
         },
         create(data: Omit<ActivityEvent, 'id' | 'createdAt' | 'updatedAt'>): ActivityEvent {
             const now = new Date().toISOString();
-            return this.save({ ...data, id: `act_${Date.now()}`, createdAt: now, updatedAt: now });
+            return db.activities.save({
+                ...data,
+                id: `act_${Date.now()}`,
+                createdAt: now,
+                updatedAt: now
+            } as ActivityEvent);
         },
         delete: (id: string): void => {
-            const updated = (JSON.parse(localStorage.getItem(KEYS.ACTIVITY_EVENTS) || '[]') as ActivityEvent[]).filter(a => a.id !== id);
-            localStorage.setItem(KEYS.ACTIVITY_EVENTS, JSON.stringify(updated));
+            try {
+                const current = db.activities.getAll();
+                const updated = current.filter(a => a.id !== id);
+                safeSetItem(KEYS.ACTIVITY_EVENTS, updated);
+            } catch (e) {
+                console.error("Error deleting activity", e);
+            }
         },
         _syncToMeetings(activity: ActivityEvent): void {
-            if (activity.modality !== 'Virtual') return;
-            const allEvents: CalendarEvent[] = JSON.parse(localStorage.getItem(KEYS.EVENTS) || '[]');
-            const existing = activity.linkedMeetingId ? allEvents.find(e => e.id === activity.linkedMeetingId) : undefined;
-            const calEvent: CalendarEvent = {
-                id: existing?.id || `ev_${Date.now()}`,
-                title: activity.title,
-                date: activity.startDate,
-                day: new Date(activity.startDate + 'T12:00:00').getDate().toString(),
-                month: new Date(activity.startDate + 'T12:00:00').toLocaleDateString('es-CL', { month: 'short' }),
-                time: activity.startTime, location: 'Online', type: 'Online', color: '#4f46e5',
-                platform: 'Zoom', meetingUrl: activity.zoomUrl, eventStatus: 'Programada', linkedActivityId: activity.id,
-            };
-            const eIdx = allEvents.findIndex(e => e.id === calEvent.id);
-            if (eIdx !== -1) allEvents[eIdx] = calEvent; else allEvents.push(calEvent);
-            localStorage.setItem(KEYS.EVENTS, JSON.stringify(allEvents));
-            // Guardar linkedMeetingId si es nuevo
-            if (!activity.linkedMeetingId) {
-                const actAll: ActivityEvent[] = JSON.parse(localStorage.getItem(KEYS.ACTIVITY_EVENTS) || '[]');
-                const aIdx = actAll.findIndex(a => a.id === activity.id);
-                if (aIdx !== -1) { actAll[aIdx].linkedMeetingId = calEvent.id; localStorage.setItem(KEYS.ACTIVITY_EVENTS, JSON.stringify(actAll)); }
+            try {
+                if (activity.modality !== 'Virtual') return;
+                const stored = localStorage.getItem(KEYS.EVENTS);
+                let allEvents: CalendarEvent[] = [];
+                try {
+                    allEvents = stored ? JSON.parse(stored) : [];
+                    if (!Array.isArray(allEvents)) allEvents = [];
+                } catch { allEvents = []; }
+
+                const existing = activity.linkedMeetingId ? allEvents.find(e => e.id === activity.linkedMeetingId) : undefined;
+                const calEvent: CalendarEvent = {
+                    id: existing?.id || `ev_${Date.now()}`,
+                    title: activity.title,
+                    date: activity.startDate,
+                    day: new Date(activity.startDate + 'T12:00:00').getDate().toString(),
+                    month: new Date(activity.startDate + 'T12:00:00').toLocaleDateString('es-CL', { month: 'short' }),
+                    time: activity.startTime, location: 'Online', type: 'Online', color: '#4f46e5',
+                    platform: 'Zoom', meetingUrl: activity.zoomUrl, eventStatus: 'Programada', linkedActivityId: activity.id,
+                };
+                const eIdx = allEvents.findIndex(e => e.id === calEvent.id);
+                if (eIdx !== -1) allEvents[eIdx] = calEvent; else allEvents.push(calEvent);
+                safeSetItem(KEYS.EVENTS, allEvents);
+                // Guardar linkedMeetingId si es nuevo
+                if (!activity.linkedMeetingId) {
+                    const actAll = db.activities.getAll();
+                    const aIdx = actAll.findIndex(a => a.id === activity.id);
+                    if (aIdx !== -1) {
+                        actAll[aIdx].linkedMeetingId = calEvent.id;
+                        safeSetItem(KEYS.ACTIVITY_EVENTS, actAll);
+                    }
+                }
+            } catch (e) {
+                console.error("Error syncing to meetings", e);
             }
         },
         getCategories: (): ActivityCategory[] => {
@@ -1487,7 +1636,7 @@ export const db = {
             catch { return defaultActivityCategories; }
         },
         saveCategories: (cats: ActivityCategory[]): ActivityCategory[] => {
-            localStorage.setItem(KEYS.ACTIVITY_CATS, JSON.stringify(cats));
+            safeSetItem(KEYS.ACTIVITY_CATS, cats);
             return cats;
         },
         getFeatured: (): ActivityEvent[] => {
@@ -1541,7 +1690,7 @@ export const db = {
         saveThread: (thread: ChatThread): ChatThread => {
             const all = db.messaging.getThreads().filter(t => t.id !== thread.id);
             all.unshift(thread);
-            localStorage.setItem(KEYS.CHAT_THREADS, JSON.stringify(all));
+            safeSetItem(KEYS.CHAT_THREADS, all);
             return thread;
         },
         sendMessage: (msg: Omit<ChatMessage, 'id' | 'timestamp' | 'status'>): ChatMessage => {
@@ -1553,7 +1702,7 @@ export const db = {
             };
             const all: ChatMessage[] = JSON.parse(localStorage.getItem(KEYS.CHAT_MESSAGES) || '[]');
             all.push(newMessage);
-            localStorage.setItem(KEYS.CHAT_MESSAGES, JSON.stringify(all));
+            safeSetItem(KEYS.CHAT_MESSAGES, all);
 
             // Update thread metadata
             const thread = db.messaging.getThreads().find(t => t.id === msg.threadId);
@@ -1589,13 +1738,86 @@ export const db = {
                 }
                 return m;
             });
-            localStorage.setItem(KEYS.CHAT_MESSAGES, JSON.stringify(updated));
+            safeSetItem(KEYS.CHAT_MESSAGES, updated);
         }
     },
     journey: {
         getProfile: (userId: string): UserWizardProfile | null => {
             const all: UserWizardProfile[] = JSON.parse(localStorage.getItem(KEYS.WIZARD_PROFILES) || '[]');
             return all.find(p => p.userId === userId) || null;
+        }
+    },
+    system: {
+        getStorageUsage: () => {
+            let total = 0;
+            const details: Record<string, number> = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key) {
+                    const size = (localStorage.getItem(key)?.length || 0) * 2; // approximation (UTF-16)
+                    total += size;
+                    details[key] = Math.round(size / 1024);
+                }
+            }
+            return {
+                totalKB: Math.round(total / 1024),
+                totalMB: (total / (1024 * 1024)).toFixed(2),
+                details
+            };
+        },
+        resetStorage: () => {
+            localStorage.removeItem(KEYS.SEED_VERSION);
+            window.location.reload();
+        },
+        setRemoteUrl: (url: string) => localStorage.setItem(KEYS.REMOTE_SYNC_URL, url),
+        getRemoteUrl: () => localStorage.getItem(KEYS.REMOTE_SYNC_URL) || '',
+        exportAll: () => {
+            const keys = Object.values(KEYS);
+            const data: any = {};
+            keys.forEach(k => {
+                const val = localStorage.getItem(k);
+                if (val) {
+                    try { data[k] = JSON.parse(val); } catch { data[k] = val; }
+                }
+            });
+            return data;
+        },
+        syncRemote: async () => {
+            const url = localStorage.getItem(KEYS.REMOTE_SYNC_URL);
+            if (!url) return { status: 'no_url' };
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Fetch failed');
+                const remote = await response.json();
+
+                // Generic Merge for common keys
+                const syncKeys = [
+                    { key: KEYS.ACTIVITY_EVENTS, remoteKey: 'activities' },
+                    { key: KEYS.CONTENT, remoteKey: 'content' },
+                    { key: KEYS.BLOG, remoteKey: 'blog' },
+                    { key: KEYS.USERS, remoteKey: 'users' },
+                    { key: KEYS.MEDIA, remoteKey: 'media' }
+                ];
+
+                syncKeys.forEach(({ key, remoteKey }) => {
+                    if (remote[remoteKey] || remote[key]) {
+                        const rData = remote[remoteKey] || remote[key];
+                        const local = JSON.parse(localStorage.getItem(key) || '[]');
+                        let merged = [...local];
+                        rData.forEach((ra: any) => {
+                            const idx = merged.findIndex(la => la.id === ra.id);
+                            if (idx >= 0) merged[idx] = ra;
+                            else merged.push(ra);
+                        });
+                        safeSetItem(key, merged);
+                    }
+                });
+
+                localStorage.setItem(KEYS.LAST_SYNC, new Date().toISOString());
+                return { status: 'success' };
+            } catch (err) {
+                return { status: 'error', err };
+            }
         }
     }
 };

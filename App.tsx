@@ -16,6 +16,7 @@ import { MeetingsAdminView } from './components/MeetingsModule';
 import { CalendarAdminView } from './components/CalendarModule';
 import { db } from './storage';
 import { UserRole } from './types';
+import { SystemMonitor } from './components/SystemMonitor';
 
 // Wrapper for Public Pages to include Header/Footer
 const PublicLayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -113,9 +114,9 @@ const App: React.FC = () => {
                 <Route path="/admin/activities" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><CalendarAdminView /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/*" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><div className="text-center py-20 text-slate-500">Módulo en construcción</div></AdminLayout></ProtectedRoute>} />
 
-                {/* CATCH ALL */}
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            <SystemMonitor />
         </HashRouter>
     );
 };
