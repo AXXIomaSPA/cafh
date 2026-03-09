@@ -2,9 +2,191 @@
   "sections": {
     "home": {
       "hero": {
-        "title": "Un camino hacia el interior",
-        "subtitle": "Descubre el método de vida de Cafh Chile",
-        "imageUrl": "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=2000&auto=format&fit=crop"
+        "title": "Un camino de",
+        "highlightWord": "desenvolvimiento",
+        "subtitle": "Explora el conocimiento de ti mismo, la paz interior y la unión con la vida. Únete a una comunidad global dedicada al bien común.",
+        "backgrounds": [
+          {
+            "id": "bg1",
+            "type": "video",
+            "url": "https://cdn.pixabay.com/video/2020/12/03/58142-490367352_large.mp4"
+          },
+          {
+            "id": "bg2",
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=2000&auto=format&fit=crop"
+          },
+          {
+            "id": "bg3",
+            "type": "image",
+            "url": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2000&auto=format&fit=crop"
+          }
+        ],
+        "modalVideoId": "dQw4w9WgXcQ",
+        "ctaText": "Comenzar el Viaje",
+        "ctaLink": "/metodo",
+        "sliderSpeed": 5000,
+        "showControls": true,
+        "textAlignment": "center"
+      },
+      "searchSubtitle": "¿Qué buscas hoy?",
+      "searchItems": [
+        {
+          "label": "Eventos",
+          "icon": "Calendar",
+          "path": "/activities"
+        },
+        {
+          "label": "Podcast",
+          "icon": "Mic",
+          "path": "/resources/podcast"
+        },
+        {
+          "label": "Contenido",
+          "icon": "FileText",
+          "path": "/resources"
+        },
+        {
+          "label": "Somos",
+          "icon": "Users",
+          "path": "/about"
+        },
+        {
+          "label": "Actividades",
+          "icon": "Activity",
+          "path": "/activities"
+        },
+        {
+          "label": "Biblioteca",
+          "icon": "BookOpen",
+          "path": "/resources/library"
+        },
+        {
+          "label": "Audioteca",
+          "icon": "Headphones",
+          "path": "/resources/audio"
+        },
+        {
+          "label": "Tu Cuenta",
+          "icon": "User",
+          "path": "/login"
+        }
+      ],
+      "threeColumns": [
+        {
+          "icon": "Heart",
+          "title": "Qué es Cafh",
+          "description": "Un camino de desenvolvimiento espiritual.",
+          "order": 0,
+          "alignment": "center"
+        },
+        {
+          "icon": "Sparkles",
+          "title": "Qué Buscamos",
+          "description": "La unión con la vida.",
+          "order": 1,
+          "alignment": "center"
+        },
+        {
+          "icon": "Anchor",
+          "title": "Nuestra Misión",
+          "description": "El bien común.",
+          "order": 2,
+          "alignment": "center"
+        }
+      ],
+      "blogSection": {
+        "sectionTitle": "Blog & Reflexiones",
+        "sectionSubtitle": "Explora nuestras últimas publicaciones.",
+        "postsToShow": 3,
+        "autoPlay": true,
+        "autoPlaySpeed": 3000,
+        "cardStyle": "Standard"
+      },
+      "activitiesSection": {
+        "title": "Próximas Actividades",
+        "subtitle": "Encuentros, retiros y meditaciones.",
+        "maxEvents": 4,
+        "order": 4
+      },
+      "sectionOrder": [
+        "hero",
+        "search",
+        "threeColumns",
+        "blog",
+        "activities"
+      ],
+      "footer": {
+        "columns": [
+          {
+            "title": "Cafh",
+            "links": [
+              {
+                "label": "Sobre nosotros",
+                "path": "/about"
+              },
+              {
+                "label": "Contacto",
+                "path": "/contact"
+              }
+            ]
+          },
+          {
+            "title": "Recursos",
+            "links": [
+              {
+                "label": "Biblioteca",
+                "path": "/resources/library"
+              },
+              {
+                "label": "Blog",
+                "path": "/resources/blog"
+              }
+            ]
+          },
+          {
+            "title": "Comunidad",
+            "links": [
+              {
+                "label": "Actividades",
+                "path": "/activities"
+              },
+              {
+                "label": "Miembros",
+                "path": "/login"
+              }
+            ]
+          },
+          {
+            "title": "Legal",
+            "links": [
+              {
+                "label": "Privacidad",
+                "path": "/privacy"
+              },
+              {
+                "label": "Términos",
+                "path": "/terms"
+              }
+            ]
+          }
+        ],
+        "socialLinks": [
+          {
+            "platform": "Instagram",
+            "url": "#",
+            "icon": "Instagram"
+          },
+          {
+            "platform": "YouTube",
+            "url": "#",
+            "icon": "Youtube"
+          }
+        ],
+        "subscriptionTitle": "Mantente Conectado",
+        "subscriptionSubtitle": "Recibe reflexiones y novedades en tu correo.",
+        "leadSourceTag": "Footer Subscription",
+        "copyright": "© 2023 Cafh. Todos los derechos reservados."
       }
     }
   },
@@ -62,6 +244,71 @@
         "Infraestructura"
       ],
       "status": "Published"
+    },
+    {
+      "id": "1",
+      "title": "La Búsqueda Interior",
+      "type": "Article",
+      "status": "Published",
+      "author": "Santiago Bovisio",
+      "publishDate": "2023-10-01",
+      "views": 1240,
+      "tags": [
+        "Mística",
+        "Lectur"
+      ]
+    },
+    {
+      "id": "2",
+      "title": "Método de Vida: Equilibrio",
+      "type": "Page",
+      "status": "Published",
+      "author": "Admin",
+      "publishDate": "2023-09-15",
+      "views": 5600,
+      "tags": [
+        "Bienestar",
+        "Filosofía"
+      ]
+    },
+    {
+      "id": "3",
+      "title": "Taller de Meditación Noviembre",
+      "type": "Event",
+      "status": "Draft",
+      "author": "Coord. Actividades",
+      "publishDate": "-",
+      "views": 0,
+      "tags": [
+        "Meditación",
+        "Cursos"
+      ]
+    },
+    {
+      "id": "4",
+      "title": "Guía de Autoconocimiento.pdf",
+      "type": "Resource",
+      "status": "Published",
+      "author": "Comité Editorial",
+      "publishDate": "2023-08-20",
+      "views": 890,
+      "tags": [
+        "Bienestar",
+        "Biblioteca"
+      ]
+    },
+    {
+      "id": "5",
+      "title": "Podcast: El Silencio",
+      "type": "Resource",
+      "status": "Published",
+      "author": "Cafh",
+      "publishDate": "2023-11-01",
+      "views": 300,
+      "tags": [
+        "Podcast",
+        "Meditación"
+      ]
     }
   ],
   "history": [
@@ -72,6 +319,685 @@
       "details": "Sincronización inicial con GitHub Cloud",
       "timestamp": "2026-03-08T14:30:00Z",
       "userName": "Sistema"
+    }
+  ],
+  "blog": [
+    {
+      "id": "1",
+      "title": "El arte de la pausa consciente",
+      "excerpt": "Descubre cómo pequeños momentos de silencio pueden transformar tu día y tu relación con los demás.",
+      "category": "Vida Interior",
+      "date": "2 Oct, 2023",
+      "author": "Ana María S.",
+      "imageUrl": "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800&auto=format&fit=crop"
+    },
+    {
+      "id": "2",
+      "title": "Construyendo comunidad desde el corazón",
+      "excerpt": "La importancia de los vínculos espirituales en tiempos de aislamiento digital.",
+      "category": "Comunidad",
+      "date": "28 Sep, 2023",
+      "author": "Carlos R.",
+      "imageUrl": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=800&auto=format&fit=crop"
+    },
+    {
+      "id": "3",
+      "title": "Lecturas para el alma: Recomendaciones",
+      "excerpt": "Una selección curada de textos que nos invitan a reflexionar sobre nuestro propósito.",
+      "category": "Cultura",
+      "date": "15 Sep, 2023",
+      "author": "Editorial Cafh",
+      "imageUrl": "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?q=80&w=800&auto=format&fit=crop"
+    },
+    {
+      "id": "4",
+      "title": "La renuncia como acto de libertad",
+      "excerpt": "Entendiendo el desapego no como pérdida, sino como la ganancia de una libertad interior.",
+      "category": "Filosofía",
+      "date": "10 Sep, 2023",
+      "author": "Santiago B.",
+      "imageUrl": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=800&auto=format&fit=crop"
+    },
+    {
+      "id": "5",
+      "title": "El valor de la amistad espiritual",
+      "excerpt": "Caminar juntos hacia un mismo objetivo nos fortalece y nos da esperanza.",
+      "category": "Comunidad",
+      "date": "05 Sep, 2023",
+      "author": "Maria Elena",
+      "imageUrl": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=800&auto=format&fit=crop"
+    }
+  ],
+  "events": [
+    {
+      "id": "e1",
+      "title": "Taller de Introducción a la Meditación",
+      "date": "2023-11-15",
+      "day": "15",
+      "month": "NOV",
+      "time": "19:00 hrs",
+      "location": "Sede Central, Ñuñoa",
+      "type": "Presencial",
+      "color": "bg-cafh-turquoise"
+    },
+    {
+      "id": "e2",
+      "title": "Diálogos con Sentido: \"El Tiempo\"",
+      "date": "2023-11-22",
+      "day": "22",
+      "month": "NOV",
+      "time": "20:00 hrs",
+      "location": "Zoom",
+      "type": "Online",
+      "color": "bg-cafh-peach",
+      "meetingUrl": "https://meet.google.com/abc-defg-hij",
+      "platform": "Zoom",
+      "agenda": [
+        "19:50 - Apertura de Sala de Espera",
+        "20:00 - Bienvenida y Sintonía",
+        "20:15 - Lectura: 'La percepción del tiempo'",
+        "20:45 - Diálogo en grupos pequeños",
+        "21:15 - Cierre y Meditación Conjunta"
+      ],
+      "resources": [
+        {
+          "type": "PDF",
+          "title": "Texto de apoyo - El Tiempo.pdf",
+          "size": "1.2 MB"
+        },
+        {
+          "type": "Video",
+          "title": "Intro a Diálogos con Sentido",
+          "size": "3 min"
+        }
+      ]
+    },
+    {
+      "id": "e3",
+      "title": "Retiro de Silencio de Fin de Semana",
+      "date": "2023-12-01",
+      "day": "01",
+      "month": "DIC",
+      "time": "Todo el día",
+      "location": "Casa de Retiros, Cajón del Maipo",
+      "type": "Presencial",
+      "color": "bg-cafh-lavender"
+    },
+    {
+      "id": "e4",
+      "title": "Grupo de Estudio: Enseñanzas",
+      "date": "2023-12-05",
+      "day": "05",
+      "month": "DIC",
+      "time": "18:30 hrs",
+      "location": "Sede Providencia / Meet",
+      "type": "Híbrido",
+      "color": "bg-cafh-clay",
+      "meetingUrl": "https://meet.google.com/xyz-uvwx-yz1",
+      "platform": "Zoom",
+      "agenda": [
+        "18:30 - Lectura del Reglamento",
+        "18:45 - Estudio del Capítulo 4",
+        "19:30 - Comentarios"
+      ]
+    }
+  ],
+  "contacts": [
+    {
+      "id": "1",
+      "name": "Ana Flor",
+      "email": "ana.flor@email.com",
+      "status": "Subscribed",
+      "tags": [
+        "Miembro",
+        "Donante"
+      ],
+      "engagementScore": 95,
+      "lastContact": "2023-10-25",
+      "phone": "+56 9 1234 5678",
+      "role": "Member",
+      "createdAt": "2023-01-15"
+    },
+    {
+      "id": "2",
+      "name": "Carlos Rojas",
+      "email": "carlos.r@email.com",
+      "status": "Subscribed",
+      "tags": [
+        "Interesado",
+        "Newsletter"
+      ],
+      "engagementScore": 45,
+      "lastContact": "2023-10-20",
+      "phone": "+56 9 8765 4321",
+      "role": "Lead",
+      "createdAt": "2023-03-20"
+    },
+    {
+      "id": "3",
+      "name": "Maria Gonzalez",
+      "email": "maria.g@email.com",
+      "status": "Bounced",
+      "tags": [
+        "Inactivo"
+      ],
+      "engagementScore": 10,
+      "lastContact": "2023-05-12",
+      "phone": "",
+      "role": "Lead",
+      "createdAt": "2022-11-05"
+    },
+    {
+      "id": "4",
+      "name": "Jorge Silva",
+      "email": "jorge.s@email.com",
+      "status": "Subscribed",
+      "tags": [
+        "Taller Meditación"
+      ],
+      "engagementScore": 78,
+      "lastContact": "2023-10-24",
+      "phone": "",
+      "role": "Lead",
+      "createdAt": "2023-06-10"
+    },
+    {
+      "id": "5",
+      "name": "Elena Nuñez",
+      "email": "elena.n@email.com",
+      "status": "Subscribed",
+      "tags": [
+        "Miembro",
+        "Voluntario"
+      ],
+      "engagementScore": 88,
+      "lastContact": "2023-10-26",
+      "phone": "+56 9 5555 4444",
+      "role": "Member",
+      "createdAt": "2023-02-28"
+    }
+  ],
+  "media": [
+    {
+      "id": "m1",
+      "name": "Logo_Cafh_Vector.svg",
+      "type": "image",
+      "url": "https://picsum.photos/seed/cafh1/400/400",
+      "size": "45 KB",
+      "dimensions": "512x512",
+      "uploadedAt": "2023-10-01",
+      "tags": [
+        "Branding",
+        "Logo"
+      ]
+    },
+    {
+      "id": "m2",
+      "name": "Retiro_Cajon_2023.jpg",
+      "type": "image",
+      "url": "https://picsum.photos/seed/retiro/1200/800",
+      "size": "2.4 MB",
+      "dimensions": "1920x1080",
+      "uploadedAt": "2023-11-05",
+      "tags": [
+        "Eventos",
+        "Retiro"
+      ]
+    },
+    {
+      "id": "m3",
+      "name": "Guia_Meditacion_Principiantes.pdf",
+      "type": "document",
+      "url": "#",
+      "size": "1.8 MB",
+      "uploadedAt": "2023-09-20",
+      "tags": [
+        "Recursos",
+        "PDF"
+      ]
+    },
+    {
+      "id": "m4",
+      "name": "Intro_Cafh_Video.mp4",
+      "type": "video",
+      "url": "https://cdn.pixabay.com/video/2020/12/03/58142-490367352_large.mp4",
+      "size": "15.2 MB",
+      "uploadedAt": "2023-08-15",
+      "tags": [
+        "Video",
+        "Institucional"
+      ]
+    },
+    {
+      "id": "m5",
+      "name": "Meditacion_Guiada_Paz.mp3",
+      "type": "audio",
+      "url": "#",
+      "size": "8.4 MB",
+      "uploadedAt": "2023-11-10",
+      "tags": [
+        "Audio",
+        "Meditación"
+      ]
+    },
+    {
+      "id": "m6",
+      "name": "Banner_Home_V2.png",
+      "type": "image",
+      "url": "https://picsum.photos/seed/banner/1600/600",
+      "size": "1.2 MB",
+      "dimensions": "1600x600",
+      "uploadedAt": "2023-11-12",
+      "tags": [
+        "Web",
+        "Banner"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "u_admin",
+      "name": "Administrador Principal",
+      "email": "admin@cafh.cl",
+      "role": "SUPER_ADMIN",
+      "avatarUrl": "",
+      "tenantId": "t_santiago_01",
+      "interests": [],
+      "joinedDate": "2023-01-01"
+    },
+    {
+      "id": "u_member",
+      "name": "Miembro Cafh",
+      "email": "miembro@cafh.cl",
+      "role": "MEMBER",
+      "avatarUrl": "",
+      "tenantId": "t_santiago_01",
+      "interests": [
+        "Meditación",
+        "Bienestar"
+      ],
+      "joinedDate": "2023-10-15"
+    }
+  ],
+  "custom_pages": [
+    {
+      "id": "p_historia_01",
+      "title": "Quiénes Somos",
+      "slug": "quienes-somos",
+      "status": "Published",
+      "sections": [
+        {
+          "id": "s_hero_about",
+          "type": "Hero",
+          "order": 0,
+          "content": {
+            "title": "Quiénes Somos",
+            "subtitle": "Una comunidad global dedicada al desenvolvimiento espiritual y al servicio de la humanidad.",
+            "imageUrl": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2000&auto=format&fit=crop",
+            "ctaText": "Ver Sedes",
+            "ctaLink": "/about/locations"
+          }
+        },
+        {
+          "id": "s_text_about_1",
+          "type": "Text",
+          "order": 1,
+          "content": {
+            "text": "## Un legado de sabiduría viva\n\nFundada hace más de 80 años, Cafh nació como una respuesta a la necesidad humana de encontrar un sentido trascendente. A lo largo de las décadas, hemos evolucionado manteniendo intacta nuestra esencia: el método de vida."
+          }
+        },
+        {
+          "id": "s_stats_about",
+          "type": "Stats",
+          "order": 2,
+          "content": {
+            "items": [
+              {
+                "label": "Año de Fundación",
+                "value": "1937",
+                "icon": "Calendar"
+              },
+              {
+                "label": "Países con presencia",
+                "value": "20+",
+                "icon": "Globe"
+              }
+            ]
+          }
+        },
+        {
+          "id": "s_timeline_about",
+          "type": "Timeline",
+          "order": 3,
+          "content": {}
+        },
+        {
+          "id": "s_cta_mission",
+          "type": "CTA",
+          "order": 3,
+          "content": {
+            "title": "Nuestra Misión",
+            "text": "\"Fomentar el desenvolvimiento espiritual de sus miembros para que, a través de su propio trabajo interior, contribuyan al bien de la sociedad y del mundo entero.\"",
+            "buttonText": "Saber más",
+            "buttonLink": "/about"
+          }
+        }
+      ],
+      "seo": {
+        "title": "Quiénes Somos | Cafh",
+        "description": "Conoce la historia y misión de Cafh.",
+        "keywords": [
+          "historia",
+          "misión",
+          "cafh"
+        ]
+      }
+    },
+    {
+      "id": "p_metodo_01",
+      "title": "El Método",
+      "slug": "el-metodo",
+      "status": "Published",
+      "sections": [
+        {
+          "id": "s_hero_method",
+          "type": "Hero",
+          "order": 0,
+          "content": {
+            "title": "El Método",
+            "subtitle": "Un camino práctico para integrar la espiritualidad en la vida cotidiana.",
+            "imageUrl": "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=2000&auto=format&fit=crop",
+            "ctaText": "Empezar ahora",
+            "ctaLink": "/login"
+          }
+        },
+        {
+          "id": "s_pillars_method",
+          "type": "MethodPillars",
+          "order": 1,
+          "content": {}
+        },
+        {
+          "id": "s_cta_meditation",
+          "type": "CTA",
+          "order": 2,
+          "content": {
+            "title": "Meditación Discursiva",
+            "text": "Nuestro método principal de meditación. No solo busca calmar la mente, sino transformar la conducta a través de la reflexión profunda.",
+            "buttonText": "Aprender a Meditar",
+            "buttonLink": "/resources"
+          }
+        }
+      ],
+      "seo": {
+        "title": "El Método | Cafh",
+        "description": "Descubre el método de vida de Cafh.",
+        "keywords": [
+          "meditación",
+          "espiritualidad",
+          "método"
+        ]
+      }
+    },
+    {
+      "id": "p_recursos_01",
+      "title": "Biblioteca de Recursos",
+      "slug": "biblioteca-recursos",
+      "status": "Published",
+      "sections": [
+        {
+          "id": "s_hero_resources",
+          "type": "Hero",
+          "order": 0,
+          "content": {
+            "title": "Biblioteca de Recursos",
+            "subtitle": "Explora documentos, videos y audios para nutrir tu camino.",
+            "imageUrl": "https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=2000&auto=format&fit=crop",
+            "ctaText": "Ver Todo",
+            "ctaLink": "/resources"
+          }
+        },
+        {
+          "id": "s_text_resources",
+          "type": "Text",
+          "order": 1,
+          "content": {
+            "text": "### Contenido para tu crecimiento\n\nEn esta sección encontrarás una selección de materiales diseñados para acompañar tu proceso de desenvolvimiento espiritual."
+          }
+        },
+        {
+          "id": "s_grid_resources",
+          "type": "ResourcesGrid",
+          "order": 2,
+          "content": {}
+        }
+      ],
+      "seo": {
+        "title": "Recursos | Cafh",
+        "description": "Biblioteca de recursos espirituales.",
+        "keywords": [
+          "libros",
+          "videos",
+          "meditaciones"
+        ]
+      }
+    },
+    {
+      "id": "p_actividades_01",
+      "title": "Actividades y Retiros",
+      "slug": "actividades-retiros",
+      "status": "Published",
+      "sections": [
+        {
+          "id": "s_hero_activities",
+          "type": "Hero",
+          "order": 0,
+          "content": {
+            "title": "Actividades y Retiros",
+            "subtitle": "Participa de nuestros encuentros. Espacios diseñados para el aprendizaje y la vivencia espiritual.",
+            "imageUrl": "https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?q=80&w=2000&auto=format&fit=crop",
+            "ctaText": "Ver Calendario",
+            "ctaLink": "/about"
+          }
+        },
+        {
+          "id": "s_cta_retreats",
+          "type": "CTA",
+          "order": 1,
+          "content": {
+            "title": "¿Buscas un retiro?",
+            "text": "Desconecta del ruido y reconecta contigo mismo en nuestros centros de retiro.",
+            "buttonText": "Ver opciones",
+            "buttonLink": "/activities"
+          }
+        },
+        {
+          "id": "s_calendar",
+          "type": "EventsCalendar",
+          "order": 2,
+          "content": {}
+        }
+      ],
+      "seo": {
+        "title": "Actividades | Cafh",
+        "description": "Calendario de actividades y retiros.",
+        "keywords": [
+          "retiros",
+          "eventos",
+          "cafh"
+        ]
+      }
+    }
+  ],
+  "navigation": [
+    {
+      "label": "Quiénes Somos",
+      "path": "/about",
+      "description": "Nuestra identidad y propósito.",
+      "columns": [
+        {
+          "title": "Identidad",
+          "items": [
+            {
+              "label": "Nuestra Historia",
+              "path": "/about/history",
+              "icon": "Compass",
+              "desc": "Orígenes y trayectoria."
+            },
+            {
+              "label": "Misión y Visión",
+              "path": "/about/mission",
+              "icon": "Anchor",
+              "desc": "El propósito que nos guía."
+            }
+          ]
+        },
+        {
+          "title": "Organización",
+          "items": [
+            {
+              "label": "Sedes en el Mundo",
+              "path": "/about/locations",
+              "icon": "Map",
+              "desc": "Nuestra presencia global."
+            },
+            {
+              "label": "Comunidad",
+              "path": "/about/community",
+              "icon": "Users",
+              "desc": "Quienes formamos Cafh."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "El Método",
+      "path": "/method",
+      "description": "Un camino de desenvolvimiento espiritual.",
+      "columns": [
+        {
+          "title": "Pilares",
+          "items": [
+            {
+              "label": "Vida Interior",
+              "path": "/method/inner-life",
+              "icon": "Heart",
+              "desc": "El cultivo del ser."
+            },
+            {
+              "label": "Mística del Corazón",
+              "path": "/method/mystic",
+              "icon": "Sparkles",
+              "desc": "Conexión profunda."
+            }
+          ]
+        },
+        {
+          "title": "Prácticas",
+          "items": [
+            {
+              "label": "Meditación",
+              "path": "/method/meditation",
+              "icon": "Cloud",
+              "desc": "Silencio y encuentro."
+            },
+            {
+              "label": "Estudio",
+              "path": "/method/study",
+              "icon": "Book",
+              "desc": "Expansión de la conciencia."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Recursos",
+      "path": "/resources",
+      "description": "Material para tu camino.",
+      "columns": [
+        {
+          "title": "Formatos",
+          "items": [
+            {
+              "label": "Biblioteca Digital",
+              "path": "/resources/library",
+              "icon": "BookOpen",
+              "desc": "Textos y documentos."
+            },
+            {
+              "label": "Videos y Charlas",
+              "path": "/resources/videos",
+              "icon": "Video",
+              "desc": "Contenido audiovisual."
+            }
+          ]
+        },
+        {
+          "title": "Inspiración",
+          "items": [
+            {
+              "label": "Blog",
+              "path": "/resources/blog",
+              "icon": "Feather",
+              "desc": "Reflexiones semanales."
+            },
+            {
+              "label": "Podcast",
+              "path": "/resources/podcast",
+              "icon": "MessageCircle",
+              "desc": "Escucha en el camino."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Actividades",
+      "path": "/activities",
+      "description": "Participa con nosotros.",
+      "columns": [
+        {
+          "title": "Eventos",
+          "items": [
+            {
+              "label": "Calendario",
+              "path": "/activities/calendar",
+              "icon": "Calendar",
+              "desc": "Próximos encuentros."
+            },
+            {
+              "label": "Retiros",
+              "path": "/activities/retreats",
+              "icon": "Sun",
+              "desc": "Espacios de silencio."
+            }
+          ]
+        },
+        {
+          "title": "Grupos",
+          "items": [
+            {
+              "label": "Reuniones",
+              "path": "/activities/meetings",
+              "icon": "Coffee",
+              "desc": "Diálogos con sentido."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "label": "Páginas",
+      "path": "#",
+      "description": "Explora más contenidos.",
+      "columns": [
+        {
+          "title": "Páginas Internas",
+          "items": []
+        }
+      ]
     }
   ]
 }
