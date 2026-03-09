@@ -619,6 +619,69 @@
       "joinedDate": "2023-10-15"
     }
   ],
+  "locations": [
+    {
+      "id": "loc_stgo_01",
+      "name": "Sede Central Ñuñoa",
+      "continent": "América",
+      "country": "Chile",
+      "city": "Santiago",
+      "address": "Calle Ficticia 123, Ñuñoa",
+      "mapX": 27.5,
+      "mapY": 81.2,
+      "contacts": [
+        {
+          "type": "whatsapp",
+          "label": "Secretaría",
+          "value": "+56912345678"
+        },
+        {
+          "type": "email",
+          "label": "Consultas",
+          "value": "contacto@cafh.cl"
+        }
+      ]
+    },
+    {
+      "id": "loc_stgo_02",
+      "name": "Sede Providencia",
+      "continent": "América",
+      "country": "Chile",
+      "city": "Santiago",
+      "address": "Av. Providencia 456, Depto 21",
+      "mapX": 27.8,
+      "mapY": 80.8,
+      "contacts": [
+        {
+          "type": "whatsapp",
+          "label": "Coordinación",
+          "value": "+56987654321"
+        }
+      ]
+    },
+    {
+      "id": "loc_ba_01",
+      "name": "Sede Buenos Aires",
+      "continent": "América",
+      "country": "Argentina",
+      "city": "Buenos Aires",
+      "address": "Calle Corrientes 999, CABA",
+      "mapX": 30.2,
+      "mapY": 78.5,
+      "contacts": [
+        {
+          "type": "phone",
+          "label": "Recepción",
+          "value": "+541122334455"
+        },
+        {
+          "type": "email",
+          "label": "Información",
+          "value": "ba@cafh.ar"
+        }
+      ]
+    }
+  ],
   "custom_pages": [
     {
       "id": "p_historia_01",

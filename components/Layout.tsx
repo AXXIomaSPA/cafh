@@ -4,35 +4,14 @@ import { Menu, X, ChevronDown, Bell, Search, User as UserIcon, LogOut, Globe, Ch
 import * as Lucide from 'lucide-react';
 import { PUBLIC_NAV_STRUCTURE, ADMIN_NAV_ITEMS, CURRENT_TENANT } from '../constants';
 import { db } from '../storage';
-import { User, UserRole } from '../types';
+import { User, UserRole, MegaMenuItem } from '../types';
 
 // --- MEGA MENU COMPONENT (FULL WIDTH) ---
 
 const MegaMenuOverlay: React.FC<{ activeLabel: string | null, close: () => void }> = ({ activeLabel, close }) => {
-    const [dynamicPages, setDynamicPages] = useState<any[]>([]);
-
-    useEffect(() => {
-        if (activeLabel === 'Páginas') {
-            const pages = db.cms.getPages().filter(p => p.status === 'Published');
-            setDynamicPages(pages.map(p => ({
-                label: p.title,
-                path: `/p/${p.slug}`,
-                icon: FileText,
-                desc: p.seo.description || 'Página personalizada.'
-            })));
-        }
-    }, [activeLabel]);
-
-    const baseItem = PUBLIC_NAV_STRUCTURE.find(i => i.label === activeLabel);
-    if (!baseItem) return null;
-
-    const item = { ...baseItem };
-    if (item.label === 'Páginas') {
-        item.columns = [{
-            title: 'Contenidos Publicados',
-            items: dynamicPages.length > 0 ? dynamicPages : [{ label: 'Próximamente', path: '#', icon: FileText, desc: 'Aún no hay páginas publicadas.' }]
-        }];
-    }
+    const menu = db.cms.getMenu();
+    const item = menu.find(i => i.label === activeLabel);
+    if (!item) return null;
 
     return (
         <div
@@ -111,31 +90,12 @@ export const PublicHeader: React.FC = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [dynamicPages, setDynamicPages] = useState<any[]>([]);
+    const [menu, setMenu] = useState<MegaMenuItem[]>([]);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const pages = db.cms.getPages().filter(p => p.status === 'Published');
-        setDynamicPages(pages.map(p => ({
-            label: p.title,
-            path: `/p/${p.slug}`,
-            icon: 'FileText',
-            desc: p.seo.description || 'Página personalizada.'
-        })));
+        setMenu(db.cms.getMenu());
     }, []);
-
-    const navStructure = PUBLIC_NAV_STRUCTURE.map(item => {
-        if (item.label === 'Páginas') {
-            return {
-                ...item,
-                columns: [{
-                    title: 'Contenidos Publicados',
-                    items: dynamicPages.length > 0 ? dynamicPages : [{ label: 'Próximamente', path: '#', icon: 'FileText', desc: 'Aún no hay páginas publicadas.' }]
-                }]
-            };
-        }
-        return item;
-    });
 
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -164,7 +124,7 @@ export const PublicHeader: React.FC = () => {
 
                     {/* Desktop Nav - Centered Trigger */}
                     <nav className="hidden lg:flex items-center gap-1 bg-white/5 backdrop-blur-sm p-1 rounded-full border border-white/10">
-                        {navStructure.map((item) => (
+                        {menu.map((item) => (
                             <button
                                 key={item.label}
                                 className={`px-5 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 flex items-center gap-1.5 ${(isScrolled || activeMenu)
@@ -175,7 +135,9 @@ export const PublicHeader: React.FC = () => {
                                 onClick={() => navigate(item.path)}
                             >
                                 {item.label}
-                                <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === item.label ? 'rotate-180' : ''}`} />
+                                {item.columns && item.columns.length > 0 && (
+                                    <ChevronDown size={14} className={`transition-transform duration-300 ${activeMenu === item.label ? 'rotate-180' : ''}`} />
+                                )}
                             </button>
                         ))}
                     </nav>
@@ -218,7 +180,7 @@ export const PublicHeader: React.FC = () => {
             {mobileMenuOpen && (
                 <div className="absolute top-0 left-0 w-full h-screen bg-slate-50 z-10 flex flex-col pt-24 px-6 animate-in slide-in-from-right-10 overflow-y-auto">
                     <div className="space-y-8 pb-10 max-w-lg mx-auto w-full">
-                        {navStructure.map(item => (
+                        {menu.map(item => (
                             <div key={item.label} className="border-b border-slate-200 pb-6 last:border-0">
                                 <div className="flex justify-between items-center mb-4">
                                     <NavLink
@@ -229,24 +191,26 @@ export const PublicHeader: React.FC = () => {
                                         {item.label}
                                     </NavLink>
                                 </div>
-                                <div className="grid grid-cols-1 gap-3">
-                                    {item.columns.flatMap(c => c.items).map(sub => {
-                                        const Icon = sub.icon;
-                                        return (
-                                            <NavLink
-                                                key={sub.label}
-                                                to={sub.path}
-                                                onClick={() => setMobileMenuOpen(false)}
-                                                className="flex items-center gap-4 p-3 rounded-xl bg-white shadow-sm border border-slate-100 active:scale-95 transition-transform"
-                                            >
-                                                <div className="w-10 h-10 rounded-full bg-cafh-light text-cafh-indigo flex items-center justify-center shrink-0">
-                                                    <Icon size={18} />
-                                                </div>
-                                                <span className="text-slate-700 font-bold">{sub.label}</span>
-                                            </NavLink>
-                                        );
-                                    })}
-                                </div>
+                                {item.columns && item.columns.length > 0 && (
+                                    <div className="grid grid-cols-1 gap-3">
+                                        {item.columns.flatMap(c => c.items).map(sub => {
+                                            const IconComponent = (Lucide as any)[sub.icon || ''] || HelpCircle;
+                                            return (
+                                                <NavLink
+                                                    key={sub.label}
+                                                    to={sub.path}
+                                                    onClick={() => setMobileMenuOpen(false)}
+                                                    className="flex items-center gap-4 p-3 rounded-xl bg-white shadow-sm border border-slate-100 active:scale-95 transition-transform"
+                                                >
+                                                    <div className="w-10 h-10 rounded-full bg-cafh-light text-cafh-indigo flex items-center justify-center shrink-0">
+                                                        <IconComponent size={18} />
+                                                    </div>
+                                                    <span className="text-slate-700 font-bold">{sub.label}</span>
+                                                </NavLink>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
                         ))}
 

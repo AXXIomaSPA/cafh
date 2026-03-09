@@ -445,17 +445,70 @@ export const SettingsView: React.FC = () => {
 
             <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm p-8 space-y-6">
                 {tab === 'general' && (
-                    <div className="grid grid-cols-2 gap-5">
-                        <Field label="Nombre"><Input value={settings.siteName} onChange={(v: string) => set('siteName', v)} /></Field>
-                        <Field label="URL"><Input value={settings.siteUrl} onChange={(v: string) => set('siteUrl', v)} mono /></Field>
-                        <div className="col-span-2"><Field label="Descripción"><Input value={settings.siteDescription} onChange={(v: string) => set('siteDescription', v)} /></Field></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <Field label="Nombre del Sitio"><Input value={settings.siteName} onChange={(v: string) => set('siteName', v)} /></Field>
+                        <Field label="URL del Proyecto"><Input value={settings.siteUrl} onChange={(v: string) => set('siteUrl', v)} mono /></Field>
+                        <div className="col-span-full"><Field label="Descripción de la Plataforma"><Input value={settings.siteDescription} onChange={(v: string) => set('siteDescription', v)} /></Field></div>
+
+                        <div className="pt-4 border-t col-span-full mb-2">
+                            <h4 className="text-sm font-bold text-slate-800">Identidad & Marca</h4>
+                        </div>
+                        <Field label="Logo URL"><Input value={settings.logoUrl} onChange={(v: string) => set('logoUrl', v)} mono /></Field>
+                        <Field label="Favicon URL"><Input value={settings.faviconUrl} onChange={(v: string) => set('faviconUrl', v)} mono /></Field>
+                        <Field label="Color Primario">
+                            <div className="flex items-center gap-3">
+                                <input type="color" value={settings.primaryColor} onChange={e => set('primaryColor', e.target.value)} className="w-10 h-10 rounded-lg border cursor-pointer" />
+                                <Input value={settings.primaryColor} onChange={(v: string) => set('primaryColor', v)} mono />
+                            </div>
+                        </Field>
+                        <Field label="Color de Acento">
+                            <div className="flex items-center gap-3">
+                                <input type="color" value={settings.accentColor} onChange={e => set('accentColor', e.target.value)} className="w-10 h-10 rounded-lg border cursor-pointer" />
+                                <Input value={settings.accentColor} onChange={(v: string) => set('accentColor', v)} mono />
+                            </div>
+                        </Field>
+
+                        <div className="pt-4 border-t col-span-full mb-2">
+                            <h4 className="text-sm font-bold text-slate-800">Localización & Estado</h4>
+                        </div>
+                        <Field label="Zona Horaria">
+                            <select value={settings.timezone} onChange={e => set('timezone', e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-medium">
+                                <option value="America/Santiago">Santiago, Chile (UTC-3/4)</option>
+                                <option value="America/Argentina/Buenos_Aires">Buenos Aires, Argentina (UTC-3)</option>
+                                <option value="UTC">UTC / Greenwich</option>
+                            </select>
+                        </Field>
+                        <Field label="Modo Mantenimiento">
+                            <button onClick={() => set('maintenanceMode', !settings.maintenanceMode)} className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${settings.maintenanceMode ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>
+                                {settings.maintenanceMode ? '⚠️ ACTIVADO' : 'DESACTIVADO'}
+                            </button>
+                        </Field>
                     </div>
                 )}
 
                 {tab === 'social' && (
-                    <div className="grid grid-cols-2 gap-5">
-                        <Field label="Instagram"><Input value={settings.socialLinks.instagram} onChange={(v: string) => setSocial('instagram', v)} /></Field>
-                        <Field label="Facebook"><Input value={settings.socialLinks.facebook} onChange={(v: string) => setSocial('facebook', v)} /></Field>
+                    <div className="space-y-8">
+                        <div>
+                            <h3 className="text-sm font-bold text-slate-800 mb-4 pb-2 border-b">Redes Sociales</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <Field label="Instagram"><Input value={settings.socialLinks.instagram} onChange={(v: string) => setSocial('instagram', v)} placeholder="https://instagram.com/..." /></Field>
+                                <Field label="Facebook"><Input value={settings.socialLinks.facebook} onChange={(v: string) => setSocial('facebook', v)} placeholder="https://facebook.com/..." /></Field>
+                                <Field label="YouTube"><Input value={settings.socialLinks.youtube} onChange={(v: string) => setSocial('youtube', v)} placeholder="https://youtube.com/..." /></Field>
+                                <Field label="WhatsApp"><Input value={settings.socialLinks.whatsapp} onChange={(v: string) => setSocial('whatsapp', v)} placeholder="https://wa.me/..." /></Field>
+                                <Field label="Twitter / X"><Input value={settings.socialLinks.twitter} onChange={(v: string) => setSocial('twitter', v)} placeholder="https://x.com/..." /></Field>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 className="text-sm font-bold text-slate-800 mb-4 pb-2 border-b">SEO & Meta Tags</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <Field label="SEO Title"><Input value={settings.seoTitle} onChange={(v: string) => set('seoTitle', v)} /></Field>
+                                <Field label="Google Analytics ID"><Input value={settings.gaId} onChange={(v: string) => set('gaId', v)} placeholder="G-XXXXXXXXXX" mono /></Field>
+                                <div className="col-span-full"><Field label="SEO Meta Description"><textarea value={settings.seoDescription} onChange={e => set('seoDescription', e.target.value)} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-cafh-indigo text-sm" rows={3} /></Field></div>
+                                <Field label="OG Image (Compartir)"><Input value={settings.ogImageUrl} onChange={(v: string) => set('ogImageUrl', v)} placeholder="URL de la imagen para redes sociales" mono /></Field>
+                                <Field label="Facebook Pixel ID"><Input value={settings.metaPixelId} onChange={(v: string) => set('metaPixelId', v)} placeholder="1234567890..." mono /></Field>
+                            </div>
+                        </div>
                     </div>
                 )}
 
@@ -469,74 +522,199 @@ export const SettingsView: React.FC = () => {
                 )}
 
                 {tab === 'admins' && (
-                    <div className="space-y-3">
-                        <p className="text-sm text-slate-500">Administradores registrados en el sistema.</p>
-                        <div className="p-4 bg-slate-50 border rounded-2xl flex justify-between items-center">
-                            <span className="font-bold">admin@cafh.cl</span>
-                            <span className="text-xs font-bold px-2 py-1 bg-indigo-100 text-indigo-600 rounded-full">Super Admin</span>
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest">Administradores del Sistema</h3>
+                            <button className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-black uppercase hover:bg-slate-200">Invitar Admin</button>
+                        </div>
+                        <div className="grid grid-cols-1 gap-3">
+                            {db.auth.getAllUsers().filter((u: any) => u.role === 'ADMIN' || u.role === 'SUPER_ADMIN').map((user: any) => (
+                                <div key={user.id} className="p-4 bg-white border border-slate-100 rounded-2xl flex justify-between items-center shadow-sm">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold">
+                                            {user.name[0]}
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-800">{user.name}</p>
+                                            <p className="text-[10px] text-slate-500">{user.email}</p>
+                                        </div>
+                                    </div>
+                                    <span className={`text-[10px] font-black px-2 py-1 rounded-full ${user.role === 'SUPER_ADMIN' ? 'bg-indigo-100 text-indigo-600' : 'bg-emerald-100 text-emerald-600'}`}>
+                                        {user.role}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}
 
                 {tab === 'notifications' && (
-                    <div className="space-y-4">
-                        <Field label="Email de notificación"><Input value={settings.notificationEmail} onChange={(v: string) => set('notificationEmail', v)} mono /></Field>
+                    <div className="space-y-6">
+                        <Field label="Email de Notificación Maestro"><Input value={settings.notificationEmail} onChange={(v: string) => set('notificationEmail', v)} mono /></Field>
+
+                        <div className="pt-4 border-t space-y-4">
+                            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Eventos que disparan avisos</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                                    <span className="text-xs font-bold text-slate-700">Nuevas Suscripciones</span>
+                                    <button onClick={() => set('notifyOnSubscribe', !settings.notifyOnSubscribe)} className={`w-12 h-6 rounded-full transition-all relative ${settings.notifyOnSubscribe ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.notifyOnSubscribe ? 'left-7' : 'left-1'}`} />
+                                    </button>
+                                </div>
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                                    <span className="text-xs font-bold text-slate-700">Rebotes de Email (Bounce)</span>
+                                    <button onClick={() => set('notifyOnBounce', !settings.notifyOnBounce)} className={`w-12 h-6 rounded-full transition-all relative ${settings.notifyOnBounce ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.notifyOnBounce ? 'left-7' : 'left-1'}`} />
+                                    </button>
+                                </div>
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                                    <span className="text-xs font-bold text-slate-700">Fallas en Automatización</span>
+                                    <button onClick={() => set('notifyOnAutomationFail', !settings.notifyOnAutomationFail)} className={`w-12 h-6 rounded-full transition-all relative ${settings.notifyOnAutomationFail ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.notifyOnAutomationFail ? 'left-7' : 'left-1'}`} />
+                                    </button>
+                                </div>
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
+                                    <span className="text-xs font-bold text-slate-700">Resumen Semanal (Digest)</span>
+                                    <button onClick={() => set('weeklyDigest', !settings.weeklyDigest)} className={`w-12 h-6 rounded-full transition-all relative ${settings.weeklyDigest ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.weeklyDigest ? 'left-7' : 'left-1'}`} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
 
                 {tab === 'data' && (
-                    <div className="space-y-6">
-                        <h3 className="text-lg font-bold text-slate-800 pb-4 border-b border-slate-100">Datos & Respaldo</h3>
-                        <div className="grid grid-cols-2 gap-4">
-                            <button onClick={() => {
-                                const keys = Object.keys(localStorage).filter(k => k.startsWith('cafh_'));
-                                const data: any = {};
-                                keys.forEach(k => { try { data[k] = JSON.parse(localStorage.getItem(k) || ''); } catch { } });
-                                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement('a'); a.href = url; a.download = `cafh-backup-${new Date().toISOString().slice(0, 10)}.json`; a.click();
-                            }} className="p-6 bg-cafh-indigo text-white rounded-2xl font-bold flex items-center gap-3">
-                                <Database size={24} /> Exportar toda la base de datos
-                            </button>
-                            <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl">
-                                <p className="text-sm font-bold text-slate-700 mb-1 flex items-center gap-2"><Database size={16} /> Almacenamiento usado</p>
-                                <p className="text-3xl font-extrabold text-cafh-indigo">{db.system.getStorageUsage().totalKB} KB</p>
-                            </div>
+                    <div className="space-y-8">
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-800 pb-2 flex items-center gap-2 underline decoration-cafh-indigo/20">
+                                <Database size={18} className="text-cafh-indigo" /> Estado del Almacenamiento
+                            </h3>
+                            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="p-6 bg-cafh-indigo text-white rounded-[2rem] shadow-xl shadow-indigo-100 flex flex-col justify-center">
+                                    <p className="text-[10px] uppercase font-black tracking-widest opacity-70 mb-1">Total Consumido</p>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-4xl font-black">{db.system.getStorageUsage().totalKB}</span>
+                                        <span className="text-xl font-bold opacity-80">KB</span>
+                                    </div>
+                                    <div className="mt-4 w-full bg-white/20 h-1.5 rounded-full overflow-hidden">
+                                        <div className="bg-white h-full transition-all duration-1000" style={{ width: `${Math.min(100, (db.system.getStorageUsage().totalKB / 5000) * 100)}%` }} />
+                                    </div>
+                                    <p className="mt-2 text-[10px] font-bold opacity-60">Límite estimado: 5MB (Browser Standard)</p>
+                                </div>
 
-                            <div className="col-span-2 bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mt-2">
-                                <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-emerald-50/30">
-                                    <div className="flex items-center gap-2">
-                                        <Globe size={18} className="text-emerald-600" />
-                                        <h4 className="font-bold text-slate-800">Cloud Sync & Regla Superior</h4>
+                                <div className="col-span-1 md:col-span-2 bg-slate-50 border border-slate-200 rounded-[2rem] p-6">
+                                    <p className="text-[10px] uppercase font-black text-slate-400 mb-3 tracking-widest">Desglose por sección</p>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto max-h-[160px] pr-2 custom-scrollbar">
+                                        {Object.entries(db.system.getStorageUsage().details).sort((a, b) => (b[1] as number) - (a[1] as number)).map(([key, size]) => (
+                                            <div key={key} className="bg-white border border-slate-100 p-3 rounded-2xl flex flex-col">
+                                                <span className="text-[9px] font-black text-slate-300 uppercase truncate mb-1">{key.replace('cafh_', '').replace('_v1', '')}</span>
+                                                <span className="text-sm font-bold text-slate-700">{size as number} KB</span>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                                <div className="p-6 space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="col-span-full">
-                                            <label className="block text-[10px] font-black uppercase text-slate-400 mb-2">URL del JSON Externo</label>
-                                            <div className="flex gap-2">
-                                                <input id="remote_url_input" type="text" className="flex-1 px-4 py-2 bg-slate-50 border rounded-xl text-sm" defaultValue={db.system.getRemoteUrl()} onBlur={(e) => db.system.setRemoteUrl(e.target.value)} />
-                                                <button onClick={() => {
-                                                    const detected = "https://raw.githubusercontent.com/AXXIomaSPA/cafh/feature/unification-and-dashboard-refactor/external_db.json";
-                                                    const input = document.getElementById('remote_url_input') as HTMLInputElement;
-                                                    if (input) { input.value = detected; db.system.setRemoteUrl(detected); alert('URL Aplicada.'); }
-                                                }} className="px-3 bg-emerald-50 text-emerald-600 rounded-xl text-[10px] font-black uppercase">⚡ Sugerir</button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <h3 className="text-lg font-bold text-slate-800 pb-2 flex items-center gap-2 underline decoration-emerald-500/20">
+                                <Globe size={18} className="text-emerald-500" /> Sincronización Híbrida & Mezcla de Datos
+                            </h3>
+
+                            <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-100/50 overflow-hidden">
+                                <div className="p-8 space-y-6">
+                                    <div className="flex flex-col md:flex-row gap-6">
+                                        <div className="flex-1 space-y-4">
+                                            <div className="p-5 bg-emerald-50 rounded-3xl border border-emerald-100">
+                                                <h4 className="text-xs font-black text-emerald-800 uppercase tracking-widest mb-2">Concepto de Sincronización</h4>
+                                                <p className="text-xs text-emerald-700/80 leading-relaxed italic">
+                                                    "La sincronización permite unir los datos de tu dispositivo local con la base de datos maestra en GitHub, preservando tus cambios locales si eliges el modo Mezcla."
+                                                </p>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                <Field label="URL Remota (GitHub Raw JSON)">
+                                                    <div className="flex gap-2">
+                                                        <Input id="remote_url_input" value={db.system.getRemoteUrl()} onChange={(v: string) => db.system.setRemoteUrl(v)} mono />
+                                                        <button onClick={() => {
+                                                            const detected = "https://raw.githubusercontent.com/AXXIomaSPA/cafh/feature/unification-and-dashboard-refactor/external_db.json";
+                                                            const input = document.getElementById('remote_url_input') as HTMLInputElement;
+                                                            if (input) { input.value = detected; db.system.setRemoteUrl(detected); alert('URL Aplicada.'); }
+                                                        }} className="px-4 bg-emerald-100 text-emerald-700 rounded-xl text-[10px] font-black hover:bg-emerald-200 transition-colors">AUTODETECTAR</button>
+                                                    </div>
+                                                </Field>
+                                                <Field label="Token de Acceso (Opcional)">
+                                                    <Input type="password" placeholder="ghp_xxxx (Recomendado para evitar límites de API)" value={localStorage.getItem('cafh_github_token') || ''} onChange={(v: string) => localStorage.setItem('cafh_github_token', v)} />
+                                                </Field>
                                             </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black uppercase text-slate-400 mb-2">GitHub Token</label>
-                                            <input type="password" placeholder="ghp_xxxx" className="w-full px-4 py-2 bg-slate-50 border rounded-xl text-sm" onChange={(e) => localStorage.setItem('cafh_github_token', e.target.value)} />
-                                        </div>
-                                        <div className="col-span-full pt-4 border-t flex items-center justify-between">
-                                            <button onClick={async () => {
-                                                const res = await (db.system as any).syncRemote('merge');
-                                                if (res.status === 'success') alert(`Sincronización exitosa. Cambios: ${res.changes}`);
-                                                else alert(`Error: ${res.message}`);
-                                            }} className="px-8 py-3 bg-emerald-500 text-white rounded-2xl font-black text-sm shadow-lg">🚀 Iniciar Sincronización</button>
+
+                                        <div className="w-full md:w-80 bg-slate-50/50 p-6 rounded-3xl border border-slate-100 flex flex-col justify-between">
+                                            <div className="space-y-4 text-center">
+                                                <div className="inline-flex p-3 bg-white rounded-2xl shadow-sm border border-slate-100 text-emerald-600 mb-2">
+                                                    <Database size={24} />
+                                                </div>
+                                                <h4 className="text-sm font-bold text-slate-800">Acciones de Datos</h4>
+                                                <p className="text-xs text-slate-500">Elige cómo deseas procesar la información del sistema.</p>
+                                            </div>
+
+                                            <div className="mt-8 space-y-3">
+                                                <button onClick={async () => {
+                                                    const res = await (db.system as any).syncRemote('merge');
+                                                    if (res.status === 'success') alert(`✅ MEZCLA COMPLETADA: Se han integrado ${res.changes} nuevos registros sin borrar tus datos actuales.`);
+                                                    else alert(`❌ ERROR: ${res.message}`);
+                                                }} className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xs shadow-lg shadow-emerald-100 flex items-center justify-center gap-2 transition-all active:scale-95">
+                                                    🌀 MEZCLA DE DATOS (MERGE)
+                                                </button>
+                                                <button onClick={async () => {
+                                                    if (confirm("⚠️ ADVERTENCIA: Esta acción BORRARÁ todos tus datos locales y los reemplazará EXACTAMENTE por los de la URL remota. ¿Continuar?")) {
+                                                        const res = await (db.system as any).syncRemote('overwrite');
+                                                        if (res.status === 'success') { alert(`✅ REEMPLAZO TOTAL EXITOSO.`); window.location.reload(); }
+                                                        else alert(`❌ ERROR: ${res.message}`);
+                                                    }
+                                                }} className="w-full py-3 bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 rounded-2xl font-bold text-[10px] uppercase transition-all">
+                                                    REEMPLAZO TOTAL (OVERWRITE)
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="pt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <button onClick={() => {
+                                const exp = db.system.exportAll();
+                                const blob = new Blob([JSON.stringify(exp, null, 2)], { type: 'application/json' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a'); a.href = url; a.download = `cafh-backup-full-${new Date().toISOString().slice(0, 10)}.json`; a.click();
+                            }} className="p-6 bg-white border-2 border-slate-100 hover:border-cafh-indigo/30 rounded-3xl flex items-center gap-4 group transition-all">
+                                <div className="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:bg-cafh-indigo/10 group-hover:text-cafh-indigo transition-colors"><Database size={20} /></div>
+                                <div className="text-left">
+                                    <p className="font-black text-slate-800 text-sm">Exportar Respaldo Local</p>
+                                    <p className="text-[10px] text-slate-400">Descarga un archivo JSON de tu sesión actual.</p>
+                                </div>
+                            </button>
+                            <label className="p-6 bg-white border-2 border-slate-100 hover:border-cafh-indigo/30 rounded-3xl flex items-center gap-4 group cursor-pointer transition-all">
+                                <div className="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:bg-cafh-indigo/10 group-hover:text-cafh-indigo transition-colors"><Package size={20} /></div>
+                                <div className="text-left">
+                                    <p className="font-black text-slate-800 text-sm">Importar Respaldo Local</p>
+                                    <p className="text-[10px] text-slate-400">Carga un archivo JSON previo al sistema.</p>
+                                </div>
+                                <input type="file" className="hidden" accept=".json" onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        const text = await file.text();
+                                        try {
+                                            const data = JSON.parse(text);
+                                            db.system.importAll(data);
+                                            alert("Importación exitosa. Recargando...");
+                                            window.location.reload();
+                                        } catch (e) { alert("Error al importar: Archivo inválido."); }
+                                    }
+                                }} />
+                            </label>
                         </div>
                     </div>
                 )}

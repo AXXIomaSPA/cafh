@@ -8,31 +8,193 @@ import {
     MOCK_EMAIL_LOGS, MOCK_EMAIL_METRICS
 } from '../constants';
 import {
-    MoreHorizontal, Filter, Plus, Mail, ArrowUpRight, CheckCircle2,
-    AlertCircle, Clock, FileText, Calendar as CalendarIcon, MapPin,
-    X, Send, Phone, Globe, User as UserIcon, Users, Shield, BarChart2, RefreshCw,
-    ChevronRight, ExternalLink, Trash2, Download, Search,
-    Grid, List, Film, Music, Image as ImageIcon, File, Instagram, Youtube,
-    Layout, Type, Image, Layers, Video, Sparkles, Edit, ArrowLeft,
-    GripVertical, ArrowUp, ArrowDown, Compass, BookOpen, TrendingUp,
-    Hash, Activity, Play, MousePointer, ChevronDown, ChevronUp, Database, UploadCloud, Settings, Eye, Target, Percent, Zap, Pause,
-    Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter, Heart, Sun, Cloud, Anchor, Feather, Coffee, Book, Headphones, Mic, LogOut, Check, ChevronLeft, Minus, Info, Settings2, Trash, Copy, Table2, FolderOpen, Columns,
-    Bold, Italic, Underline, ListOrdered, AlignLeft, AlignCenter, Type as TypeIcon, Eraser, MessageSquare, Paperclip, MessageCircle,
+    LayoutDashboard, Users, MessageSquare, Zap, FileCode, HardDrive,
+    BarChart3, Map, Settings, Plus, Search, Filter, MoreVertical,
+    ChevronRight, ChevronLeft, Calendar as CalendarIcon, Mail, CheckCircle2, AlertCircle,
+    Clock, Trash2, Edit, Save, X, Eye, Download, Upload, Link,
+    UserPlus, UserMinus, Shield, ShieldAlert, BadgeCheck, Star,
+    TrendingUp, ArrowUpRight, ArrowDownRight, Activity, MousePointer2,
+    Globe, Phone, MapPin, Grid, Layers, Image as ImageIcon, Video,
+    FileText, Type, List, CheckSquare, Maximize2, Minimize2, Trash,
+    ChevronDown, ChevronUp, ArrowUp, ArrowDown, HelpCircle, Palette,
+    Moon, Sun, Laptop, Smartphone, Monitor, Info, Bell, KeyRound,
+    User as UserIcon, MoreHorizontal, Send, RefreshCw, BarChart2, ExternalLink,
+    Film, Music, File, Instagram, Youtube, Layout, Image, Sparkles, ArrowLeft,
+    GripVertical, Compass, BookOpen, Hash, Play, MousePointer, Database,
+    UploadCloud, Target, Percent, Pause, Globe2, Lock, Tag, LogIn, AlertTriangle,
+    Sliders, Package, Link2, Facebook, Twitter, Heart, Cloud, Anchor, Feather,
+    Coffee, Book, Headphones, Mic, LogOut, Check, Minus, Settings2, Copy,
+    Table2, FolderOpen, Columns, Bold, Italic, Underline, ListOrdered,
+    AlignLeft, AlignCenter, Type as TypeIcon, Eraser, Paperclip, MessageCircle,
     PlusSquare, PlaySquare
 } from 'lucide-react';
+import * as Lucide from 'lucide-react';
 
 const LUCIDE_ICONS: Record<string, any> = {
-    MoreHorizontal, Filter, Plus, Mail, ArrowUpRight, CheckCircle2,
-    AlertCircle, Clock, FileText, Calendar: CalendarIcon, MapPin,
-    X, Send, Phone, Globe, User: UserIcon, Users, Shield, BarChart2, RefreshCw,
-    ChevronRight, ExternalLink, Trash2, Download, Search,
-    Grid, List, Film, Music, ImageIcon, File, Instagram, Youtube,
-    Layout, Type, Image, Layers, Video, Sparkles, Edit, ArrowLeft,
-    GripVertical, ArrowUp, ArrowDown, Compass, BookOpen, TrendingUp,
-    Hash, Activity, Play, MousePointer, ChevronDown, ChevronUp, Database, UploadCloud, Settings, Eye, Target, Percent, Zap, Pause,
-    Globe2, Lock, Bell, Tag, LogIn, Save, AlertTriangle, Sliders, Package, Star, Link2, Facebook, Twitter, Heart, Sun, Cloud, Anchor, Feather, Coffee, Book, Headphones, Mic, LogOut, Check, ChevronLeft, Minus, Info, Settings2, Trash, Copy, Table2, FolderOpen, Columns,
-    Bold, Italic, Underline, ListOrdered, AlignLeft, AlignCenter, TypeIcon, Eraser, MessageSquare, Paperclip, MessageCircle,
-    PlusSquare, PlaySquare
+    ...Lucide,
+    Calendar: CalendarIcon,
+    User: UserIcon,
+    Type: TypeIcon,
+    ImageIcon: ImageIcon,
+    CalendarIcon: CalendarIcon, // Backwards compat
+};
+
+const SectionSettingsModal: React.FC<{ settings: any; onChange: (s: any) => void }> = ({ settings, onChange }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [local, setLocal] = useState(settings);
+
+    useEffect(() => { setLocal(settings); }, [settings, isOpen]);
+
+    const handleSave = () => {
+        onChange(local);
+        setIsOpen(false);
+    };
+
+    if (!isOpen) return (
+        <button onClick={() => setIsOpen(true)} className="p-2 text-slate-300 hover:text-cafh-indigo transition-all" title="Ajustes de Diseño">
+            <Settings2 size={16} />
+        </button>
+    );
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="p-8 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 className="text-xl font-bold text-slate-800">Ajustes de Sección</h3>
+                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Control de Espaciado y Bordes</p>
+                    </div>
+                    <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white rounded-xl transition-all"><X size={20} /></button>
+                </div>
+                <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                    {/* Background & Container */}
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Contenedor</label>
+                            <select
+                                value={local.containerSize || 'standard'}
+                                onChange={e => setLocal({ ...local, containerSize: e.target.value })}
+                                className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none"
+                            >
+                                <option value="narrow">Estrecho (3xl)</option>
+                                <option value="standard">Estándar (7xl)</option>
+                                <option value="wide">Ancho (full 2xl)</option>
+                                <option value="full">Pantalla Completa</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Margen Vertical (Presets)</label>
+                            <select
+                                value={local.padding || 'medium'}
+                                onChange={e => setLocal({ ...local, padding: e.target.value })}
+                                className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none"
+                            >
+                                <option value="none">Sin Margen</option>
+                                <option value="small">Pequeño (py-10)</option>
+                                <option value="medium">Medio (py-20)</option>
+                                <option value="large">Grande (py-32)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Custom Spacing (Granular) */}
+                    <div className="space-y-4">
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Espaciado Granular (px)</h4>
+                        <div className="grid grid-cols-4 gap-4">
+                            {[
+                                { label: 'Margin Top', key: 'marginTop' },
+                                { label: 'Margin Bottom', key: 'marginBottom' },
+                                { label: 'Padding Top', key: 'paddingTop' },
+                                { label: 'Padding Bottom', key: 'paddingBottom' }
+                            ].map(field => (
+                                <div key={field.key} className="space-y-2 text-center">
+                                    <label className="text-[9px] font-bold text-slate-500">{field.label}</label>
+                                    <input
+                                        type="number"
+                                        value={local[field.key] || 0}
+                                        onChange={e => setLocal({ ...local, [field.key]: parseInt(e.target.value) || 0 })}
+                                        className="w-full p-2 bg-slate-50 border border-slate-100 rounded-lg text-xs text-center outline-none"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Border Controls */}
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bordes y Radios</h4>
+                            <input
+                                type="checkbox"
+                                checked={local.border?.enabled}
+                                onChange={e => setLocal({ ...local, border: { ...(local.border || {}), enabled: e.target.checked } })}
+                                className="w-4 h-4 rounded border-slate-300 text-cafh-indigo focus:ring-cafh-indigo"
+                            />
+                        </div>
+                        {local.border?.enabled && (
+                            <div className="grid grid-cols-3 gap-4 animate-in slide-in-from-top-2">
+                                <div className="space-y-2">
+                                    <label className="text-[9px] font-bold text-slate-500">Grosor (px)</label>
+                                    <input
+                                        type="number"
+                                        value={local.border.width || 1}
+                                        onChange={e => setLocal({ ...local, border: { ...local.border, width: parseInt(e.target.value) || 1 } })}
+                                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs outline-none"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[9px] font-bold text-slate-500">Radio (px)</label>
+                                    <input
+                                        type="number"
+                                        value={local.border.radius || 0}
+                                        onChange={e => setLocal({ ...local, border: { ...local.border, radius: parseInt(e.target.value) || 0 } })}
+                                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs outline-none"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[9px] font-bold text-slate-500">Color</label>
+                                    <input
+                                        type="color"
+                                        value={local.border.color || '#e2e8f0'}
+                                        onChange={e => setLocal({ ...local, border: { ...local.border, color: e.target.value } })}
+                                        className="w-full h-10 p-1 bg-slate-50 border border-slate-100 rounded-xl outline-none"
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Custom CSS & Misc */}
+                    <div className="space-y-4">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">CSS Personalizado (Classes Tailwind)</label>
+                        <input
+                            type="text"
+                            value={local.customCss || ''}
+                            onChange={e => setLocal({ ...local, customCss: e.target.value })}
+                            className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none font-mono"
+                            placeholder="Ej: shadow-2xl backdrop-blur-md opacity-90"
+                        />
+                        <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                            <input
+                                type="checkbox"
+                                checked={local.hideOnMobile}
+                                onChange={e => setLocal({ ...local, hideOnMobile: e.target.checked })}
+                                className="w-4 h-4 rounded border-slate-300 text-cafh-indigo focus:ring-cafh-indigo"
+                            />
+                            <div className="flex items-center gap-2 text-slate-600">
+                                <Smartphone size={14} />
+                                <span className="text-xs font-bold">Ocultar en móviles</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="p-8 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                    <button onClick={() => setIsOpen(false)} className="px-6 py-2 text-slate-400 font-bold text-sm">CANCELAR</button>
+                    <button onClick={handleSave} className="px-8 py-2 bg-cafh-indigo text-white rounded-xl font-bold text-sm shadow-lg shadow-cafh-indigo/10">APLICAR CAMBIOS</button>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 const DynamicIcon: React.FC<{ name: string; size?: number; className?: string }> = ({ name, size = 20, className }) => {
@@ -3943,8 +4105,22 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                                     type === 'Tabs' ? { title: 'Información', items: [{ title: 'Misión', content: 'Contenido...' }] } :
                                                         type === 'Gallery' ? { title: 'Galería', images: [] } :
                                                             type === 'Hero' ? { title: 'Banner', subtitle: '', imageUrl: '', ctaText: '', ctaLink: '' } :
-                                                                type === 'ResourcesGrid' || type === 'EventsCalendar' || type === 'Timeline' || type === 'MethodPillars' ? { title: sectionTitles[type] } :
-                                                                    { title: sectionTitles[type] || 'Nueva Sección' },
+                                                                type === 'ResourcesGrid' || type === 'EventsCalendar' ? { title: sectionTitles[type], subtitle: '' } :
+                                                                    type === 'Timeline' ? {
+                                                                        badge: 'Nuestra Historia',
+                                                                        title: 'Un legado de sabiduría viva',
+                                                                        text: 'Fundada hace más de 80 años...',
+                                                                        imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773',
+                                                                        stats: [{ value: '1937', label: 'Fundación' }, { value: '20+', label: 'Países' }]
+                                                                    } :
+                                                                        type === 'MethodPillars' ? {
+                                                                            pillars: [
+                                                                                { title: 'Vida Interior', subtitle: 'El cultivo del ser', description: '...', image: '...', icon: 'Heart', color: 'text-cafh-clay', items: ['Práctica'] }
+                                                                            ]
+                                                                        } :
+                                                                            type === 'HTML' ? { code: '<!-- Tu código HTML aquí -->\n<div class="p-8 bg-slate-100 rounded-3xl text-center">\n  <h2 class="text-2xl font-bold text-slate-800">Sección Home Personalizada</h2>\n  <p class="text-slate-500 mt-2">Agrega widgets, scripts o layouts únicos.</p>\n</div>' } :
+                                                                                type === 'Locations' ? { title: 'Sedes Globales', subtitle: 'Encuentra tu Sede de Cafh' } :
+                                                                                    { title: sectionTitles[type] || 'Nueva Sección' },
             settings: { backgroundColor: 'bg-white', padding: 'medium', containerSize: 'standard' }
         };
 
@@ -3972,7 +4148,8 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
         'Table': 'Tabla Pro', 'Tabs': 'Pestañas', 'VideoGrid': 'Galería de Videos', 'Stats': 'Datos Numéricos',
         'Cards': 'Grid de Cards', 'IconGrid': 'Grid de Iconos', 'Gallery': 'Galería de Fotos', 'CTA': 'Llamado a la Acción',
         'Accordion': 'Acordeón / FAQ', 'ResourcesGrid': 'Grid de Recursos', 'EventsCalendar': 'Calendario de Eventos',
-        'Timeline': 'Línea de Tiempo', 'MethodPillars': 'Pilares del Método', 'Video': 'Video YouTube'
+        'Timeline': 'Línea de Tiempo', 'MethodPillars': 'Pilares del Método', 'Video': 'Video YouTube',
+        'HTML': 'Código HTML (Avanzado)', 'Locations': 'Sedes Globales (Mapa Mundial)'
     };
 
     return (
@@ -3987,7 +4164,11 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                             </div>
                             <h3 className="text-lg font-bold text-slate-800">Sección Hero & Sliders</h3>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
+                            <SectionSettingsModal
+                                settings={localConfig.hero.settings || {}}
+                                onChange={newSettings => setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, settings: newSettings } })}
+                            />
                             <select
                                 value={localConfig.hero.textAlignment}
                                 onChange={e => setLocalConfig({ ...localConfig, hero: { ...localConfig.hero, textAlignment: e.target.value as any } })}
@@ -4143,6 +4324,10 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                             </div>
                             <h3 className="text-lg font-bold text-slate-800">Sección Buscador</h3>
                         </div>
+                        <SectionSettingsModal
+                            settings={(localConfig as any).searchSettings || {}}
+                            onChange={newSettings => setLocalConfig({ ...localConfig, searchSettings: newSettings } as any)}
+                        />
                     </div>
                     <div className="p-8">
                         <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Subtítulo Buscador</label>
@@ -4306,6 +4491,10 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                             </div>
                             <h3 className="text-lg font-bold text-slate-800">Columnas Informativas</h3>
                         </div>
+                        <SectionSettingsModal
+                            settings={(localConfig as any).columnsSettings || {}}
+                            onChange={newSettings => setLocalConfig({ ...localConfig, columnsSettings: newSettings } as any)}
+                        />
                     </div>
                     <div className="p-8 space-y-8">
                         {localConfig.threeColumns.map((col, idx) => (
@@ -4438,11 +4627,15 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                 <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
                     <div className="p-8 border-b border-slate-50 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-pink-50 text-pink-600 rounded-lg">
-                                <BookOpen size={20} />
+                            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                                <FileText size={20} />
                             </div>
-                            <h3 className="text-lg font-bold text-slate-800">Sección Blog</h3>
+                            <h3 className="text-lg font-bold text-slate-800">Sección Blog (Fijo)</h3>
                         </div>
+                        <SectionSettingsModal
+                            settings={localConfig.blogSection.settings || {}}
+                            onChange={newSettings => setLocalConfig({ ...localConfig, blogSection: { ...localConfig.blogSection, settings: newSettings } })}
+                        />
                     </div>
                     <div className="p-8 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -4503,11 +4696,15 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                 <div className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
                     <div className="p-8 border-b border-slate-50 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-teal-50 text-teal-600 rounded-lg">
-                                <CalendarIcon size={20} />
+                            <div className="p-2 bg-red-50 text-red-600 rounded-lg">
+                                <MapPin size={20} />
                             </div>
                             <h3 className="text-lg font-bold text-slate-800">Sección Actividades</h3>
                         </div>
+                        <SectionSettingsModal
+                            settings={localConfig.activitiesSection.settings || {}}
+                            onChange={newSettings => setLocalConfig({ ...localConfig, activitiesSection: { ...localConfig.activitiesSection, settings: newSettings } })}
+                        />
                     </div>
                     <div className="p-8 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -4583,8 +4780,9 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                                                                 section.type === 'CTA' ? 'MousePointer' :
                                                                                     section.type === 'Gallery' ? 'Image' :
                                                                                         section.type === 'ImageText' ? 'Columns' :
-                                                                                            section.type === 'Hero' ? 'Layout' :
-                                                                                                'Layers'
+                                                                                            section.type === 'HTML' ? 'FileCode' :
+                                                                                                section.type === 'MethodPillars' ? 'Activity' :
+                                                                                                    'Layers'
                                             } size={18} />
                                         </div>
                                         <div>
@@ -4593,6 +4791,14 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
+                                        <SectionSettingsModal
+                                            settings={section.settings || {}}
+                                            onChange={newSettings => {
+                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                newDynamic[idx].settings = newSettings;
+                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                            }}
+                                        />
                                         <button onClick={() => duplicateDynamicSection(section)} className="p-2 text-slate-400 hover:text-cafh-indigo hover:bg-white rounded-lg transition-all" title="Duplicar">
                                             <Copy size={16} />
                                         </button>
@@ -4695,25 +4901,39 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                         {section.type === 'Table' && (
                                             <div className="space-y-4">
                                                 <div className="overflow-x-auto bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                                    <table className="w-full text-xs text-left">
+                                                    <table className="w-full text-xs text-left min-w-[600px]">
                                                         <thead>
                                                             <tr>
                                                                 {(section.content.headers || []).map((h: string, hi: number) => (
-                                                                    <th key={hi} className="p-2">
-                                                                        <input
-                                                                            type="text"
-                                                                            value={h}
-                                                                            onChange={e => {
-                                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
-                                                                                if (newDynamic[idx].content.headers) {
-                                                                                    newDynamic[idx].content.headers[hi] = e.target.value;
-                                                                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
-                                                                                }
-                                                                            }}
-                                                                            className="w-full bg-white border border-slate-200 rounded p-1 outline-none font-bold"
-                                                                        />
+                                                                    <th key={hi} className="p-2 group/header relative">
+                                                                        <div className="flex flex-col gap-1">
+                                                                            <input
+                                                                                type="text"
+                                                                                value={h}
+                                                                                onChange={e => {
+                                                                                    const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                                    if (newDynamic[idx].content.headers) {
+                                                                                        newDynamic[idx].content.headers[hi] = e.target.value;
+                                                                                        setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                                    }
+                                                                                }}
+                                                                                className="w-full bg-white border border-slate-200 rounded p-1 outline-none font-bold"
+                                                                            />
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    if (confirm('¿Eliminar esta columna y todos sus datos?')) {
+                                                                                        const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                                        newDynamic[idx].content.headers.splice(hi, 1);
+                                                                                        newDynamic[idx].content.rows = newDynamic[idx].content.rows.map((r: any) => r.filter((_: any, i: number) => i !== hi));
+                                                                                        setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                                    }
+                                                                                }}
+                                                                                className="text-[8px] text-red-300 hover:text-red-500 font-bold uppercase"
+                                                                            >Eliminar Col</button>
+                                                                        </div>
                                                                     </th>
                                                                 ))}
+                                                                <th className="w-10"></th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
@@ -4733,7 +4953,7 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                                                             />
                                                                         </td>
                                                                     ))}
-                                                                    <td className="p-1 text-right">
+                                                                    <td className="p-1 text-center">
                                                                         <button
                                                                             onClick={() => {
                                                                                 const newDynamic = [...(localConfig.dynamicSections || [])];
@@ -4749,17 +4969,31 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                                             ))}
                                                         </tbody>
                                                     </table>
-                                                    <button
-                                                        onClick={() => {
-                                                            const newDynamic = [...(localConfig.dynamicSections || [])];
-                                                            const colCount = section.content.headers?.length || 1;
-                                                            newDynamic[idx].content.rows.push(new Array(colCount).fill(''));
-                                                            setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
-                                                        }}
-                                                        className="mt-4 flex items-center gap-2 text-[10px] font-bold text-cafh-indigo hover:text-cafh-indigo-dark transition-all px-3 py-1 bg-white rounded-lg shadow-sm border border-slate-100"
-                                                    >
-                                                        <Plus size={10} /> AÑADIR FILA
-                                                    </button>
+                                                    <div className="flex gap-3 mt-4">
+                                                        <button
+                                                            onClick={() => {
+                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                const colCount = section.content.headers?.length || 1;
+                                                                newDynamic[idx].content.rows.push(new Array(colCount).fill(''));
+                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                            }}
+                                                            className="flex items-center gap-2 text-[10px] font-bold text-cafh-indigo hover:text-cafh-indigo-dark transition-all px-3 py-1 bg-white rounded-lg shadow-sm border border-slate-100"
+                                                        >
+                                                            <Plus size={10} /> FILA
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                if (!newDynamic[idx].content.headers) newDynamic[idx].content.headers = [];
+                                                                newDynamic[idx].content.headers.push('Nueva Col');
+                                                                newDynamic[idx].content.rows = newDynamic[idx].content.rows.map((r: any) => [...r, '']);
+                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                            }}
+                                                            className="flex items-center gap-2 text-[10px] font-bold text-cafh-indigo hover:text-cafh-indigo-dark transition-all px-3 py-1 bg-white rounded-lg shadow-sm border border-slate-100"
+                                                        >
+                                                            <Columns size={10} /> COLUMNA
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
@@ -4812,6 +5046,32 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                                 >
                                                     + AÑADIR ITEM FAQ
                                                 </button>
+                                            </div>
+                                        )}
+
+                                        {/* HTML EDITOR */}
+                                        {section.type === 'HTML' && (
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Editor de Código HTML Personaizado</label>
+                                                    <span className="text-[8px] px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full font-bold">USAR CON PRECAUCIÓN</span>
+                                                </div>
+                                                <textarea
+                                                    value={section.content.code}
+                                                    onChange={e => {
+                                                        const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                        newDynamic[idx].content.code = e.target.value;
+                                                        setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                    }}
+                                                    rows={12}
+                                                    className="w-full bg-slate-900 text-green-400 p-6 font-mono text-xs rounded-3xl border border-slate-800 focus:ring-2 focus:ring-cafh-indigo transition-all"
+                                                    placeholder="<div class='mi-clase'> ... </div>"
+                                                />
+                                                <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                                                    <p className="text-[10px] text-blue-600">
+                                                        <strong>💡 Tip:</strong> Puedes usar clases de Tailwind CSS directamente. Ej: <code>bg-cafh-indigo text-white p-10 rounded-3xl shadow-xl</code>
+                                                    </p>
+                                                </div>
                                             </div>
                                         )}
 
@@ -5255,12 +5515,129 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                             </div>
                                         )}
 
-                                        {/* AUTOMATIC SECTIONS (Master Blocks) */}
-                                        {(section.type === 'ResourcesGrid' || section.type === 'EventsCalendar' || section.type === 'Timeline' || section.type === 'MethodPillars') && (
-                                            <div className="p-6 bg-purple-50/50 rounded-[1.5rem] border border-purple-100 text-center">
-                                                <Layers className="mx-auto text-purple-400 mb-2" size={32} />
-                                                <p className="text-[10px] font-black text-purple-600 uppercase tracking-widest">Bloque Automatizado Maestro</p>
-                                                <p className="text-[10px] text-purple-500 italic mt-1 max-w-xs mx-auto">Este contenido se inyecta dinámicamente desde el centro de datos de la plataforma. No requiere edición manual.</p>
+                                        {/* AUTOMATED BLOCKS PREVIEW & STATS */}
+                                        {(section.type === 'ResourcesGrid' || section.type === 'EventsCalendar') && (
+                                            <div className="p-6 bg-purple-50/50 rounded-[1.5rem] border border-purple-100">
+                                                <div className="flex items-center gap-4 mb-4">
+                                                    <div className="p-3 bg-white rounded-2xl text-purple-600 shadow-sm">
+                                                        <Layers size={24} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-purple-600 uppercase tracking-widest leading-none mb-1">Bloque Sincronizado</p>
+                                                        <p className="text-sm font-bold text-slate-800">
+                                                            {section.type === 'ResourcesGrid' ? 'Manejador de Biblioteca & Multimedia' : 'Calendario de Actividades'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-3 mb-4">
+                                                    <div className="bg-white/60 p-3 rounded-xl border border-purple-100">
+                                                        <span className="block text-[10px] text-slate-400 uppercase font-bold">Estado</span>
+                                                        <span className="text-xs font-bold text-green-600 flex items-center gap-1">
+                                                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                                                            Conectado
+                                                        </span>
+                                                    </div>
+                                                    <div className="bg-white/60 p-3 rounded-xl border border-purple-100">
+                                                        <span className="block text-[10px] text-slate-400 uppercase font-bold">Data Source</span>
+                                                        <span className="text-xs font-bold text-slate-600">Base Maestra</span>
+                                                    </div>
+                                                </div>
+                                                <p className="text-[10px] text-purple-500 italic">El contenido (items, fechas, archivos) se administra desde los módulos de Actividades o Media Library. Aquí solo configuras el título y estilo.</p>
+                                            </div>
+                                        )}
+
+                                        {/* TIMELINE EDITOR */}
+                                        {section.type === 'Timeline' && (
+                                            <div className="space-y-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="space-y-4">
+                                                        <input
+                                                            type="text"
+                                                            value={section.content.badge}
+                                                            onChange={e => {
+                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                newDynamic[idx].content.badge = e.target.value;
+                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                            }}
+                                                            placeholder="Etiqueta (ej: Nuestra Historia)"
+                                                            className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
+                                                        />
+                                                        <RichTextEditor
+                                                            value={section.content.text}
+                                                            onChange={val => {
+                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                newDynamic[idx].content.text = val;
+                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-4">
+                                                        <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
+                                                            {section.content.imageUrl ? <img src={section.content.imageUrl} className="w-full h-full object-cover" alt="" /> : <div className="flex items-center justify-center h-full"><Image size={32} className="text-slate-300" /></div>}
+                                                            <button
+                                                                onClick={() => {
+                                                                    setActiveSelector({ type: 'dynamic', index: idx, field: 'imageUrl' });
+                                                                    setIsAssetPickerOpen(true);
+                                                                }}
+                                                                className="absolute inset-0 bg-cafh-indigo/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white font-bold text-xs"
+                                                            >
+                                                                CAMBIAR IMAGEN
+                                                            </button>
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <p className="text-[10px] font-bold text-slate-400 uppercase">Métricas (Stats)</p>
+                                                            {(section.content.stats || []).map((stat: any, sIdx: number) => (
+                                                                <div key={sIdx} className="flex gap-2">
+                                                                    <input type="text" value={stat.value} placeholder="Valor" className="w-1/3 p-2 bg-slate-50 border border-slate-100 rounded-lg text-xs font-bold" onChange={e => {
+                                                                        const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                        newDynamic[idx].content.stats[sIdx].value = e.target.value;
+                                                                        setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                    }} />
+                                                                    <input type="text" value={stat.label} placeholder="Etiqueta" className="flex-1 p-2 bg-slate-50 border border-slate-100 rounded-lg text-xs" onChange={e => {
+                                                                        const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                        newDynamic[idx].content.stats[sIdx].label = e.target.value;
+                                                                        setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                    }} />
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* METHOD PILLARS EDITOR */}
+                                        {section.type === 'MethodPillars' && (
+                                            <div className="space-y-4">
+                                                <p className="text-[10px] text-slate-400 italic mb-4">Configura los pilares del método que se mostrarán en esta sección.</p>
+                                                <div className="grid grid-cols-1 gap-4">
+                                                    {(section.content.pillars || []).map((pillar: any, pIdx: number) => (
+                                                        <div key={pIdx} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-3">
+                                                            <div className="grid grid-cols-2 gap-3">
+                                                                <input type="text" value={pillar.title} placeholder="Título" className="p-2.5 bg-white border border-slate-100 rounded-xl text-sm font-bold" onChange={e => {
+                                                                    const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                    newDynamic[idx].content.pillars[pIdx].title = e.target.value;
+                                                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                }} />
+                                                                <input type="text" value={pillar.subtitle} placeholder="Subtítulo" className="p-2.5 bg-white border border-slate-100 rounded-xl text-sm" onChange={e => {
+                                                                    const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                    newDynamic[idx].content.pillars[pIdx].subtitle = e.target.value;
+                                                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                }} />
+                                                            </div>
+                                                            <textarea
+                                                                value={pillar.description}
+                                                                placeholder="Descripción corta..."
+                                                                className="w-full p-3 bg-white border border-slate-100 rounded-xl text-xs outline-none h-20"
+                                                                onChange={e => {
+                                                                    const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                    newDynamic[idx].content.pillars[pIdx].description = e.target.value;
+                                                                    setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
                                         )}
                                         <div className="pt-6 mt-6 border-t border-slate-100 flex items-center justify-between">
@@ -5372,8 +5749,12 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                 <span className="text-[10px] font-bold text-purple-600 uppercase">Timeline</span>
                             </button>
                             <button onClick={() => addDynamicSection('MethodPillars')} className="flex flex-col items-center gap-2 p-4 bg-purple-50 hover:bg-purple-100 rounded-2xl transition-all group shadow-sm border border-purple-200">
-                                <Zap size={18} className="text-purple-400 group-hover:text-purple-600" />
-                                <span className="text-[10px] font-bold text-purple-600 uppercase">Pilares</span>
+                                <Activity size={18} className="text-purple-500 group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">Pilares</span>
+                            </button>
+                            <button onClick={() => addDynamicSection('HTML')} className="flex flex-col items-center gap-2 p-4 bg-orange-50 hover:bg-orange-100 rounded-2xl transition-all group shadow-sm border border-orange-200">
+                                <FileCode size={18} className="text-orange-500 group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">HTML</span>
                             </button>
                         </div>
                     </div>
@@ -6252,8 +6633,21 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                         type === 'Table' ? { title: 'Cronograma', headers: ['Horario', 'Actividad', 'Lugar'], rows: [['08:00', 'Meditación', 'Sala A'], ['10:00', 'Charla', 'Salón Central']] } :
                                                             type === 'Tabs' ? { items: [{ title: 'Misión', content: 'Contenido de la misión...' }, { title: 'Visión', content: 'Contenido de la visión...' }] } :
                                                                 type === 'VideoGrid' ? { items: [{ title: 'Presentación', videoId: 'dQw4w9WgXcQ' }, { title: 'Testimonio', videoId: 'dQw4w9WgXcQ' }] } :
-                                                                    type === 'ResourcesGrid' || type === 'EventsCalendar' || type === 'Timeline' || type === 'MethodPillars' ? {} :
-                                                                        { items: [] },
+                                                                    type === 'ResourcesGrid' || type === 'EventsCalendar' ? { title: 'Nueva Sección Dinámica', subtitle: '' } :
+                                                                        type === 'Timeline' ? {
+                                                                            badge: 'Nuestra Historia',
+                                                                            title: 'Un legado de sabiduría viva',
+                                                                            text: 'Fundada hace más de 80 años...',
+                                                                            imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773',
+                                                                            stats: [{ value: '1937', label: 'Fundación' }, { value: '20+', label: 'Países' }]
+                                                                        } :
+                                                                            type === 'MethodPillars' ? {
+                                                                                pillars: [
+                                                                                    { title: 'Vida Interior', subtitle: 'El cultivo del ser', description: 'La vida interior es encontrar un centro de paz...', image: 'https://images.unsplash.com/photo-1528319725582-ddc096101511', icon: 'Heart', color: 'text-cafh-clay', items: ['Práctica', 'Silencio', 'Atención'] }
+                                                                                ]
+                                                                            } :
+                                                                                type === 'HTML' ? { code: '<!-- Tu código HTML aquí -->\n<div class="p-8 bg-slate-100 rounded-3xl text-center">\n  <h2 class="text-2xl font-bold text-slate-800">Elemento Personalizado</h2>\n  <p class="text-slate-500 mt-2">Puedes inyectar código HTML/CSS/JS con total libertad.</p>\n</div>' } :
+                                                                                    { items: [] },
             order: localPage.sections.length
         };
         setLocalPage({ ...localPage, sections: [...localPage.sections, newSection] });
@@ -6372,8 +6766,9 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                                     section.type === 'Gallery' ? <Image size={16} /> :
                                                                         section.type === 'Video' ? <Play size={16} /> :
                                                                             section.type === 'CTA' ? <MousePointer size={16} /> :
-                                                                                section.type === 'ResourcesGrid' || section.type === 'EventsCalendar' || section.type === 'Timeline' || section.type === 'MethodPillars' ? <Layout size={16} /> :
-                                                                                    <ChevronDown size={16} />}
+                                                                                section.type === 'HTML' ? <FileCode size={16} /> :
+                                                                                    section.type === 'ResourcesGrid' || section.type === 'EventsCalendar' || section.type === 'Timeline' || section.type === 'MethodPillars' ? <Layout size={16} /> :
+                                                                                        <ChevronDown size={16} />}
                                         </div>
                                         <span className="text-xs font-bold text-slate-600">{section.type} Section</span>
                                     </div>
@@ -6400,6 +6795,14 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                         >
                                             <Copy size={16} />
                                         </button>
+                                        <SectionSettingsModal
+                                            settings={section.settings || {}}
+                                            onChange={newSettings => {
+                                                const newSections = [...localPage.sections];
+                                                newSections[idx].settings = newSettings;
+                                                setLocalPage({ ...localPage, sections: newSections });
+                                            }}
+                                        />
                                         <button
                                             onClick={() => setLocalPage({ ...localPage, sections: localPage.sections.filter(s => s.id !== section.id) })}
                                             className="p-2 text-slate-300 hover:text-red-500 transition-all"
@@ -6524,23 +6927,37 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                 placeholder="Título de la Tabla"
                                             />
                                             <div className="overflow-x-auto bg-slate-50 rounded-xl p-4 border border-slate-100">
-                                                <table className="w-full text-xs text-left">
+                                                <table className="w-full text-xs text-left min-w-[600px]">
                                                     <thead>
                                                         <tr>
                                                             {section.content.headers.map((h: string, hi: number) => (
-                                                                <th key={hi} className="p-2">
-                                                                    <input
-                                                                        type="text"
-                                                                        value={h}
-                                                                        onChange={e => {
-                                                                            const newSections = [...localPage.sections];
-                                                                            newSections[idx].content.headers[hi] = e.target.value;
-                                                                            setLocalPage({ ...localPage, sections: newSections });
-                                                                        }}
-                                                                        className="w-full bg-white border border-slate-200 rounded p-1 outline-none font-bold"
-                                                                    />
+                                                                <th key={hi} className="p-2 group/header relative">
+                                                                    <div className="flex flex-col gap-1">
+                                                                        <input
+                                                                            type="text"
+                                                                            value={h}
+                                                                            onChange={e => {
+                                                                                const newSections = [...localPage.sections];
+                                                                                newSections[idx].content.headers[hi] = e.target.value;
+                                                                                setLocalPage({ ...localPage, sections: newSections });
+                                                                            }}
+                                                                            className="w-full bg-white border border-slate-200 rounded p-1 outline-none font-bold"
+                                                                        />
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                if (confirm('¿Eliminar esta columna y todos sus datos?')) {
+                                                                                    const newSections = [...localPage.sections];
+                                                                                    newSections[idx].content.headers.splice(hi, 1);
+                                                                                    newSections[idx].content.rows = newSections[idx].content.rows.map((r: any) => r.filter((_: any, i: number) => i !== hi));
+                                                                                    setLocalPage({ ...localPage, sections: newSections });
+                                                                                }
+                                                                            }}
+                                                                            className="text-[8px] text-red-300 hover:text-red-500 font-bold uppercase"
+                                                                        >Eliminar Col</button>
+                                                                    </div>
                                                                 </th>
                                                             ))}
+                                                            <th className="w-10"></th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -6560,7 +6977,7 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                                         />
                                                                     </td>
                                                                 ))}
-                                                                <td className="p-1">
+                                                                <td className="p-1 text-center">
                                                                     <button
                                                                         onClick={() => {
                                                                             const newSections = [...localPage.sections];
@@ -6576,16 +6993,29 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                         ))}
                                                     </tbody>
                                                 </table>
-                                                <button
-                                                    onClick={() => {
-                                                        const newSections = [...localPage.sections];
-                                                        newSections[idx].content.rows.push(new Array(section.content.headers.length).fill(''));
-                                                        setLocalPage({ ...localPage, sections: newSections });
-                                                    }}
-                                                    className="mt-4 flex items-center gap-2 text-[10px] font-bold text-cafh-indigo hover:text-cafh-indigo-dark transition-all px-3 py-1 bg-white rounded-lg shadow-sm border border-slate-100"
-                                                >
-                                                    <Plus size={10} /> AÑADIR FILA
-                                                </button>
+                                                <div className="flex gap-3 mt-4">
+                                                    <button
+                                                        onClick={() => {
+                                                            const newSections = [...localPage.sections];
+                                                            newSections[idx].content.rows.push(new Array(section.content.headers.length).fill(''));
+                                                            setLocalPage({ ...localPage, sections: newSections });
+                                                        }}
+                                                        className="flex items-center gap-2 text-[10px] font-bold text-cafh-indigo hover:text-cafh-indigo-dark transition-all px-3 py-1 bg-white rounded-lg shadow-sm border border-slate-100"
+                                                    >
+                                                        <Plus size={10} /> FILA
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            const newSections = [...localPage.sections];
+                                                            newSections[idx].content.headers.push('Nueva Col');
+                                                            newSections[idx].content.rows = newSections[idx].content.rows.map((r: any) => [...r, '']);
+                                                            setLocalPage({ ...localPage, sections: newSections });
+                                                        }}
+                                                        className="flex items-center gap-2 text-[10px] font-bold text-cafh-indigo hover:text-cafh-indigo-dark transition-all px-3 py-1 bg-white rounded-lg shadow-sm border border-slate-100"
+                                                    >
+                                                        <Columns size={10} /> COLUMNA
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     )}
@@ -7144,9 +7574,178 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                             </button>
                                         </div>
                                     )}
-                                    {(section.type === 'ResourcesGrid' || section.type === 'EventsCalendar' || section.type === 'Timeline' || section.type === 'MethodPillars') && (
-                                        <div className="p-4 bg-purple-50 rounded-xl text-center border border-purple-100">
-                                            <p className="text-sm text-purple-600 font-medium">Esta es una sección predefinida que inyecta componentes avanzados (<span className="font-bold">{section.type}</span>). No requiere configuración manual aquí.</p>
+
+                                    {section.type === 'HTML' && (
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Editor de Código HTML Personaizado</label>
+                                                <span className="text-[8px] px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full font-bold">USAR CON PRECAUCIÓN</span>
+                                            </div>
+                                            <textarea
+                                                value={section.content.code}
+                                                onChange={e => {
+                                                    const newSections = [...localPage.sections];
+                                                    newSections[idx].content.code = e.target.value;
+                                                    setLocalPage({ ...localPage, sections: newSections });
+                                                }}
+                                                rows={12}
+                                                className="w-full bg-slate-900 text-green-400 p-6 font-mono text-xs rounded-3xl border border-slate-800 focus:ring-2 focus:ring-cafh-indigo transition-all"
+                                                placeholder="<div class='mi-clase'> ... </div>"
+                                            />
+                                            <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                                                <p className="text-[10px] text-blue-600">
+                                                    <strong>💡 Tip:</strong> Puedes usar clases de Tailwind CSS directamente. Ej: <code>bg-cafh-indigo text-white p-10 rounded-3xl shadow-xl</code>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {/* AUTOMATED BLOCKS PREVIEW & BASIC EDITING (ResourcesGrid, EventsCalendar) */}
+                                    {(section.type === 'ResourcesGrid' || section.type === 'EventsCalendar') && (
+                                        <div className="space-y-4">
+                                            <div className="p-6 bg-purple-50/50 rounded-[1.5rem] border border-purple-100 mb-4">
+                                                <div className="flex items-center gap-4 mb-4">
+                                                    <div className="p-3 bg-white rounded-2xl text-purple-600 shadow-sm">
+                                                        <Layers size={24} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-purple-600 uppercase tracking-widest leading-none mb-1">Bloque Sincronizado</p>
+                                                        <p className="text-sm font-bold text-slate-800">
+                                                            {section.type === 'ResourcesGrid' ? 'Manejador de Biblioteca & Multimedia' : 'Calendario de Actividades'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <p className="text-[10px] text-purple-500 italic">El contenido se sincroniza automáticamente del sistema. Aquí puedes configurar el encabezado de la sección.</p>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <input
+                                                    type="text"
+                                                    value={section.content.title}
+                                                    onChange={e => {
+                                                        const newSections = [...localPage.sections];
+                                                        newSections[idx].content.title = e.target.value;
+                                                        setLocalPage({ ...localPage, sections: newSections });
+                                                    }}
+                                                    placeholder="Título de la Sección"
+                                                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold outline-none"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={section.content.subtitle}
+                                                    onChange={e => {
+                                                        const newSections = [...localPage.sections];
+                                                        newSections[idx].content.subtitle = e.target.value;
+                                                        setLocalPage({ ...localPage, sections: newSections });
+                                                    }}
+                                                    placeholder="Subtítulo opcional"
+                                                    className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm outline-none"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* TIMELINE EDITOR (Page Specific) */}
+                                    {section.type === 'Timeline' && (
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-4">
+                                                    <input
+                                                        type="text"
+                                                        value={section.content.badge}
+                                                        onChange={e => {
+                                                            const newSections = [...localPage.sections];
+                                                            newSections[idx].content.badge = e.target.value;
+                                                            setLocalPage({ ...localPage, sections: newSections });
+                                                        }}
+                                                        placeholder="Etiqueta (ej: Nuestra Historia)"
+                                                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        value={section.content.title}
+                                                        onChange={e => {
+                                                            const newSections = [...localPage.sections];
+                                                            newSections[idx].content.title = e.target.value;
+                                                            setLocalPage({ ...localPage, sections: newSections });
+                                                        }}
+                                                        placeholder="Título"
+                                                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold outline-none"
+                                                    />
+                                                    <RichTextEditor
+                                                        value={section.content.text}
+                                                        onChange={val => {
+                                                            const newSections = [...localPage.sections];
+                                                            newSections[idx].content.text = val;
+                                                            setLocalPage({ ...localPage, sections: newSections });
+                                                        }}
+                                                    />
+                                                </div>
+                                                <div className="space-y-4">
+                                                    <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
+                                                        {section.content.imageUrl ? <img src={section.content.imageUrl} className="w-full h-full object-cover" alt="" /> : <div className="flex items-center justify-center h-full"><Image size={32} className="text-slate-300" /></div>}
+                                                        <button
+                                                            onClick={() => {
+                                                                setActiveSelector({ sectionIdx: idx, itemIdx: null, field: 'imageUrl' });
+                                                                setIsIconPickerOpen(true); // Re-using picker logic or specialized asset picker
+                                                            }}
+                                                            className="absolute inset-0 bg-cafh-indigo/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white font-bold text-xs"
+                                                        >
+                                                            CAMBIAR IMAGEN
+                                                        </button>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Métricas (Stats)</p>
+                                                        {(section.content.stats || []).map((stat: any, sIdx: number) => (
+                                                            <div key={sIdx} className="flex gap-2">
+                                                                <input type="text" value={stat.value} placeholder="Valor" className="w-1/3 p-2 bg-slate-50 border border-slate-100 rounded-lg text-xs font-bold" onChange={e => {
+                                                                    const newSections = [...localPage.sections];
+                                                                    newSections[idx].content.stats[sIdx].value = e.target.value;
+                                                                    setLocalPage({ ...localPage, sections: newSections });
+                                                                }} />
+                                                                <input type="text" value={stat.label} placeholder="Etiqueta" className="flex-1 p-2 bg-slate-50 border border-slate-100 rounded-lg text-xs" onChange={e => {
+                                                                    const newSections = [...localPage.sections];
+                                                                    newSections[idx].content.stats[sIdx].label = e.target.value;
+                                                                    setLocalPage({ ...localPage, sections: newSections });
+                                                                }} />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* METHOD PILLARS EDITOR (Page Specific) */}
+                                    {section.type === 'MethodPillars' && (
+                                        <div className="space-y-4">
+                                            <p className="text-[10px] text-slate-400 italic mb-4">Configura los pilares del método que se mostrarán en esta sección.</p>
+                                            <div className="grid grid-cols-1 gap-4">
+                                                {(section.content.pillars || []).map((pillar: any, pIdx: number) => (
+                                                    <div key={pIdx} className="p-4 bg-slate-50 border border-slate-100 rounded-2xl space-y-3">
+                                                        <div className="grid grid-cols-2 gap-3">
+                                                            <input type="text" value={pillar.title} placeholder="Título" className="p-2.5 bg-white border border-slate-100 rounded-xl text-sm font-bold" onChange={e => {
+                                                                const newSections = [...localPage.sections];
+                                                                newSections[idx].content.pillars[pIdx].title = e.target.value;
+                                                                setLocalPage({ ...localPage, sections: newSections });
+                                                            }} />
+                                                            <input type="text" value={pillar.subtitle} placeholder="Subtítulo" className="p-2.5 bg-white border border-slate-100 rounded-xl text-sm" onChange={e => {
+                                                                const newSections = [...localPage.sections];
+                                                                newSections[idx].content.pillars[pIdx].subtitle = e.target.value;
+                                                                setLocalPage({ ...localPage, sections: newSections });
+                                                            }} />
+                                                        </div>
+                                                        <textarea
+                                                            value={pillar.description}
+                                                            placeholder="Descripción corta..."
+                                                            className="w-full p-3 bg-white border border-slate-100 rounded-xl text-xs outline-none h-20"
+                                                            onChange={e => {
+                                                                const newSections = [...localPage.sections];
+                                                                newSections[idx].content.pillars[pIdx].description = e.target.value;
+                                                                setLocalPage({ ...localPage, sections: newSections });
+                                                            }}
+                                                        />
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -7248,6 +7847,12 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                 </div>
                                 <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Acordeón / FAQ</span>
                             </button>
+                            <button onClick={() => addSection('HTML')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-orange-50 rounded-2xl transition-all group">
+                                <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-orange-500 shadow-sm">
+                                    <FileCode size={18} />
+                                </div>
+                                <span className="text-sm font-bold text-slate-600 group-hover:text-orange-600">Código HTML (Avanzado)</span>
+                            </button>
                             <div className="border-t border-slate-100 pt-3 mt-3">
                                 <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Bloques Dinámicos (Especiales)</h4>
                                 <div className="grid grid-cols-1 gap-3">
@@ -7339,175 +7944,628 @@ const MenuEditor: React.FC = () => {
 
     const handleSave = () => {
         db.cms.updateMenu(menu);
-        alert('Estructura del Mega Menú guardada.');
+        alert('✅ Estructura del Mega Menú guardada exitosamente.');
+    };
+
+    const addCategory = () => {
+        const newCategory: MegaMenuItem = {
+            label: 'Nueva Sección',
+            path: '/',
+            description: 'Breve descripción de esta sección.',
+            columns: [
+                { title: 'Columna 1', items: [] }
+            ]
+        };
+        setMenu([...menu, newCategory]);
+    };
+
+    const removeCategory = (idx: number) => {
+        if (confirm(`¿Estás seguro de eliminar la sección "${menu[idx].label}" y todo su contenido?`)) {
+            const newMenu = menu.filter((_, i) => i !== idx);
+            setMenu(newMenu);
+        }
+    };
+
+    const addColumn = (catIdx: number) => {
+        const newMenu = [...menu];
+        if (!newMenu[catIdx].columns) newMenu[catIdx].columns = [];
+        newMenu[catIdx].columns!.push({ title: 'Nueva Columna', items: [] });
+        setMenu(newMenu);
+    };
+
+    const removeColumn = (catIdx: number, colIdx: number) => {
+        const newMenu = [...menu];
+        newMenu[catIdx].columns = newMenu[catIdx].columns!.filter((_, i) => i !== colIdx);
+        setMenu(newMenu);
+    };
+
+    const moveCategory = (idx: number, direction: 'up' | 'down') => {
+        const newMenu = [...menu];
+        const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+        if (targetIdx >= 0 && targetIdx < newMenu.length) {
+            [newMenu[idx], newMenu[targetIdx]] = [newMenu[targetIdx], newMenu[idx]];
+            setMenu(newMenu);
+        }
     };
 
     return (
-        <div className="space-y-8">
-            <div className="flex justify-between items-center">
+        <div className="space-y-8 pb-20">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h3 className="text-lg font-bold text-slate-800">Estructura del Mega Menú</h3>
-                    <p className="text-xs text-slate-500">Gestiona los enlaces principales y sus sub-columnas.</p>
+                    <h3 className="text-2xl font-bold text-slate-800 tracking-tight">Estructura del Mega Menú</h3>
+                    <p className="text-slate-500 text-sm">Gestiona la navegación principal del sitio de Cafh.</p>
                 </div>
-                <button
-                    onClick={handleSave}
-                    className="px-6 py-2 bg-cafh-indigo text-white rounded-xl font-bold text-sm shadow-lg shadow-cafh-indigo/10"
-                >
-                    GUARDAR MENÚ
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={addCategory}
+                        className="px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm"
+                    >
+                        <Plus size={18} /> AÑADIR SECCIÓN
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        className="px-8 py-3 bg-cafh-indigo text-white rounded-2xl font-bold text-sm shadow-xl shadow-cafh-indigo/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2"
+                    >
+                        <Save size={18} /> GUARDAR CAMBIOS
+                    </button>
+                </div>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-12">
                 {menu.map((item, idx) => (
-                    <div key={idx} className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
-                        <div className="p-6 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                    <div key={idx} className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden group/item">
+                        {/* Header de Categoría */}
+                        <div className="p-8 bg-slate-50 border-b border-slate-100 flex flex-col md:flex-row gap-6">
                             <div className="flex items-center gap-4">
-                                <div className="p-2 bg-white rounded-lg text-cafh-indigo shadow-sm">
-                                    <Grid size={18} />
+                                <div className="p-3 bg-white rounded-2xl text-cafh-indigo shadow-sm border border-slate-100">
+                                    <Grid size={24} />
                                 </div>
-                                <input
-                                    type="text"
-                                    value={item.label}
-                                    onChange={e => {
-                                        const newMenu = [...menu];
-                                        newMenu[idx].label = e.target.value;
-                                        setMenu(newMenu);
-                                    }}
-                                    className="bg-transparent font-bold text-slate-800 outline-none border-b border-transparent focus:border-cafh-indigo"
-                                />
-                            </div>
-                        </div>
-                        <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {item.columns?.map((col, colIdx) => (
-                                <div key={colIdx} className="space-y-4">
+                                <div className="space-y-1">
                                     <input
                                         type="text"
-                                        value={col.title}
+                                        value={item.label}
                                         onChange={e => {
                                             const newMenu = [...menu];
-                                            newMenu[idx].columns![colIdx].title = e.target.value;
+                                            newMenu[idx].label = e.target.value;
                                             setMenu(newMenu);
                                         }}
-                                        className="text-[10px] font-black text-slate-400 uppercase tracking-widest outline-none bg-transparent"
+                                        className="bg-transparent font-bold text-xl text-slate-800 outline-none border-b border-transparent focus:border-cafh-indigo w-full"
+                                        placeholder="Título de la Sección"
                                     />
-                                    <div className="space-y-3">
-                                        {col.items.map((sub, subIdx) => (
-                                            <div key={subIdx} className="p-4 bg-slate-50 rounded-2xl space-y-2 group relative">
-                                                <input
-                                                    type="text"
-                                                    value={sub.label}
-                                                    onChange={e => {
-                                                        const newMenu = [...menu];
-                                                        newMenu[idx].columns![colIdx].items[subIdx].label = e.target.value;
-                                                        setMenu(newMenu);
-                                                    }}
-                                                    className="w-full bg-transparent text-sm font-bold text-slate-700 outline-none"
-                                                    placeholder="Etiqueta del enlace"
-                                                />
-                                                <div className="flex items-center gap-2">
-                                                    <select
-                                                        value={sub.path}
-                                                        onChange={e => {
-                                                            const newMenu = [...menu];
-                                                            newMenu[idx].columns![colIdx].items[subIdx].path = e.target.value;
-                                                            // Auto-label if empty
-                                                            if (!sub.label || sub.label === 'Nuevo Enlace') {
-                                                                const route = availableRoutes.find(r => r.path === e.target.value);
-                                                                if (route) newMenu[idx].columns![colIdx].items[subIdx].label = route.label.replace('[Página] ', '');
-                                                            }
-                                                            setMenu(newMenu);
-                                                        }}
-                                                        className="flex-1 bg-white border border-slate-100 rounded-lg px-2 py-1 text-[10px] text-slate-500 outline-none"
-                                                    >
-                                                        <option value="">Seleccionar página...</option>
-                                                        <optgroup label="Páginas del Sistema">
-                                                            {availableRoutes.filter(r => !r.isDynamic).map(r => (
-                                                                <option key={r.path} value={r.path}>{r.label}</option>
-                                                            ))}
-                                                        </optgroup>
-                                                        <optgroup label="Páginas Dinámicas (CMS)">
-                                                            {availableRoutes.filter(r => r.isDynamic).map(r => (
-                                                                <option key={r.path} value={r.path}>{r.label}</option>
-                                                            ))}
-                                                        </optgroup>
-                                                        <optgroup label="Personalizado">
-                                                            <option value={sub.path}>Manual: {sub.path}</option>
-                                                        </optgroup>
-                                                    </select>
-                                                    <button
-                                                        onClick={() => {
-                                                            const newMenu = [...menu];
-                                                            newMenu[idx].columns![colIdx].items = newMenu[idx].columns![colIdx].items.filter((_, i) => i !== subIdx);
-                                                            setMenu(newMenu);
-                                                        }}
-                                                        className="p-1 text-red-400 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                                                    >
-                                                        <Trash2 size={12} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
+                                    <input
+                                        type="text"
+                                        value={item.path}
+                                        onChange={e => {
+                                            const newMenu = [...menu];
+                                            newMenu[idx].path = e.target.value;
+                                            setMenu(newMenu);
+                                        }}
+                                        className="bg-transparent text-xs text-slate-400 outline-none w-full"
+                                        placeholder="Ruta principal (ej: /about)"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex-1">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block">Descripción (Mega Menú)</label>
+                                <textarea
+                                    value={item.description}
+                                    onChange={e => {
+                                        const newMenu = [...menu];
+                                        newMenu[idx].description = e.target.value;
+                                        setMenu(newMenu);
+                                    }}
+                                    rows={2}
+                                    className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm text-slate-600 outline-none focus:ring-2 focus:ring-cafh-indigo/10"
+                                    placeholder="Explica qué encontrará el usuario en esta sección..."
+                                />
+                            </div>
+
+                            <div className="flex md:flex-col items-center gap-2">
+                                <div className="flex gap-1">
+                                    <button onClick={() => moveCategory(idx, 'up')} className="p-2 bg-white text-slate-400 hover:text-cafh-indigo rounded-lg border border-slate-100 shadow-sm">
+                                        <ArrowUp size={16} />
+                                    </button>
+                                    <button onClick={() => moveCategory(idx, 'down')} className="p-2 bg-white text-slate-400 hover:text-cafh-indigo rounded-lg border border-slate-100 shadow-sm">
+                                        <ArrowDown size={16} />
+                                    </button>
+                                </div>
+                                <button
+                                    onClick={() => removeCategory(idx)}
+                                    className="p-2 bg-white text-red-400 hover:bg-red-50 rounded-lg border border-slate-100 shadow-sm transition-colors"
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Columnas del Mega Menú */}
+                        <div className="p-8">
+                            <div className="flex items-center justify-between mb-8">
+                                <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Columnas de Navegación</h4>
+                                <button
+                                    onClick={() => addColumn(idx)}
+                                    className="text-[10px] font-black text-cafh-indigo hover:text-cafh-indigo/70 uppercase tracking-widest flex items-center gap-1.5"
+                                >
+                                    <Plus size={14} /> AÑADIR COLUMNA
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                                {item.columns?.map((col, colIdx) => (
+                                    <div key={colIdx} className="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100 space-y-4 relative group/col">
                                         <button
-                                            onClick={() => {
+                                            onClick={() => removeColumn(idx, colIdx)}
+                                            className="absolute top-4 right-4 p-1.5 text-slate-300 hover:text-red-400 opacity-0 group-hover/col:opacity-100 transition-opacity"
+                                        >
+                                            <Trash size={14} />
+                                        </button>
+
+                                        <input
+                                            type="text"
+                                            value={col.title}
+                                            onChange={e => {
                                                 const newMenu = [...menu];
-                                                newMenu[idx].columns![colIdx].items.push({ label: 'Nuevo Enlace', path: '/', icon: 'Globe', desc: '' });
+                                                newMenu[idx].columns![colIdx].title = e.target.value;
                                                 setMenu(newMenu);
                                             }}
-                                            className="w-full py-2 border border-dashed border-slate-200 rounded-xl text-[10px] font-bold text-slate-400 hover:bg-slate-50 transition-all flex items-center justify-center gap-1"
-                                        >
-                                            <Plus size={12} /> AÑADIR ENLACE
-                                        </button>
+                                            className="w-full text-[11px] font-black text-slate-500 uppercase tracking-widest outline-none bg-transparent border-b border-transparent focus:border-cafh-indigo"
+                                            placeholder="TÍTULO COLUMNA"
+                                        />
+
+                                        <div className="space-y-3">
+                                            {col.items.map((sub, subIdx) => (
+                                                <div key={subIdx} className="p-4 bg-white rounded-2xl border border-slate-100 space-y-3 group/link relative shadow-sm">
+                                                    <div className="flex items-center justify-between">
+                                                        <input
+                                                            type="text"
+                                                            value={sub.label}
+                                                            onChange={e => {
+                                                                const newMenu = [...menu];
+                                                                newMenu[idx].columns![colIdx].items[subIdx].label = e.target.value;
+                                                                setMenu(newMenu);
+                                                            }}
+                                                            className="flex-1 bg-transparent text-sm font-bold text-slate-700 outline-none"
+                                                            placeholder="Etiqueta"
+                                                        />
+                                                        <button
+                                                            onClick={() => {
+                                                                const newMenu = [...menu];
+                                                                newMenu[idx].columns![colIdx].items = newMenu[idx].columns![colIdx].items.filter((_, i) => i !== subIdx);
+                                                                setMenu(newMenu);
+                                                            }}
+                                                            className="p-1 text-red-300 hover:text-red-500 transition-colors"
+                                                        >
+                                                            <Trash2 size={12} />
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="space-y-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="p-1 px-2 bg-slate-50 rounded text-[9px] font-bold text-slate-400 border border-slate-100">RUTA</div>
+                                                            <select
+                                                                value={sub.path}
+                                                                onChange={e => {
+                                                                    const newMenu = [...menu];
+                                                                    newMenu[idx].columns![colIdx].items[subIdx].path = e.target.value;
+                                                                    const route = availableRoutes.find(r => r.path === e.target.value);
+                                                                    if (route && (!sub.label || sub.label === 'Nuevo Enlace')) {
+                                                                        newMenu[idx].columns![colIdx].items[subIdx].label = route.label.replace('[Página] ', '');
+                                                                    }
+                                                                    setMenu(newMenu);
+                                                                }}
+                                                                className="flex-1 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-[10px] text-slate-500 outline-none focus:ring-1 focus:ring-cafh-indigo/30"
+                                                            >
+                                                                <option value="">Seleccionar...</option>
+                                                                {availableRoutes.map(r => (
+                                                                    <option key={r.path} value={r.path}>{r.label}</option>
+                                                                ))}
+                                                                <option value={sub.path}>Manual: {sub.path}</option>
+                                                            </select>
+                                                        </div>
+
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="p-1 px-2 bg-slate-50 rounded text-[9px] font-bold text-slate-400 border border-slate-100">ICON</div>
+                                                            <select
+                                                                value={sub.icon}
+                                                                onChange={e => {
+                                                                    const newMenu = [...menu];
+                                                                    newMenu[idx].columns![colIdx].items[subIdx].icon = e.target.value;
+                                                                    setMenu(newMenu);
+                                                                }}
+                                                                className="flex-1 bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 text-[10px] text-slate-500 outline-none"
+                                                            >
+                                                                {Object.keys(Lucide).filter(k => k.length > 3).slice(0, 100).map(k => (
+                                                                    <option key={k} value={k}>{k}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+
+                                                        <input
+                                                            type="text"
+                                                            value={sub.desc}
+                                                            onChange={e => {
+                                                                const newMenu = [...menu];
+                                                                newMenu[idx].columns![colIdx].items[subIdx].desc = e.target.value;
+                                                                setMenu(newMenu);
+                                                            }}
+                                                            className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-1.5 text-[10px] text-slate-400 outline-none"
+                                                            placeholder="Descripción corta (opcional)"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            <button
+                                                onClick={() => {
+                                                    const newMenu = [...menu];
+                                                    newMenu[idx].columns![colIdx].items.push({ label: 'Nuevo Enlace', path: '/', icon: 'ArrowRight', desc: '' });
+                                                    setMenu(newMenu);
+                                                }}
+                                                className="w-full py-3 border-2 border-dashed border-slate-200 rounded-2xl text-[10px] font-black text-slate-300 hover:border-cafh-indigo hover:text-cafh-indigo hover:bg-white transition-all flex items-center justify-center gap-1.5"
+                                            >
+                                                <Plus size={14} /> AÑADIR ENLACE
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     </div>
                 ))}
+
+                {menu.length === 0 && (
+                    <div className="text-center py-20 bg-white rounded-[3rem] border border-dashed border-slate-200">
+                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300">
+                            <Grid size={40} />
+                        </div>
+                        <h4 className="text-xl font-bold text-slate-800 mb-2">No hay secciones en el menú</h4>
+                        <p className="text-slate-500 mb-8 max-w-sm mx-auto">Empieza creando una sección principal para organizar la navegación de tu sitio.</p>
+                        <button
+                            onClick={addCategory}
+                            className="px-8 py-3 bg-cafh-indigo text-white rounded-2xl font-bold shadow-xl shadow-cafh-indigo/20 flex items-center gap-2 mx-auto"
+                        >
+                            <Plus size={20} /> CREAR MI PRIMERA SECCIÓN
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+
+// --- ARTICLE EDITOR MODAL ---
+const ArticleEditorModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onSave: (article: BlogPost) => void;
+    initialArticle: BlogPost | null;
+}> = ({ isOpen, onClose, onSave, initialArticle }) => {
+    const [formData, setFormData] = useState<BlogPost>(() => initialArticle || {
+        id: `post_${Date.now()}`,
+        title: '',
+        excerpt: '',
+        content: '',
+        category: 'Inspiración',
+        author: db.auth.getCurrentUser()?.name || 'Admin',
+        date: new Date().toISOString().split('T')[0],
+        imageUrl: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2070&auto=format&fit=crop',
+        seo: { title: '', description: '', keywords: [] }
+    });
+    const [isAssetPickerOpen, setIsAssetPickerOpen] = useState(false);
+
+    useEffect(() => {
+        if (initialArticle) setFormData(initialArticle);
+        else setFormData({
+            id: `post_${Date.now()}`,
+            title: '',
+            excerpt: '',
+            content: '',
+            category: 'Inspiración',
+            author: db.auth.getCurrentUser()?.name || 'Admin',
+            date: new Date().toISOString().split('T')[0],
+            imageUrl: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2070&auto=format&fit=crop',
+            seo: { title: '', description: '', keywords: [] }
+        });
+    }, [initialArticle, isOpen]);
+
+    if (!isOpen) return null;
+
+    const handleSave = () => {
+        if (!formData.title) return;
+        onSave(formData);
+        onClose();
+    };
+
+    return (
+        <div className="fixed inset-0 flex items-center justify-center z-[150] p-4 text-slate-800">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm shadow-2xl" onClick={onClose} />
+            <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-5xl max-h-[90vh] relative overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+                <div className="p-8 pb-4 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 className="text-2xl font-bold">{initialArticle ? 'Editar Artículo' : 'Nuevo Artículo'}</h3>
+                        <p className="text-slate-500 text-sm">Crea contenido impactante para la comunidad.</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors">
+                        <X size={24} />
+                    </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* MAIN CONTENT */}
+                        <div className="lg:col-span-2 space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Título del Artículo</label>
+                                <input
+                                    type="text"
+                                    value={formData.title}
+                                    onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                    className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none text-lg font-bold transition-all"
+                                    placeholder="Ej: El Arte de la Meditación Diaria"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Resumen (Excerpt)</label>
+                                <textarea
+                                    value={formData.excerpt}
+                                    onChange={e => setFormData({ ...formData, excerpt: e.target.value })}
+                                    className="w-full px-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm min-h-[100px] transition-all"
+                                    placeholder="Una breve descripción que aparecerá en la lista..."
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Contenido Completo (HTML/Markdown)</label>
+                                <RichTextEditor
+                                    value={formData.content || ''}
+                                    onChange={val => setFormData({ ...formData, content: val })}
+                                    placeholder="Escribe aquí el cuerpo del artículo..."
+                                    className="min-h-[400px]"
+                                />
+                            </div>
+                        </div>
+
+                        {/* SIDEBAR SETTINGS */}
+                        <div className="space-y-6">
+                            <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 space-y-6">
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Imagen de Portada</label>
+                                    <div
+                                        onClick={() => setIsAssetPickerOpen(true)}
+                                        className="aspect-video bg-slate-200 rounded-2xl overflow-hidden cursor-pointer group relative border-2 border-dashed border-slate-300 hover:border-cafh-indigo transition-all"
+                                    >
+                                        {formData.imageUrl ? (
+                                            <img src={formData.imageUrl} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                        ) : (
+                                            <div className="absolute inset-0 flex items-center justify-center text-slate-400">
+                                                <ImageIcon size={32} />
+                                            </div>
+                                        )}
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <span className="text-white text-xs font-bold bg-white/20 backdrop-blur-md px-4 py-2 rounded-full">Cambiar Imagen</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Categoría</label>
+                                        <select
+                                            value={formData.category}
+                                            onChange={e => setFormData({ ...formData, category: e.target.value })}
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm transition-all"
+                                        >
+                                            <option>Inspiración</option>
+                                            <option>Reflexión</option>
+                                            <option>Novedades</option>
+                                            <option>Técnicas</option>
+                                            <option>Historia</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Autor</label>
+                                        <input
+                                            type="text"
+                                            value={formData.author}
+                                            onChange={e => setFormData({ ...formData, author: e.target.value })}
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm transition-all"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Fecha de Publicación</label>
+                                        <input
+                                            type="date"
+                                            value={formData.date}
+                                            onChange={e => setFormData({ ...formData, date: e.target.value })}
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-cafh-indigo outline-none text-sm transition-all"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-cafh-indigo/5 p-6 rounded-[2rem] border border-cafh-indigo/10 space-y-4">
+                                <h4 className="text-xs font-black uppercase tracking-widest text-cafh-indigo flex items-center gap-2">
+                                    <Search size={14} /> SEO & Metadatos
+                                </h4>
+                                <div className="space-y-3">
+                                    <input
+                                        type="text"
+                                        placeholder="Título SEO (opcional)"
+                                        value={formData.seo?.title}
+                                        onChange={e => setFormData({ ...formData, seo: { ...formData.seo!, title: e.target.value } })}
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs outline-none"
+                                    />
+                                    <textarea
+                                        placeholder="Descripción SEO..."
+                                        value={formData.seo?.description}
+                                        onChange={e => setFormData({ ...formData, seo: { ...formData.seo!, description: e.target.value } })}
+                                        className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-xs outline-none min-h-[80px]"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-8 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                    <button onClick={onClose} className="px-8 py-3 rounded-full font-bold text-slate-500 hover:bg-slate-200 transition-all">Cancelar</button>
+                    <button
+                        onClick={handleSave}
+                        className="px-10 py-3 bg-cafh-indigo text-white rounded-full font-bold hover:shadow-xl hover:shadow-cafh-indigo/30 transition-all flex items-center gap-2"
+                    >
+                        <Save size={20} />
+                        {initialArticle ? 'Guardar Cambios' : 'Publicar Artículo'}
+                    </button>
+                </div>
+
+                <AssetPickerModal
+                    isOpen={isAssetPickerOpen}
+                    onClose={() => setIsAssetPickerOpen(false)}
+                    onSelect={(url) => setFormData({ ...formData, imageUrl: url })}
+                    title="Seleccionar Portada"
+                />
             </div>
         </div>
     );
 };
 
 const ArticlesManager: React.FC = () => {
-    const [articles, setArticles] = useState<any[]>(() => db.content.search('')); // Using existing db.content for now
+    const [articles, setArticles] = useState<BlogPost[]>(() => db.blog.getAll());
+    const [isEditorOpen, setIsEditorOpen] = useState(false);
+    const [selectedArticle, setSelectedArticle] = useState<BlogPost | null>(null);
+    const [search, setSearch] = useState('');
+
+    const refresh = () => setArticles(db.blog.getAll());
+
+    const handleNew = () => {
+        setSelectedArticle(null);
+        setIsEditorOpen(true);
+    };
+
+    const handleEdit = (article: BlogPost) => {
+        setSelectedArticle(article);
+        setIsEditorOpen(true);
+    };
+
+    const handleDelete = (id: string, title: string) => {
+        if (confirm(`¿Estás seguro de eliminar el artículo "${title}"? esta acción no se puede deshacer.`)) {
+            db.blog.delete(id);
+            refresh();
+        }
+    };
+
+    const handleSave = (article: BlogPost) => {
+        if (selectedArticle) {
+            db.blog.update(article.id, article);
+        } else {
+            db.blog.add(article);
+        }
+        refresh();
+    };
+
+    const filtered = articles.filter(a =>
+        a.title.toLowerCase().includes(search.toLowerCase()) ||
+        a.category.toLowerCase().includes(search.toLowerCase())
+    );
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-slate-800">Gestión de Artículos & Blog</h3>
-                <button className="flex items-center gap-2 px-4 py-2 bg-cafh-indigo text-white rounded-xl hover:bg-slate-900 transition-all shadow-sm text-sm font-bold">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h3 className="text-2xl font-bold text-slate-800 tracking-tight">Gestión de Artículos (Blog)</h3>
+                    <p className="text-slate-500 text-sm">Administra los artículos que aparecen en la sección de Novedades.</p>
+                </div>
+                <button
+                    onClick={handleNew}
+                    className="flex items-center gap-2 px-6 py-3 bg-cafh-indigo text-white rounded-2xl hover:bg-slate-900 transition-all shadow-lg shadow-indigo-100 text-sm font-black tracking-widest uppercase"
+                >
                     <Plus size={18} />
                     NUEVO ARTÍCULO
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-4">
-                {articles.filter(a => a.type === 'Article').map(article => (
-                    <div key={article.id} className="bg-white p-6 rounded-3xl border border-slate-100 flex items-center justify-between hover:shadow-md transition-all">
-                        <div className="flex items-center gap-4">
-                            <div className="w-16 h-16 bg-slate-50 rounded-2xl overflow-hidden">
-                                {article.imageUrl && <img src={article.imageUrl} alt="" className="w-full h-full object-cover" />}
+            <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input
+                    type="text"
+                    placeholder="Buscar por título o categoría..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-[2rem] focus:ring-2 focus:ring-cafh-indigo outline-none text-sm shadow-sm transition-all"
+                />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filtered.map(article => (
+                    <div key={article.id} className="group bg-white rounded-[2.5rem] border border-slate-100 overflow-hidden hover:shadow-2xl hover:shadow-slate-200/60 transition-all duration-500 flex flex-col">
+                        <div className="aspect-[16/10] relative overflow-hidden">
+                            <img src={article.imageUrl} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                            <div className="absolute top-4 left-4">
+                                <span className="px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-widest text-cafh-indigo shadow-sm">
+                                    {article.category}
+                                </span>
                             </div>
-                            <div>
-                                <h4 className="font-bold text-slate-800">{article.title}</h4>
-                                <div className="flex items-center gap-4 text-xs text-slate-400 mt-1">
-                                    <span className="flex items-center gap-1"><UserIcon size={12} /> {article.author}</span>
-                                    <span className="flex items-center gap-1"><Clock size={12} /> {article.publishDate}</span>
-                                    <span className="flex items-center gap-1"><BarChart2 size={12} /> {article.views} vistas</span>
+                        </div>
+                        <div className="p-6 flex-1 flex flex-col">
+                            <h4 className="font-bold text-slate-800 text-lg leading-tight line-clamp-2 mb-3 group-hover:text-cafh-indigo transition-colors">{article.title}</h4>
+                            <p className="text-slate-500 text-xs line-clamp-3 mb-6 flex-1">{article.excerpt}</p>
+
+                            <div className="flex items-center justify-between pt-6 border-t border-slate-50 mt-auto">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                        <UserIcon size={14} />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-bold text-slate-700">{article.author}</span>
+                                        <span className="text-[9px] text-slate-400">{article.date}</span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity translate-x-4 group-hover:translate-x-0 duration-300">
+                                    <button
+                                        onClick={() => handleEdit(article)}
+                                        className="p-2.5 text-slate-400 hover:text-cafh-indigo hover:bg-cafh-indigo/5 rounded-xl transition-all"
+                                    >
+                                        <Edit size={18} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(article.id, article.title)}
+                                        className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                    >
+                                        <Trash2 size={18} />
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <button className="p-2 text-slate-400 hover:text-cafh-indigo hover:bg-cafh-indigo/5 rounded-xl transition-all">
-                                <Edit size={18} />
-                            </button>
-                            <button className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
-                                <Trash2 size={18} />
-                            </button>
-                        </div>
                     </div>
                 ))}
+
+                {filtered.length === 0 && (
+                    <div className="col-span-full py-20 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-center">
+                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-slate-300 mb-4 shadow-sm">
+                            <FileText size={32} />
+                        </div>
+                        <h4 className="text-lg font-bold text-slate-700">No se encontraron artículos</h4>
+                        <p className="text-slate-400 text-sm max-w-xs mx-auto">Prueba con otra búsqueda o crea un nuevo artículo para comenzar.</p>
+                        <button
+                            onClick={handleNew}
+                            className="mt-6 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-cafh-indigo hover:bg-cafh-indigo hover:text-white hover:border-cafh-indigo transition-all shadow-sm"
+                        >
+                            Crear Primer Artículo
+                        </button>
+                    </div>
+                )}
             </div>
+
+            <ArticleEditorModal
+                isOpen={isEditorOpen}
+                initialArticle={selectedArticle}
+                onClose={() => setIsEditorOpen(false)}
+                onSave={handleSave}
+            />
         </div>
     );
 };

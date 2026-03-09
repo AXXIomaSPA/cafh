@@ -5,7 +5,7 @@ import { Play, ArrowRight, Heart, Users, BookOpen, MapPin, Mail, ChevronRight, F
 import { useNavigate } from 'react-router-dom';
 import { MOCK_WIZARD_STEPS, MOCK_EVENTS } from '../constants';
 import { db, safeSetItem, KEYS } from '../storage';
-import { UserRole, HeroConfig, BlogPost, BlogConfig, HomeConfig, CustomPage, PageSection, WizardQuestion, ProfileType, UserWizardProfile, WizardSplashConfig } from '../types';
+import { UserRole, HeroConfig, BlogPost, BlogConfig, HomeConfig, CustomPage, PageSection, WizardQuestion, ProfileType, UserWizardProfile, WizardSplashConfig, GlobalLocation, LocationContact } from '../types';
 import Markdown from 'react-markdown';
 
 // --- DYNAMIC PAGE VIEW ---
@@ -13,10 +13,11 @@ import Markdown from 'react-markdown';
 import { ContentItem, CalendarEvent } from '../types';
 
 // --- DYNAMIC PREDEFINED BLOCKS ---
-const DynamicResourcesGrid: React.FC<any> = ({ bgClass, paddingClass, containerClass }) => {
+const DynamicResourcesGrid: React.FC<any> = ({ section, bgClass, paddingClass, containerClass }) => {
     const [filter, setFilter] = useState('Todos');
     const [resourcesContent, setResourcesContent] = useState<any[]>([]);
     const [selectedResource, setSelectedResource] = useState<any | null>(null);
+    const content = section?.content || {};
 
     useEffect(() => {
         const contents = db.content.getAll().map(c => ({
@@ -53,6 +54,10 @@ const DynamicResourcesGrid: React.FC<any> = ({ bgClass, paddingClass, containerC
     return (
         <section className={`${bgClass} ${paddingClass}`}>
             <div className={`${containerClass} mx-auto px-6`}>
+                <div className="text-center mb-16">
+                    {content.title && <h2 className="text-4xl md:text-5xl font-display font-bold text-slate-800">{content.title}</h2>}
+                    {content.subtitle && <p className="text-slate-500 max-w-2xl mx-auto mt-4">{content.subtitle}</p>}
+                </div>
                 {/* Modal Popup Viewer */}
                 {selectedResource && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm" onClick={() => setSelectedResource(null)}>
@@ -304,9 +309,10 @@ const ActivityRegistrationModal: React.FC<{
     );
 };
 
-const DynamicEventsCalendar: React.FC<any> = ({ bgClass, paddingClass, containerClass }) => {
+const DynamicEventsCalendar: React.FC<any> = ({ section, bgClass, paddingClass, containerClass }) => {
     const [events, setEvents] = useState<CalendarEvent[]>([]);
     const [regModal, setRegModal] = useState<{ isOpen: boolean, activity: any }>({ isOpen: false, activity: null });
+    const content = section?.content || {};
 
     useEffect(() => {
         const legacyEvents = db.events.getAll();
@@ -343,13 +349,16 @@ const DynamicEventsCalendar: React.FC<any> = ({ bgClass, paddingClass, container
     return (
         <section className={`${bgClass} ${paddingClass} pb-0`}>
             <div className={`${containerClass} mx-auto px-6`}>
+                {content.title && <h2 className="text-4xl font-display font-bold text-slate-800 text-center mb-12">{content.title}</h2>}
+                {content.subtitle && <p className="text-center text-slate-500 max-w-2xl mx-auto mb-16">{content.subtitle}</p>}
+
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
                     <div className="lg:col-span-1 bg-cafh-indigo text-white rounded-[2.5rem] p-10 relative overflow-hidden flex flex-col justify-center">
                         <div className="absolute top-0 right-0 w-48 h-48 bg-cafh-cyan rounded-full blur-[80px] opacity-20"></div>
-                        <h3 className="text-2xl font-bold mb-4 relative z-10">¿Buscas un retiro?</h3>
-                        <p className="text-blue-200 mb-8 relative z-10">Desconecta del ruido y reconecta contigo mismo en nuestros centros de retiro en la naturaleza.</p>
+                        <h3 className="text-2xl font-bold mb-4 relative z-10">{content.promoTitle || '¿Buscas un retiro?'}</h3>
+                        <p className="text-blue-200 mb-8 relative z-10">{content.promoText || 'Desconecta del ruido y reconecta contigo mismo en nuestros centros de retiro en la naturaleza.'}</p>
                         <button className="bg-white text-cafh-indigo px-6 py-3 rounded-full font-bold hover:bg-slate-100 transition-colors w-fit relative z-10">
-                            Ver opciones de Retiro
+                            {content.promoCta || 'Ver opciones de Retiro'}
                         </button>
                     </div>
 
@@ -392,7 +401,7 @@ const DynamicEventsCalendar: React.FC<any> = ({ bgClass, paddingClass, container
 
                 <div className="bg-white rounded-[3rem] p-8 md:p-12 shadow-sm border border-slate-100">
                     <div className="flex justify-between items-center mb-10">
-                        <h2 className="text-3xl font-display font-bold text-slate-800">Calendario Completo</h2>
+                        <h2 className="text-3xl font-display font-bold text-slate-800">{content.listTitle || 'Calendario Completo'}</h2>
                         <div className="flex gap-2">
                             <button className="p-2 rounded-full border border-slate-200 hover:bg-slate-50"><Lucide.Filter size={20} /></button>
                         </div>
@@ -459,103 +468,112 @@ const DynamicEventsCalendar: React.FC<any> = ({ bgClass, paddingClass, container
     );
 };
 
-const DynamicTimeline: React.FC<any> = ({ bgClass, paddingClass, containerClass }) => (
-    <section className={`${bgClass} ${paddingClass}`}>
-        <div className={`${containerClass} mx-auto px-6`}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                <div className="relative">
-                    <div className="absolute inset-0 bg-cafh-cyan rounded-[2rem] rotate-3 opacity-20 transform translate-x-4 translate-y-4"></div>
-                    <img
-                        src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800&auto=format&fit=crop"
-                        alt="Historia"
-                        className="relative z-10 rounded-[2rem] shadow-xl w-full object-cover h-[400px]"
-                    />
-                </div>
-                <div className="space-y-6">
-                    <div className="flex items-center gap-3 text-cafh-indigo font-bold uppercase tracking-widest text-sm">
-                        <Lucide.Compass size={20} />
-                        <span>Nuestra Historia</span>
+const DynamicTimeline: React.FC<any> = ({ section, bgClass, paddingClass, containerClass }) => {
+    const content = section?.content || {
+        title: "Un legado de sabiduría viva",
+        text: "Fundada hace más de 80 años, Cafh nació como una respuesta a la necesidad humana de encontrar un sentido trascendente. A lo largo de las décadas, hemos evolucionado manteniendo intacta nuestra esencia: el método de vida.",
+        imageUrl: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800&auto=format&fit=crop",
+        badge: "Nuestra Historia",
+        stats: [
+            { value: "1937", label: "Año de Fundación" },
+            { value: "20+", label: "Países con presencia" }
+        ]
+    };
+
+    return (
+        <section className={`${bgClass} ${paddingClass}`}>
+            <div className={`${containerClass} mx-auto px-6`}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div className="relative">
+                        <div className="absolute inset-0 bg-cafh-cyan rounded-[2rem] rotate-3 opacity-20 transform translate-x-4 translate-y-4"></div>
+                        <img
+                            src={content.imageUrl}
+                            alt={content.title}
+                            className="relative z-10 rounded-[2rem] shadow-xl w-full object-cover h-[400px]"
+                        />
                     </div>
-                    <h2 className="text-3xl md:text-5xl font-display font-bold text-slate-800">Un legado de sabiduría viva</h2>
-                    <p className="text-slate-600 text-lg leading-relaxed">
-                        Fundada hace más de 80 años, Cafh nació como una respuesta a la necesidad humana de encontrar un sentido trascendente. A lo largo de las décadas, hemos evolucionado manteniendo intacta nuestra esencia: el método de vida.
-                    </p>
-                    <div className="grid grid-cols-2 gap-6 pt-4">
-                        <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100">
-                            <span className="block text-3xl font-bold text-cafh-cyan mb-1">1937</span>
-                            <span className="text-sm text-slate-500 font-medium">Año de Fundación</span>
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-3 text-cafh-indigo font-bold uppercase tracking-widest text-sm">
+                            <Lucide.Compass size={20} />
+                            <span>{content.badge}</span>
                         </div>
-                        <div className="p-4 bg-white rounded-xl shadow-sm border border-slate-100">
-                            <span className="block text-3xl font-bold text-cafh-cyan mb-1">20+</span>
-                            <span className="text-sm text-slate-500 font-medium">Países con presencia</span>
+                        <h2 className="text-3xl md:text-5xl font-display font-bold text-slate-800">{content.title}</h2>
+                        <div className="text-slate-600 text-lg leading-relaxed prose prose-slate max-w-none" dangerouslySetInnerHTML={{ __html: content.text }} />
+                        <div className="grid grid-cols-2 gap-6 pt-4">
+                            {content.stats?.map((stat: any, i: number) => (
+                                <div key={i} className="p-4 bg-white rounded-xl shadow-sm border border-slate-100">
+                                    <span className="block text-3xl font-bold text-cafh-cyan mb-1">{stat.value}</span>
+                                    <span className="text-sm text-slate-500 font-medium">{stat.label}</span>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-);
+        </section>
+    );
+};
 
-const DynamicMethodPillars: React.FC<any> = ({ bgClass, paddingClass, containerClass }) => (
-    <section className={`${bgClass} ${paddingClass}`}>
-        <div className={`${containerClass} mx-auto px-6`}>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-                {/* Pilar 1: Vida Interior */}
-                <div className="group">
-                    <div className="relative mb-8 overflow-hidden rounded-[2.5rem]">
-                        <div className="absolute inset-0 bg-cafh-indigo/20 group-hover:bg-transparent transition-colors z-10"></div>
-                        <img src="https://images.unsplash.com/photo-1528319725582-ddc096101511?q=80&w=800&auto=format&fit=crop" alt="Vida Interior" className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-700" />
-                        <div className="absolute bottom-6 left-6 z-20 bg-white/90 backdrop-blur px-6 py-3 rounded-full flex items-center gap-3">
-                            <Lucide.Heart className="text-cafh-clay" />
-                            <span className="font-bold text-slate-800">Vida Interior</span>
-                        </div>
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-800 mb-4">El cultivo del ser</h3>
-                    <p className="text-slate-600 leading-relaxed mb-6">
-                        La vida interior no es aislarse, es encontrar un centro de paz y estabilidad dentro de uno mismo, desde el cual interactuamos con el mundo de manera más consciente y amorosa.
-                    </p>
-                    <ul className="space-y-3">
-                        {['Auto-observación', 'Dominio emocional', 'Intención pura'].map(item => (
-                            <li key={item} className="flex items-center gap-3 text-slate-700 font-medium">
-                                <div className="w-6 h-6 rounded-full bg-cafh-light flex items-center justify-center text-cafh-cyan"><Lucide.ChevronRight size={14} /></div>
-                                {item}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+const DynamicMethodPillars: React.FC<any> = ({ section, bgClass, paddingClass, containerClass }) => {
+    const content = section?.content || {
+        pillars: [
+            {
+                title: "Vida Interior",
+                subtitle: "El cultivo del ser",
+                description: "La vida interior no es aislarse, es encontrar un centro de paz y estabilidad dentro de uno mismo, desde el cual interactuamos con el mundo de manera más consciente y amorosa.",
+                image: "https://images.unsplash.com/photo-1528319725582-ddc096101511?q=80&w=800&auto=format&fit=crop",
+                icon: "Heart",
+                color: "text-cafh-clay",
+                items: ['Auto-observación', 'Dominio emocional', 'Intención pura']
+            },
+            {
+                title: "Mística del Corazón",
+                subtitle: "Conexión profunda",
+                description: "La mística en Cafh es la experiencia directa de la unión con la vida. A través del amor, trascendemos nuestras limitaciones individuales y participamos de una realidad mayor.",
+                image: "https://images.unsplash.com/photo-1519834785169-98be25ec3f84?q=80&w=800&auto=format&fit=crop",
+                icon: "Sparkles",
+                color: "text-cafh-cyan",
+                items: ['Amor a la humanidad', 'Sentido de trascendencia', 'Unión sustancial']
+            }
+        ]
+    };
 
-                {/* Pilar 2: Mística */}
-                <div className="group">
-                    <div className="relative mb-8 overflow-hidden rounded-[2.5rem]">
-                        <div className="absolute inset-0 bg-cafh-indigo/20 group-hover:bg-transparent transition-colors z-10"></div>
-                        <img src="https://images.unsplash.com/photo-1519834785169-98be25ec3f84?q=80&w=800&auto=format&fit=crop" alt="Mística" className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-700" />
-                        <div className="absolute bottom-6 left-6 z-20 bg-white/90 backdrop-blur px-6 py-3 rounded-full flex items-center gap-3">
-                            <Lucide.Sparkles className="text-cafh-cyan" />
-                            <span className="font-bold text-slate-800">Mística del Corazón</span>
+    return (
+        <section className={`${bgClass} ${paddingClass}`}>
+            <div className={`${containerClass} mx-auto px-6`}>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                    {content.pillars.map((pillar: any, idx: number) => (
+                        <div key={idx} className="group">
+                            <div className="relative mb-8 overflow-hidden rounded-[2.5rem]">
+                                <div className="absolute inset-0 bg-cafh-indigo/20 group-hover:bg-transparent transition-colors z-10"></div>
+                                <img src={pillar.image} alt={pillar.title} className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-700" />
+                                <div className="absolute bottom-6 left-6 z-20 bg-white/90 backdrop-blur px-6 py-3 rounded-full flex items-center gap-3">
+                                    {(Lucide as any)[pillar.icon] ? React.createElement((Lucide as any)[pillar.icon], { className: pillar.color }) : <Lucide.Star className={pillar.color} />}
+                                    <span className="font-bold text-slate-800">{pillar.title}</span>
+                                </div>
+                            </div>
+                            <h3 className="text-2xl font-bold text-slate-800 mb-4">{pillar.subtitle}</h3>
+                            <p className="text-slate-600 leading-relaxed mb-6">{pillar.description}</p>
+                            <ul className="space-y-3">
+                                {pillar.items?.map((item: string) => (
+                                    <li key={item} className="flex items-center gap-3 text-slate-700 font-medium">
+                                        <div className="w-6 h-6 rounded-full bg-cafh-light flex items-center justify-center text-cafh-cyan"><Lucide.ChevronRight size={14} /></div>
+                                        {item}
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-800 mb-4">Conexión profunda</h3>
-                    <p className="text-slate-600 leading-relaxed mb-6">
-                        La mística en Cafh es la experiencia directa de la unión con la vida. A través del amor, trascendemos nuestras limitaciones individuales y participamos de una realidad mayor.
-                    </p>
-                    <ul className="space-y-3">
-                        {['Amor a la humanidad', 'Sentido de trascendencia', 'Unión sustancial'].map(item => (
-                            <li key={item} className="flex items-center gap-3 text-slate-700 font-medium">
-                                <div className="w-6 h-6 rounded-full bg-cafh-light flex items-center justify-center text-cafh-cyan"><Lucide.ChevronRight size={14} /></div>
-                                {item}
-                            </li>
-                        ))}
-                    </ul>
+                    ))}
                 </div>
             </div>
-        </div>
-    </section>
-);
+        </section>
+    );
+};
 
-const TableSection = ({ section, bgClass, paddingClass, containerClass }: any) => {
+const TableSection = ({ section, containerClass, sectionClasses, customStyles }: any) => {
     const { content } = section;
     return (
-        <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+        <section key={section.id} className={sectionClasses} style={customStyles}>
             <div className={`${containerClass} mx-auto px-6`}>
                 {content.title && <h3 className="text-2xl md:text-3xl font-display font-bold text-slate-800 mb-8">{content.title}</h3>}
                 <div className="overflow-hidden rounded-[2rem] border border-slate-100 shadow-sm">
@@ -639,6 +657,305 @@ const VideoGridSection = ({ section, bgClass, paddingClass, containerClass, onVi
     );
 };
 
+// --- SECTIONS FOR LOCATIONS (GLOBAL SEDES) ---
+
+const SedeModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    city: string;
+    locations: GlobalLocation[];
+}> = ({ isOpen, onClose, city, locations }) => {
+    if (!isOpen) return null;
+    return createPortal(
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm shadow-2xl" onClick={onClose} />
+            <div className="relative w-full max-w-4xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-fade-in-up flex flex-col max-h-[90vh]">
+                <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 className="text-2xl font-display font-bold text-slate-800">Sedes en {city}</h3>
+                        <p className="text-slate-500 text-sm">Contamos con {locations.length} puntos de encuentro en esta ciudad.</p>
+                    </div>
+                    <button onClick={onClose} className="p-3 bg-slate-100 text-slate-400 hover:text-slate-600 rounded-2xl transition-all">
+                        <Lucide.X size={24} />
+                    </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/30">
+                    {locations.map(loc => (
+                        <div key={loc.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="p-3 bg-cafh-indigo/10 text-cafh-indigo rounded-xl">
+                                    <Lucide.MapPin size={20} />
+                                </div>
+                                <h4 className="font-bold text-slate-800">{loc.name}</h4>
+                            </div>
+                            <p className="text-sm text-slate-500 mb-6 flex-1 italic">{loc.address}</p>
+                            <div className="space-y-3 pt-4 border-t border-slate-50">
+                                {loc.contacts.map((c, i) => {
+                                    const isWA = c.type === 'whatsapp';
+                                    const isPhone = c.type === 'phone';
+                                    const href = isWA ? `https://wa.me/${c.value.replace(/\D/g, '')}` : isPhone ? `tel:${c.value}` : `mailto:${c.value}`;
+                                    return (
+                                        <a
+                                            key={i}
+                                            href={href}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={`flex items-center justify-between p-3 rounded-xl text-sm font-bold transition-all ${isWA ? 'bg-green-50 text-green-600 hover:bg-green-100' :
+                                                isPhone ? 'bg-blue-50 text-blue-600 hover:bg-blue-100' :
+                                                    'bg-cafh-indigo/5 text-cafh-indigo hover:bg-cafh-indigo/10'
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                {isWA ? <Lucide.PhoneCall size={14} /> : isPhone ? <Lucide.Phone size={14} /> : <Lucide.Mail size={14} />}
+                                                {c.label}
+                                            </div>
+                                            <Lucide.ArrowRight size={14} />
+                                        </a>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+};
+
+const DynamicLocationsBlock: React.FC<any> = ({ section, bgClass, paddingClass, containerClass }) => {
+    const [locations, setLocations] = useState<GlobalLocation[]>([]);
+    const [continent, setContinent] = useState('Todos');
+    const [country, setCountry] = useState('Todos');
+    const [city, setCity] = useState('Todos');
+    const [selectedCity, setSelectedCity] = useState<{ name: string, locs: GlobalLocation[] } | null>(null);
+
+    useEffect(() => {
+        setLocations(db.locations.getAll());
+    }, []);
+
+    // Get Filter Options
+    const continents = ['Todos', ...new Set(locations.map(l => l.continent))];
+    const countries = ['Todos', ...new Set(locations.filter(l => continent === 'Todos' || l.continent === continent).map(l => l.country))];
+    const cities = ['Todos', ...new Set(locations.filter(l => (continent === 'Todos' || l.continent === continent) && (country === 'Todos' || l.country === country)).map(l => l.city))];
+
+    // Filtered Grouped Result
+    const filtered = locations.filter(l =>
+        (continent === 'Todos' || l.continent === continent) &&
+        (country === 'Todos' || l.country === country) &&
+        (city === 'Todos' || l.city === city)
+    );
+
+    // Group by city for cards
+    const cityGroups = filtered.reduce((acc: any, loc) => {
+        if (!acc[loc.city]) acc[loc.city] = [];
+        acc[loc.city].push(loc);
+        return acc;
+    }, {});
+
+    return (
+        <>
+            {/* 1. MAP HERO (WOW Effect) */}
+            <section className="relative h-[80vh] flex items-center justify-center overflow-hidden bg-slate-900">
+                {/* Cinema Overlay */}
+                <div className="absolute inset-0 z-10 bg-gradient-to-b from-slate-900/40 via-transparent to-slate-900/80"></div>
+
+                {/* World Map Backdrop */}
+                <img
+                    src="https://images.unsplash.com/photo-1521295121783-8a321d551ad2?q=80&w=2000&auto=format&fit=crop"
+                    className="absolute inset-0 w-full h-full object-cover grayscale opacity-40 blur-[2px] transition-transform duration-[20s] hover:scale-110"
+                    alt="World Map"
+                />
+
+                <div className="relative z-20 text-center px-6 max-w-4xl mx-auto space-y-8">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-cafh-cyan/20 border border-cafh-cyan/30 rounded-full text-cafh-cyan text-xs font-black uppercase tracking-[0.2em] animate-fade-in">
+                        <Lucide.Globe size={14} className="animate-spin-slow" />
+                        Presencia Mundial
+                    </div>
+                    <h1 className="text-5xl md:text-7xl font-display font-bold text-white leading-tight animate-fade-in-up">
+                        Encuentra <span className="text-cafh-cyan italic">tu Sede</span> de Cafh
+                    </h1>
+                    <p className="text-xl text-blue-100/80 font-light max-w-2xl mx-auto animate-fade-in-up delay-100">
+                        Una comunidad global dedicada al desenvolvimiento espiritual, presente en ciudades de todo el mundo.
+                    </p>
+
+                    {/* Visual PINs Container (Simplified projection) */}
+                    <div className="absolute inset-x-0 -top-40 -bottom-40 pointer-events-none opacity-60">
+                        {locations.map((loc, idx) => (
+                            <div
+                                key={loc.id}
+                                className="absolute animate-pulse"
+                                style={{
+                                    left: `${loc.mapX}%`,
+                                    top: `${loc.mapY}%`,
+                                    animationDelay: `${idx * 0.5}s`
+                                }}
+                            >
+                                <div className="relative">
+                                    <div className="absolute inset-0 w-4 h-4 -m-2 bg-cafh-cyan rounded-full animate-ping opacity-75"></div>
+                                    <div className="w-1.5 h-1.5 bg-cafh-cyan rounded-full shadow-[0_0_10px_rgba(34,211,238,0.8)]"></div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Floating scroll trigger */}
+                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 animate-bounce text-white/40">
+                    <Lucide.ChevronDown size={32} />
+                </div>
+            </section>
+
+            {/* 2. FILTERS & GRID */}
+            <section className={`${bgClass} ${paddingClass} relative z-30 -mt-20`}>
+                <div className={`${containerClass} mx-auto px-6`}>
+
+                    {/* Cascading Filter Bar */}
+                    <div className="bg-white/80 backdrop-blur-xl p-6 md:p-10 rounded-[3rem] shadow-2xl border border-white/50 flex flex-col md:flex-row gap-8 mb-20 items-end">
+                        <div className="flex-1 space-y-3 w-full">
+                            <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 ml-1">
+                                <Lucide.Filter size={14} /> Continente
+                            </label>
+                            <select
+                                value={continent}
+                                onChange={e => { setContinent(e.target.value); setCountry('Todos'); setCity('Todos'); }}
+                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-cafh-indigo/5 focus:border-cafh-indigo transition-all"
+                            >
+                                {continents.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+                        <div className="flex-1 space-y-3 w-full">
+                            <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 ml-1">
+                                <Lucide.Map size={14} /> País
+                            </label>
+                            <select
+                                value={country}
+                                onChange={e => { setCountry(e.target.value); setCity('Todos'); }}
+                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-cafh-indigo/5 focus:border-cafh-indigo transition-all"
+                            >
+                                {countries.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+                        <div className="flex-1 space-y-3 w-full">
+                            <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 ml-1">
+                                <Lucide.MapPin size={14} /> Ciudad
+                            </label>
+                            <select
+                                value={city}
+                                onChange={e => setCity(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-cafh-indigo/5 focus:border-cafh-indigo transition-all"
+                            >
+                                {cities.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Results Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {Object.entries(cityGroups).map(([name, locs]: [string, any]) => {
+                            const first = locs[0];
+                            const hasMultiple = locs.length > 1;
+                            return (
+                                <div key={name} className="group bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-500 relative overflow-hidden flex flex-col">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-cafh-cyan/10 transition-colors duration-700"></div>
+
+                                    {/* Card Header */}
+                                    <div className="relative z-10 flex justify-between items-start mb-8">
+                                        <div className="p-4 bg-cafh-indigo/5 text-cafh-indigo rounded-2xl group-hover:bg-cafh-indigo group-hover:text-white transition-all duration-500">
+                                            <Lucide.MapPin size={28} />
+                                        </div>
+                                        {hasMultiple && (
+                                            <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100">
+                                                {locs.length} Sedes
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Info */}
+                                    <div className="relative z-10 flex-1 flex flex-col">
+                                        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-cafh-cyan mb-2">
+                                            {first.country}
+                                        </div>
+                                        <h3 className="text-3xl font-display font-bold text-slate-800 mb-4 group-hover:text-cafh-indigo transition-colors">{name}</h3>
+
+                                        {!hasMultiple ? (
+                                            <div className="space-y-6 flex-1 flex flex-col">
+                                                <p className="text-slate-500 text-sm italic line-clamp-2 mb-6">{first.address}</p>
+                                                <div className="space-y-3 mt-auto">
+                                                    {first.contacts.map((c: LocationContact, i: number) => {
+                                                        const isWA = c.type === 'whatsapp';
+                                                        const isPhone = c.type === 'phone';
+                                                        const href = isWA ? `https://wa.me/${c.value.replace(/\D/g, '')}` : isPhone ? `tel:${c.value}` : `mailto:${c.value}`;
+                                                        return (
+                                                            <a
+                                                                key={i}
+                                                                href={href}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className={`flex items-center justify-between p-4 rounded-2xl text-xs font-bold transition-all shadow-sm ${isWA ? 'bg-green-500 text-white hover:bg-slate-800 hover:shadow-lg' :
+                                                                    isPhone ? 'bg-blue-600 text-white hover:bg-slate-800 hover:shadow-lg' :
+                                                                        'bg-slate-100 text-slate-600 hover:bg-cafh-indigo hover:text-white'
+                                                                    }`}
+                                                            >
+                                                                <span className="flex items-center gap-2">
+                                                                    {isWA ? <Lucide.PhoneCall size={16} /> : isPhone ? <Lucide.Phone size={16} /> : <Lucide.Mail size={16} />}
+                                                                    {c.label}
+                                                                </span>
+                                                                <Lucide.ChevronRight size={14} className="opacity-50" />
+                                                            </a>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="mt-auto pt-8">
+                                                <button
+                                                    onClick={() => setSelectedCity({ name, locs })}
+                                                    className="w-full py-4 bg-cafh-indigo/5 text-cafh-indigo rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-cafh-indigo hover:text-white transition-all group/btn"
+                                                >
+                                                    Ver todas las sedes
+                                                    <Lucide.ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+
+                        {filtered.length === 0 && (
+                            <div className="col-span-full py-20 text-center space-y-6">
+                                <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-300">
+                                    <Lucide.Search size={40} />
+                                </div>
+                                <div>
+                                    <h3 className="text-2xl font-bold text-slate-800">Sin resultados</h3>
+                                    <p className="text-slate-500 mt-2">No encontramos sedes registradas bajo estos criterios.</p>
+                                </div>
+                                <button
+                                    onClick={() => { setContinent('Todos'); setCountry('Todos'); setCity('Todos'); }}
+                                    className="px-8 py-3 bg-cafh-indigo text-white rounded-full font-bold hover:shadow-xl transition-all"
+                                >
+                                    Reiniciar Búsqueda
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </section>
+
+            <SedeModal
+                isOpen={!!selectedCity}
+                onClose={() => setSelectedCity(null)}
+                city={selectedCity?.name || ''}
+                locations={selectedCity?.locs || []}
+            />
+        </>
+    );
+};
+
+// --- END SECTIONS FOR LOCATIONS ---
+
 // --- END DYNAMIC PREDEFINED BLOCKS ---
 
 // --- SHARED SECTION RENDERER ---
@@ -646,8 +963,23 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
     const navigate = useNavigate();
     const { type, content, settings } = section;
     const bgClass = settings?.backgroundColor || 'bg-white';
-    const paddingClass = settings?.padding === 'small' ? 'py-10' : settings?.padding === 'large' ? 'py-32' : 'py-20';
-    const containerClass = settings?.containerSize === 'narrow' ? 'max-w-3xl' : settings?.containerSize === 'full' ? 'max-w-none px-0' : 'max-w-7xl';
+    const paddingClass = settings?.padding === 'none' ? 'py-0' : settings?.padding === 'small' ? 'py-10' : settings?.padding === 'large' ? 'py-32' : 'py-20';
+    const containerClass = settings?.containerSize === 'narrow' ? 'max-w-3xl' : settings?.containerSize === 'wide' ? 'max-w-screen-2xl' : settings?.containerSize === 'full' ? 'max-w-none px-0' : 'max-w-7xl';
+
+    const customStyles: any = {
+        marginTop: settings?.marginTop ? `${settings.marginTop}px` : undefined,
+        marginBottom: settings?.marginBottom ? `${settings.marginBottom}px` : undefined,
+        paddingTop: settings?.paddingTop ? `${settings.paddingTop}px` : undefined,
+        paddingBottom: settings?.paddingBottom ? `${settings.paddingBottom}px` : undefined,
+    };
+
+    if (settings?.border?.enabled) {
+        customStyles.border = `${settings.border.width || 1}px ${settings.border.style || 'solid'} ${settings.border.color || '#e2e8f0'}`;
+        customStyles.borderRadius = `${settings.border.radius || 0}px`;
+    }
+
+    const visibilityClass = settings?.hideOnMobile ? 'hidden md:block' : '';
+    const sectionClasses = `${bgClass} ${paddingClass} ${visibilityClass} ${settings?.customCss || ''}`;
 
     switch (type) {
         case 'Hero':
@@ -670,7 +1002,7 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
             );
         case 'Text':
             return (
-                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                <section key={section.id} className={sectionClasses} style={customStyles}>
                     <div className={`${containerClass} mx-auto px-6`}>
                         <div
                             className="markdown-body prose prose-slate prose-lg max-w-none"
@@ -681,7 +1013,7 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
             );
         case 'Image':
             return (
-                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                <section key={section.id} className={sectionClasses} style={customStyles}>
                     <div className={`${containerClass} mx-auto px-6`}>
                         <div className="rounded-[2.5rem] overflow-hidden shadow-2xl">
                             <img src={content.imageUrl} alt={content.caption} className="w-full h-auto" referrerPolicy="no-referrer" />
@@ -692,7 +1024,7 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
             );
         case 'ImageText':
             return (
-                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                <section key={section.id} className={sectionClasses} style={customStyles}>
                     <div className={`${containerClass} mx-auto px-6`}>
                         <div className={`flex flex-col md:flex-row items-center gap-12 ${content.imagePosition === 'right' ? 'md:flex-row-reverse' : ''}`}>
                             <div className="flex-1 space-y-6">
@@ -713,7 +1045,7 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
             );
         case 'Stats':
             return (
-                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                <section key={section.id} className={sectionClasses} style={customStyles}>
                     <div className={`${containerClass} mx-auto px-6`}>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                             {content.items.map((item: any, i: number) => {
@@ -734,7 +1066,7 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
             );
         case 'Cards':
             return (
-                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                <section key={section.id} className={sectionClasses} style={customStyles}>
                     <div className={`${containerClass} mx-auto px-6`}>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {content.items.map((item: any, i: number) => {
@@ -758,27 +1090,35 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
             );
         case 'CTA':
             return (
-                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                <section key={section.id} className={sectionClasses} style={customStyles}>
                     <div className={`${containerClass} mx-auto px-6`}>
                         <div className="bg-cafh-indigo rounded-[3rem] p-12 md:p-20 text-center relative overflow-hidden">
                             <div className="absolute top-0 right-0 w-64 h-64 bg-cafh-cyan/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
                             <div className="relative z-10 space-y-8">
                                 <h3 className="text-4xl md:text-6xl font-display font-bold text-white max-w-4xl mx-auto leading-tight">{content.title}</h3>
                                 {content.text && <p className="text-xl text-blue-100/80 max-w-2xl mx-auto leading-relaxed">{content.text}</p>}
-                                <button
-                                    onClick={() => navigate(content.link)}
-                                    className="inline-flex items-center gap-2 px-10 py-5 bg-cafh-cyan text-cafh-indigo rounded-2xl font-bold hover:bg-white hover:scale-105 transition-all shadow-[0_20px_40px_rgba(111,207,235,0.3)]"
-                                >
-                                    {content.buttonText || 'Saber Más'}
-                                </button>
+                                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                                    {content.ctaText && (
+                                        <button onClick={() => navigate(content.ctaLink || '#')} className="px-10 py-5 bg-cafh-cyan text-cafh-indigo rounded-2xl font-bold hover:bg-white hover:scale-105 active:scale-95 transition-all shadow-xl shadow-black/20">
+                                            {content.ctaText}
+                                        </button>
+                                    )}
+                                    {content.secondaryCtaText && (
+                                        <button onClick={() => navigate(content.secondaryCtaLink || '#')} className="px-10 py-5 bg-white/10 text-white rounded-2xl font-bold border border-white/20 hover:bg-white/20 transition-all">
+                                            {content.secondaryCtaText}
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </section>
             );
+        case 'Locations':
+            return <DynamicLocationsBlock section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
         case 'IconGrid':
             return (
-                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                <section key={section.id} className={sectionClasses} style={customStyles}>
                     <div className={`${containerClass} mx-auto px-6`}>
                         <div className="text-center mb-16">
                             {content.subtitle && <span className="text-xs font-bold text-cafh-indigo uppercase tracking-widest bg-cafh-indigo/5 px-4 py-2 rounded-full">{content.subtitle}</span>}
@@ -803,7 +1143,7 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
             );
         case 'Gallery':
             return (
-                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                <section key={section.id} className={sectionClasses} style={customStyles}>
                     <div className={`${containerClass} mx-auto px-6`}>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             {content.images.map((img: string, i: number) => (
@@ -817,7 +1157,7 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
             );
         case 'Video':
             return (
-                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                <section key={section.id} className={sectionClasses} style={customStyles}>
                     <div className={`${containerClass} mx-auto px-6`}>
                         {content.title && <h3 className="text-2xl font-bold text-slate-800 mb-8 text-center">{content.title}</h3>}
                         <div className="aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl bg-slate-900">
@@ -833,9 +1173,17 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
                     </div>
                 </section>
             );
+        case 'HTML':
+            return (
+                <section key={section.id} className={sectionClasses} style={customStyles}>
+                    <div className={`${containerClass} mx-auto px-6`}>
+                        <div dangerouslySetInnerHTML={{ __html: content.code || '' }} />
+                    </div>
+                </section>
+            );
         case 'Accordion':
             return (
-                <section key={section.id} className={`${bgClass} ${paddingClass}`}>
+                <section key={section.id} className={sectionClasses} style={customStyles}>
                     <div className={`${containerClass} mx-auto px-6`}>
                         <div className="max-w-4xl mx-auto">
                             <h2 className="text-4xl font-display font-bold text-slate-800 text-center mb-12">{content.title}</h2>
@@ -858,13 +1206,14 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
                     </div>
                 </section>
             );
-        case 'Table': return <TableSection section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
+        case 'Table': return <TableSection section={section} containerClass={containerClass} sectionClasses={sectionClasses} customStyles={customStyles} />;
         case 'VideoGrid': return <VideoGridSection section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
         case 'Tabs': return <TabsSection section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
         // Specialized Blocks
-        case 'ResourcesGrid': return <DynamicResourcesGrid bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
-        case 'Timeline': return <DynamicTimeline bgClass="bg-slate-900" paddingClass={paddingClass} containerClass={containerClass} />;
-        case 'MethodPillars': return <DynamicMethodPillars bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
+        case 'ResourcesGrid': return <DynamicResourcesGrid section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
+        case 'EventsCalendar': return <DynamicEventsCalendar section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
+        case 'Timeline': return <DynamicTimeline section={section} bgClass="bg-slate-900" paddingClass={paddingClass} containerClass={containerClass} />;
+        case 'MethodPillars': return <DynamicMethodPillars section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
         default: return null;
     }
 };
@@ -1819,6 +2168,7 @@ export const HomeView: React.FC = () => {
     // Manageable States
     const [homeConfig, setHomeConfig] = useState<HomeConfig | null>(null);
     const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+    const [homeActivities, setHomeActivities] = useState<any[]>([]);
 
     // Internal UI States
     const [currentBgIndex, setCurrentBgIndex] = useState(0);
@@ -1842,12 +2192,37 @@ export const HomeView: React.FC = () => {
             }
         }
 
+        // Fetch Blog Posts
         let posts = db.blog.getAll();
         if (posts.length === 0) {
             db.init();
             posts = db.blog.getAll();
         }
         setBlogPosts(posts);
+
+        // Fetch and format Activities correctly
+        const featuredActs = db.activities.getFeatured();
+        const legacyEvents = db.events.getAll();
+
+        const mappedActs = featuredActs.map(a => {
+            const d = new Date(a.startDate + 'T12:00:00');
+            return {
+                id: a.id,
+                title: a.title,
+                type: a.modality as any,
+                date: a.startDate,
+                day: d.getDate().toString(),
+                month: d.toLocaleDateString('es-CL', { month: 'short' }).toUpperCase(),
+                time: `${a.startTime} – ${a.endTime}`,
+                location: a.modality === 'Virtual' ? 'Online' : 'Centro Cafh',
+                color: a.modality === 'Virtual' ? 'bg-cafh-indigo' : 'bg-cafh-clay'
+            };
+        });
+
+        const combined = [...mappedActs, ...legacyEvents]
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+        setHomeActivities(combined);
     }, []);
 
     // 2. Hero Slideshow Logic
@@ -1901,12 +2276,36 @@ export const HomeView: React.FC = () => {
 
     const visiblePosts = getVisibleBlogPosts();
 
+    // Helper to get section styles
+    const getSectionStyle = (settings: any) => {
+        const customStyles: any = {
+            marginTop: settings?.marginTop ? `${settings.marginTop}px` : undefined,
+            marginBottom: settings?.marginBottom ? `${settings.marginBottom}px` : undefined,
+            paddingTop: settings?.paddingTop ? `${settings.paddingTop}px` : undefined,
+            paddingBottom: settings?.paddingBottom ? `${settings.paddingBottom}px` : undefined,
+        };
+
+        if (settings?.border?.enabled) {
+            customStyles.border = `${settings.border.width || 1}px ${settings.border.style || 'solid'} ${settings.border.color || '#e2e8f0'}`;
+            customStyles.borderRadius = `${settings.border.radius || 0}px`;
+        }
+        return customStyles;
+    };
+
+    const getSectionClasses = (settings: any, defaultPadding = 'py-20', defaultBg = 'bg-white') => {
+        const bgClass = settings?.backgroundColor || defaultBg;
+        const paddingClass = settings?.padding === 'none' ? 'py-0' : settings?.padding === 'small' ? 'py-10' : settings?.padding === 'large' ? 'py-32' : (settings?.padding ? `py-${settings.padding === 'medium' ? '20' : '20'}` : defaultPadding);
+        const visibilityClass = settings?.hideOnMobile ? 'hidden md:block' : '';
+        return `${bgClass} ${paddingClass} ${visibilityClass} ${settings?.customCss || ''}`;
+    };
+
     // Render Components based on Section Order
     const renderSection = (sectionId: string) => {
         switch (sectionId) {
             case 'hero':
+                const heroSettings = homeConfig.hero.settings;
                 return (
-                    <section key="hero" className="relative min-h-[90vh] md:min-h-screen w-full flex items-center justify-center overflow-hidden pt-24 md:pt-20">
+                    <section key="hero" className={`relative min-h-[90vh] md:min-h-screen w-full flex items-center justify-center overflow-hidden pt-24 md:pt-20 ${heroSettings?.hideOnMobile ? 'hidden md:flex' : ''} ${heroSettings?.customCss || ''}`} style={getSectionStyle(heroSettings)}>
                         <div className="absolute top-0 inset-x-0 h-[80vh] md:h-[90vh] bg-cafh-indigo rounded-b-[3rem] md:rounded-b-[5rem] overflow-hidden z-0 shadow-2xl">
                             {homeConfig.hero.backgrounds.map((media, index) => (
                                 <div
@@ -2001,8 +2400,9 @@ export const HomeView: React.FC = () => {
                     </section>
                 );
             case 'search':
+                const sSettings = (homeConfig as any).searchSettings;
                 return (
-                    <section key="search" className="py-20 md:py-32 -mt-20 md:-mt-24 relative z-40 px-4 md:px-6">
+                    <section key="search" className={`py-20 md:py-32 -mt-20 md:-mt-24 relative z-40 px-4 md:px-6 ${sSettings?.hideOnMobile ? 'hidden md:block' : ''} ${sSettings?.customCss || ''}`} style={getSectionStyle(sSettings)}>
                         <div className="max-w-7xl mx-auto">
                             <div className="text-center mb-12">
                                 <p className="text-cafh-indigo/60 font-bold uppercase tracking-widest text-sm mb-2">{homeConfig.searchSubtitle}</p>
@@ -2028,8 +2428,9 @@ export const HomeView: React.FC = () => {
                     </section>
                 );
             case 'threeColumns':
+                const cSettings = (homeConfig as any).columnsSettings;
                 return (
-                    <section key="threeColumns" className="py-20 bg-white">
+                    <section key="threeColumns" className={getSectionClasses(cSettings, 'py-20', 'bg-white')} style={getSectionStyle(cSettings)}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                                 {homeConfig.threeColumns.sort((a, b) => a.order - b.order).map((col, idx) => {
@@ -2063,10 +2464,12 @@ export const HomeView: React.FC = () => {
                     </section>
                 );
             case 'blog':
+                const bSettings = homeConfig.blogSection.settings;
                 return (
                     <section
                         key="blog"
-                        className="py-20 bg-slate-50 relative overflow-hidden"
+                        className={`${getSectionClasses(bSettings, 'py-20', 'bg-slate-50')} relative overflow-hidden`}
+                        style={getSectionStyle(bSettings)}
                         onMouseEnter={() => setIsBlogPaused(true)}
                         onMouseLeave={() => setIsBlogPaused(false)}
                     >
@@ -2088,7 +2491,11 @@ export const HomeView: React.FC = () => {
                             <div className="overflow-hidden">
                                 <div className={`grid gap-6 ${visibleCount === 1 ? 'grid-cols-1' : visibleCount === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                                     {visiblePosts.map((post) => (
-                                        <div key={post.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer border border-slate-100 flex flex-col h-full mx-auto w-full max-w-sm md:max-w-none">
+                                        <div
+                                            key={post.id}
+                                            onClick={() => navigate(`/blog/${post.id}`)}
+                                            className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer border border-slate-100 flex flex-col h-full mx-auto w-full max-w-sm md:max-w-none"
+                                        >
                                             <div className="h-48 overflow-hidden relative shrink-0">
                                                 <img src={post.imageUrl} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" referrerPolicy="no-referrer" />
                                                 <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-cafh-indigo uppercase tracking-wide">
@@ -2111,8 +2518,10 @@ export const HomeView: React.FC = () => {
                     </section>
                 );
             case 'activities':
+                const aSettings = homeConfig.activitiesSection.settings;
+                const sortedActivities = homeActivities.slice(0, homeConfig.activitiesSection.maxEvents);
                 return (
-                    <section key="activities" className="py-20 bg-white">
+                    <section key="activities" className={getSectionClasses(aSettings, 'py-20', 'bg-white')} style={getSectionStyle(aSettings)}>
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-4">
                                 <div className="max-w-2xl">
@@ -2128,8 +2537,12 @@ export const HomeView: React.FC = () => {
                                 </button>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                {MOCK_EVENTS.slice(0, homeConfig.activitiesSection.maxEvents).map((event) => (
-                                    <div key={event.id} className="bg-slate-50 rounded-[2rem] p-6 hover:bg-white hover:shadow-xl transition-all duration-300 border border-slate-100 group cursor-pointer">
+                                {sortedActivities.map((event) => (
+                                    <div
+                                        key={event.id}
+                                        onClick={() => navigate('/activities')}
+                                        className="bg-slate-50 rounded-[2rem] p-6 hover:bg-white hover:shadow-xl transition-all duration-300 border border-slate-100 group cursor-pointer"
+                                    >
                                         <div className="flex justify-between items-start mb-6">
                                             <div className={`p-4 rounded-2xl ${event.color} text-white text-center min-w-[70px]`}>
                                                 <span className="block text-2xl font-bold">{event.day}</span>

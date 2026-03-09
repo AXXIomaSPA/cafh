@@ -407,13 +407,32 @@ export const MemberDashboard: React.FC = () => {
         const combinedNews = [...activityNews, ...allBlogPosts, ...upcomingPresencial].slice(0, 3);
         setRecentBlogPosts(combinedNews as any);
 
-        // 6. Find the next online or hybrid event that has a meeting URL
+        // 6. Find the next online or hybrid event that has a meeting URL (merging legacy and new activities)
         const now = new Date();
         now.setHours(0, 0, 0, 0);
 
-        const upcomingEvent = allEvents
+        const newActs = db.activities.getAll().filter(a => a.status === 'Publicado' && (a.modality === 'Virtual' || a.modality === 'Híbrida') && a.zoomUrl);
+        const mappedNewActs = newActs.map(a => {
+            const d = new Date(a.startDate + 'T12:00:00');
+            return {
+                id: a.id,
+                title: a.title,
+                date: a.startDate,
+                day: d.getDate().toString(),
+                month: d.toLocaleDateString('es-CL', { month: 'short' }).toUpperCase(),
+                time: `${a.startTime} – ${a.endTime}`,
+                type: a.modality as any,
+                meetingUrl: a.zoomUrl,
+                location: 'Zoom / Online',
+                color: 'bg-blue-600'
+            };
+        });
+
+        const combinedEvents = [...mappedNewActs, ...allEvents];
+
+        const upcomingEvent = combinedEvents
             .filter(e => {
-                if ((e.type !== 'Online' && e.type !== 'Híbrido') || !e.meetingUrl) return false;
+                if ((e.type !== 'Online' && e.type !== 'Híbrido' && e.type !== 'Virtual' && e.type !== 'Híbrida') || !e.meetingUrl) return false;
                 const eventDate = new Date(`${e.date}T00:00:00`);
                 return isNaN(eventDate.getTime()) || eventDate >= now;
             })

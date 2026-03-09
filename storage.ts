@@ -1,5 +1,5 @@
 import { MOCK_BLOG_POSTS, MOCK_EVENTS, MOCK_CONTENT, MOCK_CONTACTS, MOCK_USER_HISTORY, HERO_CONFIG, BLOG_CONFIG_DEFAULT, MOCK_MEDIA, MOCK_EMAIL_LOGS, MOCK_EMAIL_METRICS, DEFAULT_HOME_CONFIG, PUBLIC_NAV_STRUCTURE } from './constants';
-import { BlogPost, CalendarEvent, ContentItem, Contact, ContactList, UserActivity, ContentInteraction, HeroConfig, BlogConfig, User, UserRole, MediaAsset, EmailLog, EmailMetrics, ChangeLog, HomeConfig, CustomPage, MegaMenuItem, FooterConfig, SMTPConfig, Campaign, AutomationRule, AutomationExecution, AutomationNode, SendEmailNode, WaitNode, ConditionNode, UpdateTagNode, MoveToListNode, MeetingAgendaItem, MeetingMediaRef, ZoomWidgetConfig, FeedbackQuestion, FeedbackResponse, MemberBadge, BadgeType, ParticipationRecord, ActivityEvent, ActivityCategory, ChatMessage, ChatThread, UserWizardProfile } from './types';
+import { BlogPost, CalendarEvent, ContentItem, Contact, ContactList, UserActivity, ContentInteraction, HeroConfig, BlogConfig, User, UserRole, MediaAsset, EmailLog, EmailMetrics, ChangeLog, HomeConfig, CustomPage, MegaMenuItem, FooterConfig, SMTPConfig, Campaign, AutomationRule, AutomationExecution, AutomationNode, SendEmailNode, WaitNode, ConditionNode, UpdateTagNode, MoveToListNode, MeetingAgendaItem, MeetingMediaRef, ZoomWidgetConfig, FeedbackQuestion, FeedbackResponse, MemberBadge, BadgeType, ParticipationRecord, ActivityEvent, ActivityCategory, ChatMessage, ChatThread, UserWizardProfile, GlobalLocation, LocationContact } from './types';
 
 // STORAGE KEYS
 export const KEYS = {
@@ -44,7 +44,8 @@ export const KEYS = {
     WIZARD_CONFIG: 'cafh_wizard_config_v1',
     SEED_VERSION: 'cafh_seed_version',
     REMOTE_SYNC_URL: 'cafh_remote_url', // URL for external JSON
-    LAST_SYNC: 'cafh_last_sync'
+    LAST_SYNC: 'cafh_last_sync',
+    LOCATIONS: 'cafh_locations_v1'
 };
 
 // MOCK USERS FOR AUTHENTICATION
@@ -78,7 +79,8 @@ export const safeSetItem = (key: string, value: any): boolean => {
         KEYS.HERO, KEYS.MEDIA, KEYS.HOME_CONFIG, KEYS.CUSTOM_PAGES, KEYS.MEGA_MENU,
         KEYS.ACTIVITY_EVENTS, KEYS.ACTIVITY_CATS, KEYS.USERS, KEYS.CRM_LISTS,
         KEYS.CAMPAIGNS, KEYS.AUTOMATIONS, KEYS.CHAT_THREADS, KEYS.CHAT_MESSAGES,
-        KEYS.WIZARD_PROFILES, KEYS.JOURNEY_QUESTIONS, KEYS.JOURNEY_PROFILES, KEYS.WIZARD_CONFIG
+        KEYS.WIZARD_PROFILES, KEYS.JOURNEY_QUESTIONS, KEYS.JOURNEY_PROFILES, KEYS.WIZARD_CONFIG,
+        KEYS.LOCATIONS
     ];
 
     const purgeableKeys = [
@@ -162,6 +164,43 @@ const defaultActivityCategories: ActivityCategory[] = [
     { id: 'cat_3', name: 'Retiro', color: '#059669', icon: 'Map' },
     { id: 'cat_4', name: 'Charla', color: '#d97706', icon: 'Mic' },
     { id: 'cat_5', name: 'Comunidad', color: '#db2777', icon: 'Users' },
+];
+
+const MOCK_LOCATIONS: GlobalLocation[] = [
+    {
+        id: 'loc_santiago_01',
+        name: 'Centro Cafh Santiago',
+        address: 'Av. Providencia 1234',
+        continent: 'América',
+        country: 'Chile',
+        region: 'Metropolitana',
+        city: 'Santiago',
+        mapX: 25,
+        mapY: 75,
+        contacts: [
+            { type: 'whatsapp', value: '56912345678', label: 'Secretaría' },
+            { type: 'email', value: 'santiago@cafh.cl', label: 'Consultas' }
+        ],
+        tenantId: 't_santiago_01',
+        status: 'Active'
+    },
+    {
+        id: 'loc_madrid_01',
+        name: 'Sede Madrid Centro',
+        address: 'Calle Mayor 10, Metro Sol',
+        continent: 'Europa',
+        country: 'España',
+        region: 'Madrid',
+        city: 'Madrid',
+        mapX: 48,
+        mapY: 42,
+        contacts: [
+            { type: 'phone', value: '34912345678', label: 'Teléfono Sede' },
+            { type: 'email', value: 'madrid@cafh.es', label: 'Información' }
+        ],
+        tenantId: 't_madrid_01',
+        status: 'Active'
+    }
 ];
 
 // SEED VERSION CONTROL
@@ -411,6 +450,7 @@ export const db = {
         initStorage(KEYS.WIZARD_PROFILES, []);
         initStorage(KEYS.JOURNEY_QUESTIONS, []);
         initStorage(KEYS.JOURNEY_PROFILES, []);
+        initStorage(KEYS.LOCATIONS, MOCK_LOCATIONS);
 
         // Intento de Sincronización Remota (Opcional si hay URL configurada)
         db.system.syncRemote();
@@ -557,6 +597,10 @@ export const db = {
     // Generic Getters
     blog: {
         getAll: (): BlogPost[] => JSON.parse(localStorage.getItem(KEYS.BLOG) || '[]'),
+        getById: (id: string): BlogPost | undefined => {
+            const all = db.blog.getAll();
+            return all.find(p => p.id === id);
+        },
         getConfig: (): BlogConfig => {
             const stored = localStorage.getItem(KEYS.BLOG_CONFIG);
             return stored ? JSON.parse(stored) : BLOG_CONFIG_DEFAULT;
@@ -569,6 +613,24 @@ export const db = {
             const current = db.blog.getAll();
             const updated = [post, ...current];
             safeSetItem(KEYS.BLOG, updated);
+            db.cms.logChange('Articles', 'Create', `Nuevo artículo: ${post.title}`);
+            return updated;
+        },
+        update: (id: string, updates: Partial<BlogPost>) => {
+            const current = db.blog.getAll();
+            const idx = current.findIndex(p => p.id === id);
+            if (idx !== -1) {
+                current[idx] = { ...current[idx], ...updates };
+                safeSetItem(KEYS.BLOG, current);
+                db.cms.logChange('Articles', 'Update', `Actualización artículo: ${current[idx].title}`);
+            }
+            return current;
+        },
+        delete: (id: string) => {
+            const current = db.blog.getAll();
+            const updated = current.filter(p => p.id !== id);
+            safeSetItem(KEYS.BLOG, updated);
+            db.cms.logChange('Articles', 'Delete', `Eliminación de artículo ID: ${id}`);
             return updated;
         }
     },
@@ -578,6 +640,39 @@ export const db = {
             const current = db.events.getAll();
             const updated = [...current, event];
             safeSetItem(KEYS.EVENTS, updated);
+            return updated;
+        }
+    },
+    locations: {
+        getAll: (): GlobalLocation[] => {
+            try {
+                const stored = localStorage.getItem(KEYS.LOCATIONS);
+                return stored ? JSON.parse(stored) : [];
+            } catch { return []; }
+        },
+        getById: (id: string): GlobalLocation | undefined => db.locations.getAll().find(l => l.id === id),
+        add: (loc: GlobalLocation) => {
+            const current = db.locations.getAll();
+            const updated = [...current, loc];
+            safeSetItem(KEYS.LOCATIONS, updated);
+            db.cms.logChange('Sedes', 'Create', `Nueva sede: ${loc.name}`);
+            return updated;
+        },
+        update: (id: string, updates: Partial<GlobalLocation>) => {
+            const current = db.locations.getAll();
+            const idx = current.findIndex(l => l.id === id);
+            if (idx !== -1) {
+                current[idx] = { ...current[idx], ...updates };
+                safeSetItem(KEYS.LOCATIONS, current);
+                db.cms.logChange('Sedes', 'Update', `Actualización sede: ${current[idx].name}`);
+            }
+            return current;
+        },
+        delete: (id: string) => {
+            const current = db.locations.getAll();
+            const updated = current.filter(l => l.id !== id);
+            safeSetItem(KEYS.LOCATIONS, updated);
+            db.cms.logChange('Sedes', 'Delete', `Sede eliminada ID: ${id}`);
             return updated;
         }
     },

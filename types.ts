@@ -155,6 +155,15 @@ export interface BlogConfig {
   autoPlay: boolean;
   autoPlaySpeed: number;
   cardStyle: 'Standard' | 'Compact' | 'Minimal';
+  settings?: {
+    marginTop?: number;
+    marginBottom?: number;
+    paddingTop?: number;
+    paddingBottom?: number;
+    backgroundColor?: string;
+    customCss?: string;
+    hideOnMobile?: boolean;
+  };
 }
 
 // HOME & FOOTER CONFIGURATION
@@ -192,6 +201,22 @@ export interface HeroConfig {
   sliderSpeed: number;
   showControls: boolean;
   textAlignment: 'left' | 'center' | 'right';
+  settings?: {
+    marginTop?: number;
+    marginBottom?: number;
+    paddingTop?: number;
+    paddingBottom?: number;
+    backgroundColor?: string;
+    customCss?: string;
+    hideOnMobile?: boolean;
+    border?: {
+      enabled?: boolean;
+      width?: number;
+      color?: string;
+      radius?: number;
+      style?: 'solid' | 'dashed' | 'dotted';
+    };
+  };
 }
 
 export interface SearchItem {
@@ -204,13 +229,24 @@ export interface HomeConfig {
   hero: HeroConfig;
   searchSubtitle: string;
   searchItems: SearchItem[];
+  searchSettings?: any;
   threeColumns: HomeThreeColumn[];
+  columnsSettings?: any;
   blogSection: BlogConfig;
   activitiesSection: {
     title: string;
     subtitle: string;
     maxEvents: number;
     order: number;
+    settings?: {
+      marginTop?: number;
+      marginBottom?: number;
+      paddingTop?: number;
+      paddingBottom?: number;
+      backgroundColor?: string;
+      customCss?: string;
+      hideOnMobile?: boolean;
+    };
   };
   sectionOrder: string[]; // ['hero', 'search', 'threeColumns', 'blog', 'activities']
   dynamicSections?: PageSection[];
@@ -221,13 +257,30 @@ export interface HomeConfig {
 // DYNAMIC PAGES (WYSIWYG)
 export interface PageSection {
   id: string;
-  type: 'Text' | 'Image' | 'Gallery' | 'Stats' | 'Cards' | 'IconGrid' | 'Hero' | 'Video' | 'CTA' | 'Accordion' | 'ResourcesGrid' | 'EventsCalendar' | 'Timeline' | 'MethodPillars' | 'ImageText' | 'Table' | 'Tabs' | 'VideoGrid';
+  type: 'Text' | 'Image' | 'Gallery' | 'Stats' | 'Cards' | 'IconGrid' | 'Hero' | 'Video' | 'CTA' | 'Accordion' | 'ResourcesGrid' | 'EventsCalendar' | 'Timeline' | 'MethodPillars' | 'ImageText' | 'Table' | 'Tabs' | 'VideoGrid' | 'HTML' | 'Locations';
   content: any; // Flexible content based on type
   order: number;
   settings?: {
     backgroundColor?: string;
-    padding?: 'small' | 'medium' | 'large';
-    containerSize?: 'narrow' | 'standard' | 'full';
+    padding?: 'none' | 'small' | 'medium' | 'large';
+    containerSize?: 'narrow' | 'standard' | 'full' | 'wide';
+
+    // Advanced Controls
+    marginTop?: number;
+    marginBottom?: number;
+    paddingTop?: number;
+    paddingBottom?: number;
+
+    border?: {
+      enabled?: boolean;
+      width?: number;
+      color?: string;
+      radius?: number;
+      style?: 'solid' | 'dashed' | 'dotted';
+    };
+
+    customCss?: string;
+    hideOnMobile?: boolean;
   };
 }
 
@@ -775,6 +828,7 @@ export interface ActivityEvent {
   startTime: string;         // HH:MM
   endTime: string;
   modality: 'Virtual' | 'Presencial' | 'Híbrida';
+  locationId?: string;       // ID de GlobalLocation vinculada
   organizerContactId?: string;
   status: 'Borrador' | 'Publicado' | 'Archivado';
   imageUrl?: string;
@@ -792,4 +846,30 @@ export interface ActivityEvent {
   };
   createdAt: string;
   updatedAt: string;
+}
+
+/** Contacto estructurado para botones de acción rápida */
+export interface LocationContact {
+  type: 'whatsapp' | 'phone' | 'email';
+  value: string;
+  label: string;
+}
+
+/** Sede Global de Cafh */
+export interface GlobalLocation {
+  id: string;
+  name: string;
+  address: string;
+  continent: string;
+  country: string;
+  region?: string;
+  city: string;
+  comuna?: string;
+  imageUrl?: string;
+  // Coordenadas en % (0-100) para el pin sobre el mapa mundi
+  mapX: number;
+  mapY: number;
+  contacts: LocationContact[];
+  tenantId: string;
+  status: 'Active' | 'Inactive';
 }

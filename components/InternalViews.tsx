@@ -4,6 +4,7 @@ import {
     Feather, MessageCircle, Calendar, Sun, Coffee, Search, Filter, ArrowRight,
     Play, Download, MapPin, Clock, ChevronRight, X
 } from 'lucide-react';
+import Markdown from 'react-markdown';
 import { db } from '../storage';
 import { ContentItem, CalendarEvent } from '../types';
 
@@ -200,23 +201,20 @@ export const ResourcesView: React.FC = () => {
     const [selectedResource, setSelectedResource] = useState<any | null>(null);
 
     useEffect(() => {
-        const contents = db.content.getAll().map(c => ({
-            id: `c_${c.id}`, originalId: c.id, title: c.title, type: c.type, tags: c.tags, date: c.publishDate, url: c.imageUrl, source: 'content'
-        }));
         const medias = db.media.getAll()
             .filter(m => ['document', 'video', 'audio'].includes(m.type))
             .map((m: any) => ({
                 id: `m_${m.id}`, originalId: m.id, title: m.name, type: m.type, tags: m.tags || [], date: m.uploadedAt, url: m.url, source: 'media'
             }));
-        setResourcesContent([...contents, ...medias].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+        // We no longer mix legacy articles here as we have a dedicated Blog section
+        setResourcesContent([...medias].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     }, []);
 
     const filteredContent = filter === 'Todos'
         ? resourcesContent
         : resourcesContent.filter(c => {
-            if (filter === 'Article') return c.type === 'Article';
             if (filter === 'Resource') return c.type === 'document' || c.type === 'Resource';
-            if (filter === 'Video') return c.type === 'video' || c.type === 'Event'; // Mapped loosely
+            if (filter === 'Video') return c.type === 'video' || c.type === 'Event';
             if (filter === 'Audio') return c.type === 'audio';
             return true;
         });
@@ -282,16 +280,16 @@ export const ResourcesView: React.FC = () => {
                 {/* Filters */}
                 <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
                     <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
-                        {['Todos', 'Article', 'Resource', 'Video', 'Audio'].map(type => (
+                        {['Todos', 'Resource', 'Video', 'Audio'].map(type => (
                             <button
                                 key={type}
                                 onClick={() => setFilter(type)}
                                 className={`px-6 py-2 rounded-full font-bold text-sm whitespace-nowrap transition-all ${filter === type
-                                        ? 'bg-cafh-indigo text-white shadow-md'
-                                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                                    ? 'bg-cafh-indigo text-white shadow-md'
+                                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                                     }`}
                             >
-                                {type === 'Todos' ? 'Todos' : type === 'Article' ? 'Artículos' : type === 'Resource' ? 'Descargas/PDF' : type === 'Video' ? 'Videos' : 'Audios'}
+                                {type === 'Todos' ? 'Todos' : type === 'Resource' ? 'Descargas/PDF' : type === 'Video' ? 'Videos' : 'Audios'}
                             </button>
                         ))}
                     </div>
@@ -312,9 +310,9 @@ export const ResourcesView: React.FC = () => {
                         <div key={item.id} onClick={() => handleResourceClick(item)} className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer flex flex-col h-full">
                             <div className="flex justify-between items-start mb-4">
                                 <div className={`p-3 rounded-2xl ${item.type === 'Article' ? 'bg-blue-50 text-blue-600' :
-                                        (item.type === 'Resource' || item.type === 'document') ? 'bg-green-50 text-green-600' :
-                                            item.type === 'audio' ? 'bg-purple-50 text-purple-600' :
-                                                'bg-red-50 text-red-600'
+                                    (item.type === 'Resource' || item.type === 'document') ? 'bg-green-50 text-green-600' :
+                                        item.type === 'audio' ? 'bg-purple-50 text-purple-600' :
+                                            'bg-red-50 text-red-600'
                                     }`}>
                                     {item.type === 'Article' ? <Feather size={24} /> : (item.type === 'Resource' || item.type === 'document') ? <Download size={24} /> : item.type === 'audio' ? <Play size={24} /> : <Video size={24} />}
                                 </div>
@@ -343,16 +341,119 @@ export const ResourcesView: React.FC = () => {
     );
 };
 
+
+// --- ACTIVITY DETAIL MODAL ---
+const ActivityDetailModal: React.FC<{ isOpen: boolean; onClose: () => void; activity: any }> = ({ isOpen, onClose, activity }) => {
+    if (!isOpen || !activity) return null;
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+            <div className="relative w-full max-w-4xl bg-white rounded-[3rem] overflow-hidden shadow-2xl animate-scale-in" onClick={e => e.stopPropagation()}>
+                <button
+                    onClick={onClose}
+                    className="absolute top-6 right-6 z-20 p-2 bg-white/20 hover:bg-white/40 text-white rounded-full backdrop-blur-md transition-all border border-white/20"
+                >
+                    <X size={24} />
+                </button>
+
+                <div className="grid grid-cols-1 md:grid-cols-5 h-full">
+                    <div className="md:col-span-2 relative min-h-[300px] md:min-h-full">
+                        <img
+                            src={activity.imageUrl || 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800&auto=format&fit=crop'}
+                            alt={activity.title}
+                            className="absolute inset-0 w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-cafh-indigo/90 via-cafh-indigo/40 to-transparent"></div>
+                        <div className="absolute bottom-8 left-8 right-8 text-white">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${activity.color?.includes('blue') ? 'bg-blue-500' : 'bg-emerald-500'}`}>
+                                    {activity.type}
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4 mb-2">
+                                <div className="text-center bg-white text-cafh-indigo rounded-2xl p-3 min-w-[70px]">
+                                    <span className="block text-2xl font-black leading-none text-cafh-indigo">{activity.day}</span>
+                                    <span className="block text-[10px] font-bold uppercase tracking-widest opacity-70 text-slate-500">{activity.month}</span>
+                                </div>
+                                <div>
+                                    <div className="flex items-center gap-2 text-sm font-bold opacity-90"><Clock size={14} /> {activity.time}</div>
+                                    <div className="flex items-center gap-2 text-sm font-bold opacity-90"><MapPin size={14} /> {activity.location}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="md:col-span-3 p-8 md:p-12 overflow-y-auto max-h-[70vh] md:max-h-[85vh]">
+                        <h2 className="text-3xl font-display font-bold text-slate-800 mb-6 leading-tight">{activity.title}</h2>
+                        <div className="prose prose-slate prose-lg max-w-none text-slate-600 leading-relaxed space-y-6">
+                            {activity.description ? (
+                                <Markdown>{activity.description}</Markdown>
+                            ) : (
+                                <p>Únete a nosotros en esta actividad dedicada al equilibrio y el crecimiento interior. No se requiere experiencia previa.</p>
+                            )}
+                        </div>
+
+                        <div className="mt-12 flex flex-col sm:flex-row gap-4">
+                            {activity.meetingUrl ? (
+                                <a
+                                    href={activity.meetingUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-8 py-4 bg-green-500 text-white rounded-full font-bold hover:bg-green-600 transition-all shadow-lg shadow-green-500/20 flex items-center justify-center gap-2"
+                                >
+                                    <Video size={20} /> Unirse ahora
+                                </a>
+                            ) : (
+                                <button className="px-8 py-4 bg-cafh-indigo text-white rounded-full font-bold hover:bg-slate-800 transition-all shadow-lg shadow-cafh-indigo/20">
+                                    Me interesa participar
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // --- ACTIVITIES VIEW ---
 export const ActivitiesView: React.FC = () => {
-    const [events, setEvents] = useState<CalendarEvent[]>([]);
+    const [events, setEvents] = useState<any[]>([]);
+    const [selectedActivity, setSelectedActivity] = useState<any | null>(null);
 
     useEffect(() => {
-        setEvents(db.events.getAll());
+        const legacy = db.events.getAll();
+        const acts = db.activities.getAll().filter(a => a.status === 'Publicado');
+
+        const mappedActs = acts.map(a => {
+            const d = new Date(a.startDate + 'T12:00:00');
+            return {
+                ...a,
+                id: a.id,
+                title: a.title,
+                type: a.modality,
+                day: d.getDate().toString(),
+                month: d.toLocaleDateString('es-CL', { month: 'short' }).toUpperCase(),
+                date: a.startDate,
+                time: `${a.startTime} – ${a.endTime}`,
+                location: a.modality === 'Virtual' ? 'Online' : 'Centro Cafh',
+                color: a.modality === 'Virtual' ? 'bg-blue-600' : 'bg-emerald-600',
+                meetingUrl: a.zoomUrl
+            };
+        });
+
+        const merged = [...mappedActs, ...legacy].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        setEvents(merged);
     }, []);
 
     return (
         <div className="min-h-screen bg-slate-50">
+            <ActivityDetailModal
+                isOpen={!!selectedActivity}
+                onClose={() => setSelectedActivity(null)}
+                activity={selectedActivity}
+            />
+
             <InternalHeader
                 title="Actividades y Retiros"
                 subtitle="Participa de nuestros encuentros. Espacios diseñados para el aprendizaje y la vivencia espiritual."
@@ -361,99 +462,88 @@ export const ActivitiesView: React.FC = () => {
             />
 
             <div className="max-w-7xl mx-auto px-6 py-16">
-
-                {/* Upcoming Highlights */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
                     <div className="lg:col-span-1 bg-cafh-indigo text-white rounded-[2.5rem] p-10 relative overflow-hidden flex flex-col justify-center">
                         <div className="absolute top-0 right-0 w-48 h-48 bg-cafh-cyan rounded-full blur-[80px] opacity-20"></div>
-                        <h3 className="text-2xl font-bold mb-4 relative z-10">¿Buscas un retiro?</h3>
-                        <p className="text-blue-200 mb-8 relative z-10">Desconecta del ruido y reconecta contigo mismo en nuestros centros de retiro en la naturaleza.</p>
-                        <button className="bg-white text-cafh-indigo px-6 py-3 rounded-full font-bold hover:bg-slate-100 transition-colors w-fit relative z-10">
-                            Ver opciones de Retiro
+                        <h3 className="text-2xl font-bold mb-4 relative z-10 font-display">¿Buscas un retiro?</h3>
+                        <p className="text-blue-200 mb-8 relative z-10">Desconecta del ruido y reconecta contigo mismo en nuestros centros de retiro.</p>
+                        <button className="bg-white text-cafh-indigo px-8 py-4 rounded-full font-bold hover:bg-slate-100 transition-all w-fit relative z-10 shadow-xl">
+                            Explorar Retiros
                         </button>
                     </div>
 
                     <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                         {events.slice(0, 2).map((event) => (
-                            <div key={event.id} className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden">
-                                {event.meetingUrl && (
-                                    <div className="absolute top-0 right-0 bg-green-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">
-                                        Virtual
-                                    </div>
-                                )}
+                            <div
+                                key={event.id}
+                                onClick={() => setSelectedActivity(event)}
+                                className="bg-white p-8 rounded-[2.5rem] border border-slate-100 hover:shadow-2xl transition-all cursor-pointer group relative overflow-hidden"
+                            >
                                 <div className="flex items-center gap-4 mb-6">
                                     <div className={`w-14 h-14 rounded-2xl ${event.color} flex flex-col items-center justify-center text-white font-bold leading-none`}>
                                         <span className="text-xl">{event.day}</span>
                                         <span className="text-[10px] tracking-widest uppercase">{event.month}</span>
                                     </div>
                                     <div>
-                                        <span className="text-xs font-bold text-slate-400 uppercase block mb-1">{event.type}</span>
-                                        <h4 className="font-bold text-slate-800 leading-tight group-hover:text-cafh-indigo transition-colors">{event.title}</h4>
+                                        <span className="text-[10px] font-black text-cafh-cyan uppercase tracking-widest">{event.type}</span>
+                                        <h4 className="text-lg font-bold text-slate-800 leading-tight group-hover:text-cafh-indigo transition-colors">{event.title}</h4>
                                     </div>
                                 </div>
-                                <div className="space-y-2 text-sm text-slate-500">
-                                    <div className="flex items-center gap-2"><Clock size={16} className="text-cafh-turquoise" /> {event.time}</div>
-                                    <div className="flex items-center gap-2"><MapPin size={16} className="text-cafh-turquoise" /> {event.location}</div>
+                                <div className="space-y-2 text-sm text-slate-500 mb-6">
+                                    <div className="flex items-center gap-2"><Clock size={16} className="text-cafh-cyan" /> {event.time}</div>
+                                    <div className="flex items-center gap-2"><MapPin size={16} className="text-cafh-cyan" /> {event.location}</div>
                                 </div>
-                                {event.meetingUrl && (
-                                    <a
-                                        href={event.meetingUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="mt-4 inline-flex items-center gap-2 text-green-600 font-bold text-sm hover:underline"
-                                    >
-                                        <Video size={16} /> Unirse Online
-                                    </a>
-                                )}
+                                <div className="pt-4 border-t border-slate-50 flex items-center justify-between text-cafh-indigo font-bold text-xs uppercase tracking-widest">
+                                    <span>Ver detalles</span>
+                                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                                </div>
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* Full Calendar List */}
-                <div className="bg-white rounded-[3rem] p-8 md:p-12 shadow-sm border border-slate-100">
-                    <div className="flex justify-between items-center mb-10">
-                        <h2 className="text-3xl font-display font-bold text-slate-800">Calendario Completo</h2>
-                        <div className="flex gap-2">
-                            <button className="p-2 rounded-full border border-slate-200 hover:bg-slate-50"><Filter size={20} /></button>
+                <div className="space-y-12">
+                    <div className="flex flex-col md:flex-row justify-between items-end gap-6">
+                        <h2 className="text-4xl font-display font-bold text-slate-800">Calendario de Actividades</h2>
+                        <div className="flex gap-4 w-full md:w-auto">
+                            <div className="relative flex-1 md:w-64">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <input type="text" placeholder="Buscar actividad..." className="w-full pl-12 pr-4 py-3 rounded-full border border-slate-200 focus:outline-none focus:border-cafh-cyan transition-colors" />
+                            </div>
                         </div>
                     </div>
 
-                    <div className="space-y-4">
-                        {events.map((event) => (
-                            <div key={event.id} className="flex flex-col md:flex-row md:items-center justify-between p-6 rounded-2xl border border-slate-50 hover:bg-slate-50 hover:border-slate-200 transition-all group">
-                                <div className="flex items-start md:items-center gap-6 mb-4 md:mb-0">
-                                    <div className={`w-16 h-16 rounded-2xl ${event.color} flex flex-col items-center justify-center text-white font-bold leading-none shrink-0`}>
-                                        <span className="text-2xl">{event.day}</span>
-                                        <span className="text-xs tracking-widest uppercase">{event.month}</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {events.map((event, i) => (
+                            <div
+                                key={event.id}
+                                onClick={() => setSelectedActivity(event)}
+                                className="bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer border border-slate-100 flex flex-col h-full"
+                            >
+                                <div className="h-48 overflow-hidden relative">
+                                    <img
+                                        src={event.imageUrl || 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800&auto=format&fit=crop'}
+                                        alt={event.title}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                    />
+                                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-cafh-indigo shadow-sm">
+                                        {event.type}
                                     </div>
-                                    <div>
-                                        <h4 className="text-xl font-bold text-slate-800 mb-2 group-hover:text-cafh-indigo transition-colors flex items-center gap-2">
-                                            {event.title}
-                                            {event.meetingUrl && <Video size={16} className="text-green-500" />}
-                                        </h4>
-                                        <div className="flex flex-wrap gap-4 text-sm text-slate-500">
-                                            <span className="flex items-center gap-1"><Clock size={14} /> {event.time}</span>
-                                            <span className="flex items-center gap-1"><MapPin size={14} /> {event.location}</span>
-                                            <span className="bg-white border border-slate-200 px-2 rounded-full text-xs font-bold">{event.type}</span>
-                                        </div>
+                                    <div className="absolute bottom-4 right-4 bg-cafh-indigo text-white rounded-2xl px-4 py-2 flex flex-col items-center justify-center min-w-[50px] shadow-lg">
+                                        <span className="text-lg font-black leading-none">{event.day}</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">{event.month}</span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    {event.meetingUrl ? (
-                                        <a
-                                            href={event.meetingUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="px-6 py-3 rounded-xl bg-green-500 text-white font-bold text-sm hover:bg-green-600 transition-all flex items-center gap-2"
-                                        >
-                                            <Video size={16} /> Unirse
-                                        </a>
-                                    ) : (
-                                        <button className="px-6 py-3 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm group-hover:bg-cafh-indigo group-hover:text-white transition-all">
-                                            Inscribirme
-                                        </button>
-                                    )}
+                                <div className="p-8 flex flex-col flex-1">
+                                    <h3 className="text-xl font-bold text-slate-800 mb-4 leading-tight group-hover:text-cafh-indigo transition-colors">{event.title}</h3>
+                                    <div className="space-y-3 mt-auto">
+                                        <div className="flex items-center gap-2 text-xs text-slate-500 font-bold uppercase tracking-wider"><Clock size={16} className="text-cafh-cyan" /> {event.time}</div>
+                                        <div className="flex items-center gap-2 text-xs text-slate-500 font-bold uppercase tracking-wider"><MapPin size={16} className="text-cafh-cyan" /> {event.location}</div>
+                                    </div>
+                                    <div className="mt-8 pt-6 border-t border-slate-50 flex items-center justify-between text-cafh-indigo font-black text-[10px] uppercase tracking-widest">
+                                        <span>Detalles e Inscripción</span>
+                                        <ArrowRight size={16} />
+                                    </div>
                                 </div>
                             </div>
                         ))}

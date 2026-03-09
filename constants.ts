@@ -317,13 +317,21 @@ export const PUBLIC_NAV_STRUCTURE = [
                 items: [
                     { label: 'Biblioteca Digital', path: '/resources/library', icon: 'BookOpen', desc: 'Textos y documentos.' },
                     { label: 'Videos y Charlas', path: '/resources/videos', icon: 'Video', desc: 'Contenido audiovisual.' },
-                ]
-            },
-            {
-                title: 'Inspiración',
-                items: [
-                    { label: 'Blog', path: '/resources/blog', icon: 'Feather', desc: 'Reflexiones semanales.' },
                     { label: 'Podcast', path: '/resources/podcast', icon: 'MessageCircle', desc: 'Escucha en el camino.' },
+                ]
+            }
+        ]
+    },
+    {
+        label: 'Blog',
+        path: '/blog',
+        description: 'Reflexiones y novedades.',
+        columns: [
+            {
+                title: 'Contenido',
+                items: [
+                    { label: 'Artículos', path: '/blog', icon: 'Feather', desc: 'Reflexiones semanales.' },
+                    { label: 'Inspiración', path: '/blog?filter=Inspiración', icon: 'Sparkles', desc: 'Contenido que nutre.' },
                 ]
             }
         ]
@@ -531,6 +539,7 @@ export const ADMIN_NAV_ITEMS = [
     { icon: 'BarChart3', label: 'Analítica', path: '/admin/analytics' },
     { icon: 'Video', label: 'Sala Virtual', path: '/admin/meetings' },
     { icon: 'CalendarDays', label: 'Calendario', path: '/admin/activities' },
+    { icon: 'Globe', label: 'Sedes Globales', path: '/admin/locations' },
     { icon: 'Compass', label: 'Viaje Cafh', path: '/admin/journey' },
     { icon: 'Settings', label: 'Configuración', path: '/admin/settings' },
 ];

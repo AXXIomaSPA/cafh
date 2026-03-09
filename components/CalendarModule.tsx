@@ -20,7 +20,7 @@ import {
     List, Grid as GridIcon
 } from 'lucide-react';
 import { db } from '../storage';
-import { ActivityEvent, ActivityCategory, User, UserRole, Contact } from '../types';
+import { ActivityEvent, ActivityCategory, User, UserRole, Contact, GlobalLocation } from '../types';
 import { RichTextEditor } from './AdminViews';
 
 // ─── Palette helpers ─────────────────────────────────────────
@@ -82,6 +82,7 @@ const emptyEvent = (): Omit<ActivityEvent, 'id' | 'createdAt' | 'updatedAt'> => 
     endTime: '21:00',
     modality: 'Virtual',
     organizerContactId: undefined,
+    locationId: undefined,
     status: 'Borrador',
     imageUrl: '',
     featuredInDashboard: false,
@@ -96,6 +97,7 @@ const emptyEvent = (): Omit<ActivityEvent, 'id' | 'createdAt' | 'updatedAt'> => 
 const ActividadesTab: React.FC = () => {
     const [events, setEvents] = useState<ActivityEvent[]>([]);
     const [cats, setCats] = useState<ActivityCategory[]>([]);
+    const [locs, setLocs] = useState<GlobalLocation[]>([]);
     const [adminUsers, setAdminUsers] = useState<User[]>([]);
     const [showForm, setShowForm] = useState(false);
     const [editing, setEditing] = useState<ActivityEvent | null>(null);
@@ -108,6 +110,7 @@ const ActividadesTab: React.FC = () => {
     const load = useCallback(() => {
         setEvents(db.activities.getAll());
         setCats(db.activities.getCategories());
+        setLocs(db.locations.getAll());
         // Organizadores = solo usuarios con rol admin del sistema
         const allUsers: User[] = (db.auth as any).getAllUsers();
         const admins = allUsers.filter(u => u.role === UserRole.ADMIN || u.role === UserRole.SUPER_ADMIN);
@@ -276,7 +279,7 @@ const ActividadesTab: React.FC = () => {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <SField label="Modalidad">
-                                    <select value={form.modality} onChange={e => setForm(f => ({ ...f, modality: e.target.value as any }))} className={select}>
+                                    <select value={form.modality} onChange={e => setForm(f => ({ ...f, modality: e.target.value as any, locationId: e.target.value === 'Virtual' ? undefined : f.locationId }))} className={select}>
                                         <option>Virtual</option>
                                         <option>Presencial</option>
                                         <option>Híbrida</option>
@@ -289,6 +292,22 @@ const ActividadesTab: React.FC = () => {
                                     </select>
                                 </SField>
                             </div>
+
+                            {(form.modality === 'Presencial' || form.modality === 'Híbrida') && (
+                                <SField label="Sede de la Actividad">
+                                    <select
+                                        value={form.locationId || ''}
+                                        onChange={e => setForm(f => ({ ...f, locationId: e.target.value || undefined }))}
+                                        className={select}
+                                    >
+                                        <option value="">Seleccionar sede...</option>
+                                        {locs.map(l => <option key={l.id} value={l.id}>{l.name} — {l.city}, {l.country}</option>)}
+                                    </select>
+                                    {locs.length === 0 && (
+                                        <p className="text-[10px] text-amber-600 mt-1 font-bold">No hay sedes creadas. Ve al módulo de Sedes Globales para añadir una.</p>
+                                    )}
+                                </SField>
+                            )}
 
                             <div className="p-5 bg-slate-50/50 rounded-2xl border border-slate-100 space-y-4">
                                 <div className="flex items-center gap-2 mb-1">

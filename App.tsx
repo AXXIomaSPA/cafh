@@ -11,9 +11,11 @@ const DynamicPageWrapper: React.FC = () => {
     return <DynamicPageView slug={slug || ''} />;
 };
 import { MemberDashboard } from './components/UserViews';
+import { BlogArchive, BlogPostView } from './components/BlogView';
 import { DashboardView, CRMView, AutomationsView, CMSView, MediaLibraryView, AnalyticsView, JourneyView, SettingsView, AdminMessagingView } from './components/AdminViews';
 import { MeetingsAdminView } from './components/MeetingsModule';
 import { CalendarAdminView } from './components/CalendarModule';
+import { LocationsAdminView } from './components/LocationsModule';
 import { db } from './storage';
 import { UserRole } from './types';
 import { SystemMonitor } from './components/SystemMonitor';
@@ -85,6 +87,10 @@ const App: React.FC = () => {
                 <Route path="/resources/*" element={<PublicLayoutWrapper><DynamicPageView slug="biblioteca-recursos" /></PublicLayoutWrapper>} />
                 <Route path="/activities/*" element={<PublicLayoutWrapper><DynamicPageView slug="actividades-retiros" /></PublicLayoutWrapper>} />
 
+                {/* BLOG ROUTES */}
+                <Route path="/blog" element={<PublicLayoutWrapper><BlogArchive /></PublicLayoutWrapper>} />
+                <Route path="/blog/:id" element={<PublicLayoutWrapper><BlogPostView /></PublicLayoutWrapper>} />
+
                 {/* DYNAMIC PAGES */}
                 <Route path="/p/:slug" element={<PublicLayoutWrapper><DynamicPageWrapper /></PublicLayoutWrapper>} />
 
@@ -112,6 +118,7 @@ const App: React.FC = () => {
                 <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><SettingsView /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/meetings" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><MeetingsAdminView /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/activities" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><CalendarAdminView /></AdminLayout></ProtectedRoute>} />
+                <Route path="/admin/locations" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><LocationsAdminView /></AdminLayout></ProtectedRoute>} />
                 <Route path="/admin/*" element={<ProtectedRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}><AdminLayout><div className="text-center py-20 text-slate-500">Módulo en construcción</div></AdminLayout></ProtectedRoute>} />
 
                 <Route path="*" element={<Navigate to="/" replace />} />
