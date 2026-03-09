@@ -5205,6 +5205,52 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                                             </div>
                                         )}
 
+                                        {/* LOCATIONS EDITOR */}
+                                        {section.type === 'Locations' && (
+                                            <div className="space-y-6">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Modo de Visualización</label>
+                                                        <select
+                                                            value={section.content.displayMode || 'full'}
+                                                            onChange={e => {
+                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                newDynamic[idx].content.displayMode = e.target.value;
+                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                            }}
+                                                            className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
+                                                        >
+                                                            <option value="full">País, Lugar y Sedes</option>
+                                                            <option value="place-branches">Lugar y Sedes</option>
+                                                            <option value="only-branches">Solo Sedes</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100 mt-5">
+                                                        <input
+                                                            type="checkbox"
+                                                            id={`autoplay-${section.id}`}
+                                                            checked={section.content.autoPlay || false}
+                                                            onChange={e => {
+                                                                const newDynamic = [...(localConfig.dynamicSections || [])];
+                                                                newDynamic[idx].content.autoPlay = e.target.checked;
+                                                                setLocalConfig({ ...localConfig, dynamicSections: newDynamic });
+                                                            }}
+                                                            className="w-5 h-5 rounded-lg border-slate-300 text-cafh-indigo focus:ring-cafh-indigo"
+                                                        />
+                                                        <label htmlFor={`autoplay-${section.id}`} className="text-xs font-bold text-slate-600 cursor-pointer">
+                                                            Activar Reproducción Automática (Carrusel)
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div className="p-4 bg-cafh-indigo/5 rounded-2xl border border-cafh-indigo/10 flex items-center gap-3">
+                                                    <Info size={18} className="text-cafh-indigo" />
+                                                    <p className="text-[10px] text-cafh-indigo leading-relaxed">
+                                                        Este bloque utiliza los datos globales configurados en el <strong>Gestor de Sedes</strong>. No necesitas cargar sedes aquí manualmente.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
+
                                         {/* CARDS EDITOR */}
                                         {section.type === 'Cards' && (
                                             <div className="space-y-4">
@@ -5770,6 +5816,10 @@ const HomeEditor: React.FC<{ config: HomeConfig; onSave: (config: HomeConfig) =>
                             <button onClick={() => addDynamicSection('HTML')} className="flex flex-col items-center gap-2 p-4 bg-orange-50 hover:bg-orange-100 rounded-2xl transition-all group shadow-sm border border-orange-200">
                                 <FileCode size={18} className="text-orange-500 group-hover:scale-110 transition-transform" />
                                 <span className="text-[10px] font-bold text-slate-600 uppercase">HTML</span>
+                            </button>
+                            <button onClick={() => addDynamicSection('Locations')} className="flex flex-col items-center gap-2 p-4 bg-cafh-cyan/10 hover:bg-cafh-cyan/20 rounded-2xl transition-all group shadow-sm border border-cafh-cyan/30">
+                                <MapPin size={18} className="text-cafh-indigo group-hover:scale-110 transition-transform" />
+                                <span className="text-[10px] font-bold text-slate-600 uppercase">Sedes Cafh</span>
                             </button>
                         </div>
                     </div>
@@ -6662,7 +6712,8 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                                                 ]
                                                                             } :
                                                                                 type === 'HTML' ? { code: '<!-- Tu código HTML aquí -->\n<div class="p-8 bg-slate-100 rounded-3xl text-center">\n  <h2 class="text-2xl font-bold text-slate-800">Elemento Personalizado</h2>\n  <p class="text-slate-500 mt-2">Puedes inyectar código HTML/CSS/JS con total libertad.</p>\n</div>' } :
-                                                                                    { items: [] },
+                                                                                    type === 'Locations' ? { title: 'Sedes Globales', subtitle: 'Encuentra tu Sede de Cafh', displayMode: 'full', autoPlay: false } :
+                                                                                        { items: [] },
             order: localPage.sections.length
         };
         setLocalPage({ ...localPage, sections: [...localPage.sections, newSection] });
@@ -6782,10 +6833,11 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                                                         section.type === 'Video' ? <Play size={16} /> :
                                                                             section.type === 'CTA' ? <MousePointer size={16} /> :
                                                                                 section.type === 'HTML' ? <FileCode size={16} /> :
-                                                                                    section.type === 'ResourcesGrid' || section.type === 'EventsCalendar' || section.type === 'Timeline' || section.type === 'MethodPillars' ? <Layout size={16} /> :
-                                                                                        <ChevronDown size={16} />}
+                                                                                    section.type === 'Locations' ? <MapPin size={16} /> :
+                                                                                        section.type === 'ResourcesGrid' || section.type === 'EventsCalendar' || section.type === 'Timeline' || section.type === 'MethodPillars' ? <Layout size={16} /> :
+                                                                                            <ChevronDown size={16} />}
                                         </div>
-                                        <span className="text-xs font-bold text-slate-600">{section.type} Section</span>
+                                        <span className="text-xs font-bold text-slate-600">{section.type === 'Locations' ? 'Sedes Globales' : `${section.type} Section`}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <button
@@ -7763,6 +7815,50 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                             </div>
                                         </div>
                                     )}
+                                    {section.type === 'Locations' && (
+                                        <div className="space-y-6">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Modo de Visualización</label>
+                                                    <select
+                                                        value={section.content.displayMode || 'full'}
+                                                        onChange={e => {
+                                                            const newSections = [...localPage.sections];
+                                                            newSections[idx].content.displayMode = e.target.value;
+                                                            setLocalPage({ ...localPage, sections: newSections });
+                                                        }}
+                                                        className="w-full p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold outline-none"
+                                                    >
+                                                        <option value="full">País, Lugar y Sedes</option>
+                                                        <option value="place-branches">Lugar y Sedes</option>
+                                                        <option value="only-branches">Solo Sedes</option>
+                                                    </select>
+                                                </div>
+                                                <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100 mt-5">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`autoplay-pag-${section.id}`}
+                                                        checked={section.content.autoPlay || false}
+                                                        onChange={e => {
+                                                            const newSections = [...localPage.sections];
+                                                            newSections[idx].content.autoPlay = e.target.checked;
+                                                            setLocalPage({ ...localPage, sections: newSections });
+                                                        }}
+                                                        className="w-5 h-5 rounded-lg border-slate-300 text-cafh-indigo focus:ring-cafh-indigo"
+                                                    />
+                                                    <label htmlFor={`autoplay-pag-${section.id}`} className="text-xs font-bold text-slate-600 cursor-pointer">
+                                                        Activar Reproducción Automática (Carrusel)
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div className="p-4 bg-cafh-indigo/5 rounded-2xl border border-cafh-indigo/10 flex items-center gap-3">
+                                                <Info size={18} className="text-cafh-indigo" />
+                                                <p className="text-[10px] text-cafh-indigo leading-relaxed">
+                                                    Este bloque utiliza los datos globales configurados en el <strong>Gestor de Sedes</strong>. No necesitas cargar sedes aquí manualmente.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -7894,6 +7990,12 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                                             <Grid size={18} />
                                         </div>
                                         <span className="text-sm font-bold text-slate-600 group-hover:text-purple-600">Pilares del Método</span>
+                                    </button>
+                                    <button onClick={() => addSection('Locations')} className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-cafh-cyan/10 rounded-2xl transition-all group">
+                                        <div className="p-2 bg-white rounded-lg text-slate-400 group-hover:text-cafh-indigo shadow-sm">
+                                            <MapPin size={18} />
+                                        </div>
+                                        <span className="text-sm font-bold text-slate-600 group-hover:text-cafh-indigo">Sedes Globales (Mapa)</span>
                                     </button>
                                 </div>
                             </div>

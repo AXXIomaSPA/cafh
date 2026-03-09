@@ -730,23 +730,34 @@ const SedeModal: React.FC<{
                                 {loc.contacts.map((c, i) => {
                                     const isWA = c.type === 'whatsapp';
                                     const isPhone = c.type === 'phone';
-                                    const href = isWA ? `https://wa.me/${c.value.replace(/\D/g, '')}` : isPhone ? `tel:${c.value}` : `mailto:${c.value}`;
+                                    const isEmail = c.type === 'email';
+                                    const isWeb = c.type === 'website';
+
+                                    const href = isWA ? `https://wa.me/${c.value.replace(/\D/g, '')}` :
+                                        isPhone ? `tel:${c.value}` :
+                                            isEmail ? `mailto:${c.value}` :
+                                                c.value;
+
                                     return (
                                         <a
                                             key={i}
                                             href={href}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className={`flex items-center justify-between p-3 rounded-xl text-sm font-bold transition-all ${isWA ? 'bg-green-50 text-green-600 hover:bg-green-100' :
-                                                isPhone ? 'bg-blue-50 text-blue-600 hover:bg-blue-100' :
-                                                    'bg-cafh-indigo/5 text-cafh-indigo hover:bg-cafh-indigo/10'
+                                            className={`flex items-center justify-between p-3 rounded-xl text-sm font-bold transition-all shadow-sm ${isWA ? 'bg-green-500 text-white hover:bg-slate-800 hover:shadow-lg' :
+                                                isPhone ? 'bg-blue-600 text-white hover:bg-slate-800 hover:shadow-lg' :
+                                                    isWeb ? 'bg-cafh-cyan text-cafh-indigo hover:bg-slate-800 hover:text-white' :
+                                                        'bg-slate-100 text-slate-600 hover:bg-cafh-indigo hover:text-white'
                                                 }`}
                                         >
                                             <div className="flex items-center gap-2">
-                                                {isWA ? <PhoneCall size={14} /> : isPhone ? <Phone size={14} /> : <Mail size={14} />}
+                                                {isWA ? <PhoneCall size={14} /> :
+                                                    isPhone ? <Phone size={14} /> :
+                                                        isEmail ? <Mail size={14} /> :
+                                                            <ExternalLink size={14} />}
                                                 {c.label}
                                             </div>
-                                            <ArrowRight size={14} />
+                                            <ArrowRight size={14} className="opacity-50" />
                                         </a>
                                     );
                                 })}
@@ -766,38 +777,65 @@ const DynamicLocationsBlock: React.FC<any> = ({ section, bgClass, paddingClass, 
     const [country, setCountry] = useState('Todos');
     const [city, setCity] = useState('Todos');
     const [selectedCity, setSelectedCity] = useState<{ name: string, locs: GlobalLocation[] } | null>(null);
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const carouselRef = useRef<HTMLDivElement>(null);
+    const content = section?.content || {};
+    const displayMode = content.displayMode || 'full'; // 'full', 'place-branches', 'only-branches'
+    const autoPlay = content.autoPlay || false;
 
     useEffect(() => {
         setLocations(db.locations.getAll());
     }, []);
 
-    // Get Filter Options
+    // Filter Options
     const continents = ['Todos', ...new Set(locations.map(l => l.continent))];
     const countries = ['Todos', ...new Set(locations.filter(l => continent === 'Todos' || l.continent === continent).map(l => l.country))];
     const cities = ['Todos', ...new Set(locations.filter(l => (continent === 'Todos' || l.continent === continent) && (country === 'Todos' || l.country === country)).map(l => l.city))];
 
-    // Filtered Grouped Result
+    // Filtered Result
     const filtered = locations.filter(l =>
         (continent === 'Todos' || l.continent === continent) &&
         (country === 'Todos' || l.country === country) &&
         (city === 'Todos' || l.city === city)
     );
 
-    // Group by city for cards
+    // Group by city
     const cityGroups = filtered.reduce((acc: any, loc) => {
-        if (!acc[loc.city]) acc[loc.city] = [];
-        acc[loc.city].push(loc);
+        const key = displayMode === 'only-branches' ? loc.id : loc.city;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(loc);
         return acc;
     }, {});
 
+    const entries = Object.entries(cityGroups);
+
+    // Autoplay Logic
+    useEffect(() => {
+        if (!autoPlay || entries.length <= 1) return;
+        const interval = setInterval(() => {
+            setCurrentIndex(current => (current + 1) % entries.length);
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [autoPlay, entries.length]);
+
+    // Scroll to active index
+    useEffect(() => {
+        if (carouselRef.current) {
+            const child = carouselRef.current.children[currentIndex] as HTMLElement;
+            if (child) {
+                carouselRef.current.scrollTo({
+                    left: child.offsetLeft - (carouselRef.current.offsetWidth / 2) + (child.offsetWidth / 2),
+                    behavior: 'smooth'
+                });
+            }
+        }
+    }, [currentIndex]);
+
     return (
-        <>
+        <div className="overflow-hidden">
             {/* 1. MAP HERO (WOW Effect) */}
             <section className="relative h-[80vh] flex items-center justify-center overflow-hidden bg-slate-900">
-                {/* Cinema Overlay */}
                 <div className="absolute inset-0 z-10 bg-gradient-to-b from-slate-900/40 via-transparent to-slate-900/80"></div>
-
-                {/* World Map Backdrop */}
                 <img
                     src="https://images.unsplash.com/photo-1521295121783-8a321d551ad2?q=80&w=2000&auto=format&fit=crop"
                     className="absolute inset-0 w-full h-full object-cover grayscale opacity-40 blur-[2px] transition-transform duration-[20s] hover:scale-110"
@@ -816,7 +854,6 @@ const DynamicLocationsBlock: React.FC<any> = ({ section, bgClass, paddingClass, 
                         Una comunidad global dedicada al desenvolvimiento espiritual, presente en ciudades de todo el mundo.
                     </p>
 
-                    {/* Visual PINs Container (Simplified projection) */}
                     <div className="absolute inset-x-0 -top-40 -bottom-40 pointer-events-none opacity-60">
                         {locations.map((loc, idx) => (
                             <div
@@ -837,140 +874,183 @@ const DynamicLocationsBlock: React.FC<any> = ({ section, bgClass, paddingClass, 
                     </div>
                 </div>
 
-                {/* Floating scroll trigger */}
                 <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 animate-bounce text-white/40">
                     <ChevronDown size={32} />
                 </div>
             </section>
 
-            {/* 2. FILTERS & GRID */}
-            <section className={`${bgClass} ${paddingClass} relative z-30 -mt-20`}>
+            {/* 2. FILTERS & CAROUSEL */}
+            <section className={`${bgClass} ${paddingClass} relative z-30 -mt-20 overflow-hidden`}>
                 <div className={`${containerClass} mx-auto px-6`}>
 
-                    {/* Cascading Filter Bar */}
-                    <div className="bg-white/80 backdrop-blur-xl p-6 md:p-10 rounded-[3rem] shadow-2xl border border-white/50 flex flex-col md:flex-row gap-8 mb-20 items-end">
-                        <div className="flex-1 space-y-3 w-full">
-                            <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 ml-1">
-                                <Filter size={14} /> Continente
-                            </label>
-                            <select
-                                value={continent}
-                                onChange={e => { setContinent(e.target.value); setCountry('Todos'); setCity('Todos'); }}
-                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-cafh-indigo/5 focus:border-cafh-indigo transition-all"
-                            >
-                                {continents.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
+                    {/* Filter Bar (Flexible based on displayMode) */}
+                    {displayMode !== 'only-branches' && (
+                        <div className="bg-white/80 backdrop-blur-xl p-6 md:p-10 rounded-[3rem] shadow-2xl border border-white/50 flex flex-col md:flex-row gap-8 mb-20 items-end">
+                            {displayMode === 'full' && (
+                                <div className="flex-1 space-y-3 w-full">
+                                    <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 ml-1">
+                                        <Filter size={14} /> Continente
+                                    </label>
+                                    <select
+                                        value={continent}
+                                        onChange={e => { setContinent(e.target.value); setCountry('Todos'); setCity('Todos'); setCurrentIndex(0); }}
+                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-cafh-indigo/5 focus:border-cafh-indigo transition-all"
+                                    >
+                                        {continents.map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
+                            )}
+                            <div className="flex-1 space-y-3 w-full">
+                                <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 ml-1">
+                                    <Map size={14} /> País
+                                </label>
+                                <select
+                                    value={country}
+                                    onChange={e => { setCountry(e.target.value); setCity('Todos'); setCurrentIndex(0); }}
+                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-cafh-indigo/5 focus:border-cafh-indigo transition-all"
+                                >
+                                    {countries.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            </div>
+                            <div className="flex-1 space-y-3 w-full">
+                                <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 ml-1">
+                                    <MapPin size={14} /> Ciudad
+                                </label>
+                                <select
+                                    value={city}
+                                    onChange={e => { setCity(e.target.value); setCurrentIndex(0); }}
+                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-cafh-indigo/5 focus:border-cafh-indigo transition-all"
+                                >
+                                    {cities.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                            </div>
                         </div>
-                        <div className="flex-1 space-y-3 w-full">
-                            <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 ml-1">
-                                <Map size={14} /> País
-                            </label>
-                            <select
-                                value={country}
-                                onChange={e => { setCountry(e.target.value); setCity('Todos'); }}
-                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-cafh-indigo/5 focus:border-cafh-indigo transition-all"
-                            >
-                                {countries.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
-                        </div>
-                        <div className="flex-1 space-y-3 w-full">
-                            <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 ml-1">
-                                <MapPin size={14} /> Ciudad
-                            </label>
-                            <select
-                                value={city}
-                                onChange={e => setCity(e.target.value)}
-                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-cafh-indigo/5 focus:border-cafh-indigo transition-all"
-                            >
-                                {cities.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
-                        </div>
-                    </div>
+                    )}
 
-                    {/* Results Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {Object.entries(cityGroups).map(([name, locs]: [string, any]) => {
+                    {/* Carousel Navigation */}
+                    {entries.length > 1 && (
+                        <div className="flex items-center justify-between mb-8 px-4">
+                            <h2 className="text-2xl font-display font-bold text-slate-800">
+                                {displayMode === 'only-branches' ? 'Nuestras Sedes' : `Sedes en ${city === 'Todos' ? (country === 'Todos' ? 'el Mundo' : country) : city}`}
+                            </h2>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setCurrentIndex(prev => (prev - 1 + entries.length) % entries.length)}
+                                    className="p-3 bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-cafh-indigo hover:text-white transition-all shadow-sm"
+                                >
+                                    <ArrowLeft size={18} />
+                                </button>
+                                <button
+                                    onClick={() => setCurrentIndex(prev => (prev + 1) % entries.length)}
+                                    className="p-3 bg-white border border-slate-200 rounded-full text-slate-600 hover:bg-cafh-indigo hover:text-white transition-all shadow-sm"
+                                >
+                                    <ArrowRight size={18} />
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Carousel Viewport */}
+                    <div
+                        ref={carouselRef}
+                        className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-6 px-4 pb-12 -mx-4 cursor-grab active:cursor-grabbing"
+                    >
+                        {entries.map(([key, locs]: [string, any], entryIdx) => {
                             const first = locs[0];
                             const hasMultiple = locs.length > 1;
+                            const displayName = displayMode === 'only-branches' ? first.name : key;
+
                             return (
-                                <div key={name} className="group bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-500 relative overflow-hidden flex flex-col">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-cafh-cyan/10 transition-colors duration-700"></div>
+                                <div
+                                    key={key}
+                                    className={`flex-none w-[85%] md:w-[400px] snap-center transition-all duration-500 ${entryIdx === currentIndex ? 'scale-100 opacity-100' : 'scale-95 opacity-50'}`}
+                                >
+                                    <div className="group bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-xl hover:shadow-2xl transition-all duration-500 relative overflow-hidden flex flex-col h-full">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-cafh-cyan/10 transition-colors duration-700"></div>
 
-                                    {/* Card Header */}
-                                    <div className="relative z-10 flex justify-between items-start mb-8">
-                                        <div className="p-4 bg-cafh-indigo/5 text-cafh-indigo rounded-2xl group-hover:bg-cafh-indigo group-hover:text-white transition-all duration-500">
-                                            <MapPin size={28} />
+                                        <div className="relative z-10 flex justify-between items-start mb-8">
+                                            <div className="p-4 bg-cafh-indigo/5 text-cafh-indigo rounded-2xl group-hover:bg-cafh-indigo group-hover:text-white transition-all duration-500">
+                                                <MapPin size={28} />
+                                            </div>
+                                            {hasMultiple && (
+                                                <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100">
+                                                    {locs.length} Sedes
+                                                </span>
+                                            )}
                                         </div>
-                                        {hasMultiple && (
-                                            <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100">
-                                                {locs.length} Sedes
-                                            </span>
-                                        )}
-                                    </div>
 
-                                    {/* Info */}
-                                    <div className="relative z-10 flex-1 flex flex-col">
-                                        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-cafh-cyan mb-2">
-                                            {first.country}
-                                        </div>
-                                        <h3 className="text-3xl font-display font-bold text-slate-800 mb-4 group-hover:text-cafh-indigo transition-colors">{name}</h3>
-
-                                        {!hasMultiple ? (
-                                            <div className="space-y-6 flex-1 flex flex-col">
-                                                <p className="text-slate-500 text-sm italic line-clamp-2 mb-6">{first.address}</p>
-                                                <div className="space-y-3 mt-auto">
-                                                    {first.contacts.map((c: LocationContact, i: number) => {
-                                                        const isWA = c.type === 'whatsapp';
-                                                        const isPhone = c.type === 'phone';
-                                                        const href = isWA ? `https://wa.me/${c.value.replace(/\D/g, '')}` : isPhone ? `tel:${c.value}` : `mailto:${c.value}`;
-                                                        return (
-                                                            <a
-                                                                key={i}
-                                                                href={href}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className={`flex items-center justify-between p-4 rounded-2xl text-xs font-bold transition-all shadow-sm ${isWA ? 'bg-green-500 text-white hover:bg-slate-800 hover:shadow-lg' :
-                                                                    isPhone ? 'bg-blue-600 text-white hover:bg-slate-800 hover:shadow-lg' :
-                                                                        'bg-slate-100 text-slate-600 hover:bg-cafh-indigo hover:text-white'
-                                                                    }`}
-                                                            >
-                                                                <span className="flex items-center gap-2">
-                                                                    {isWA ? <PhoneCall size={16} /> : isPhone ? <Phone size={16} /> : <Mail size={16} />}
-                                                                    {c.label}
-                                                                </span>
-                                                                <ChevronRight size={14} className="opacity-50" />
-                                                            </a>
-                                                        );
-                                                    })}
+                                        <div className="relative z-10 flex-1 flex flex-col">
+                                            {displayMode === 'full' && (
+                                                <div className="text-[10px] font-black uppercase tracking-[0.2em] text-cafh-cyan mb-2">
+                                                    {first.country}
                                                 </div>
-                                            </div>
-                                        ) : (
-                                            <div className="mt-auto pt-8">
-                                                <button
-                                                    onClick={() => setSelectedCity({ name, locs })}
-                                                    className="w-full py-4 bg-cafh-indigo/5 text-cafh-indigo rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-cafh-indigo hover:text-white transition-all group/btn"
-                                                >
-                                                    Ver todas las sedes
-                                                    <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
-                                                </button>
-                                            </div>
-                                        )}
+                                            )}
+                                            <h3 className="text-3xl font-display font-bold text-slate-800 mb-4 group-hover:text-cafh-indigo transition-colors">{displayName}</h3>
+
+                                            {!hasMultiple ? (
+                                                <div className="space-y-6 flex-1 flex flex-col">
+                                                    <p className="text-slate-500 text-sm italic line-clamp-2 mb-6">{first.address}</p>
+                                                    <div className="space-y-3 mt-auto">
+                                                        {first.contacts.slice(0, 3).map((c: LocationContact, i: number) => {
+                                                            const isWA = c.type === 'whatsapp';
+                                                            const isPhone = c.type === 'phone';
+                                                            const isWeb = c.type === 'website';
+                                                            const href = isWA ? `https://wa.me/${c.value.replace(/\D/g, '')}` : isPhone ? `tel:${c.value}` : isWeb ? c.value : `mailto:${c.value}`;
+                                                            return (
+                                                                <a
+                                                                    key={i}
+                                                                    href={href}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className={`flex items-center justify-between p-4 rounded-2xl text-xs font-bold transition-all shadow-sm ${isWA ? 'bg-green-500 text-white hover:bg-slate-800' :
+                                                                        isPhone ? 'bg-blue-600 text-white hover:bg-slate-800' :
+                                                                            isWeb ? 'bg-cafh-cyan text-cafh-indigo hover:bg-slate-800 hover:text-white' :
+                                                                                'bg-slate-100 text-slate-600 hover:bg-cafh-indigo hover:text-white'
+                                                                        }`}
+                                                                >
+                                                                    <span className="flex items-center gap-2">
+                                                                        {isWA ? <PhoneCall size={16} /> : isPhone ? <Phone size={16} /> : isWeb ? <ExternalLink size={16} /> : <Mail size={16} />}
+                                                                        {c.label}
+                                                                    </span>
+                                                                    <ChevronRight size={14} className="opacity-50" />
+                                                                </a>
+                                                            );
+                                                        })}
+                                                        {first.contacts.length > 3 && (
+                                                            <button
+                                                                onClick={() => setSelectedCity({ name: displayName, locs })}
+                                                                className="w-full py-3 text-cafh-indigo text-[10px] font-black uppercase tracking-widest hover:underline"
+                                                            >
+                                                                + Ver más contactos
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="mt-auto pt-8">
+                                                    <button
+                                                        onClick={() => setSelectedCity({ name: displayName, locs })}
+                                                        className="w-full py-4 bg-cafh-indigo/5 text-cafh-indigo rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-cafh-indigo hover:text-white transition-all group/btn"
+                                                    >
+                                                        Ver todas las sedes
+                                                        <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             );
                         })}
 
-                        {filtered.length === 0 && (
-                            <div className="col-span-full py-20 text-center space-y-6">
+                        {entries.length === 0 && (
+                            <div className="w-full py-20 text-center space-y-6 snap-center">
                                 <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-300">
                                     <Search size={40} />
                                 </div>
-                                <div>
-                                    <h3 className="text-2xl font-bold text-slate-800">Sin resultados</h3>
-                                    <p className="text-slate-500 mt-2">No encontramos sedes registradas bajo estos criterios.</p>
-                                </div>
+                                <h3 className="text-2xl font-bold text-slate-800">Sin resultados</h3>
                                 <button
-                                    onClick={() => { setContinent('Todos'); setCountry('Todos'); setCity('Todos'); }}
+                                    onClick={() => { setContinent('Todos'); setCountry('Todos'); setCity('Todos'); setCurrentIndex(0); }}
                                     className="px-8 py-3 bg-cafh-indigo text-white rounded-full font-bold hover:shadow-xl transition-all"
                                 >
                                     Reiniciar Búsqueda
@@ -978,6 +1058,19 @@ const DynamicLocationsBlock: React.FC<any> = ({ section, bgClass, paddingClass, 
                             </div>
                         )}
                     </div>
+
+                    {/* Carousel Progress Dots */}
+                    {entries.length > 1 && (
+                        <div className="flex justify-center gap-2 mt-4">
+                            {entries.map((_, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => setCurrentIndex(i)}
+                                    className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIndex ? 'w-8 bg-cafh-indigo' : 'w-2 bg-slate-200'}`}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -987,7 +1080,7 @@ const DynamicLocationsBlock: React.FC<any> = ({ section, bgClass, paddingClass, 
                 city={selectedCity?.name || ''}
                 locations={selectedCity?.locs || []}
             />
-        </>
+        </div>
     );
 };
 
@@ -1257,6 +1350,7 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
         case 'EventsCalendar': return <DynamicEventsCalendar section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
         case 'Timeline': return <DynamicTimeline section={section} bgClass="bg-slate-900" paddingClass={paddingClass} containerClass={containerClass} />;
         case 'MethodPillars': return <DynamicMethodPillars section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
+        case 'Locations': return <DynamicLocationsBlock section={section} />;
         default: return null;
     }
 };

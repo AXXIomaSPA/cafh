@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
     Plus, Search, Filter, Globe, MapPin, Phone, Mail, MoreVertical,
     Trash2, Edit3, X, Save, MessageSquare, ChevronRight, Map,
-    AlertCircle, CheckCircle2, Info
+    AlertCircle, CheckCircle2, Info, ExternalLink
 } from 'lucide-react';
 import { db } from '../storage';
 import { GlobalLocation, LocationContact } from '../types';
@@ -130,8 +130,8 @@ export const LocationsAdminView: React.FC = () => {
                             key={c}
                             onClick={() => setContinentFilter(c)}
                             className={`px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${continentFilter === c
-                                    ? 'bg-slate-800 text-white shadow-md'
-                                    : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-100'
+                                ? 'bg-slate-800 text-white shadow-md'
+                                : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-100'
                                 }`}
                         >
                             {c}
@@ -182,7 +182,9 @@ export const LocationsAdminView: React.FC = () => {
                                     {loc.contacts.slice(0, 2).map((c, i) => (
                                         <div key={i} className="flex items-center gap-3 text-xs text-slate-500 py-1">
                                             {c.type === 'whatsapp' ? <MessageSquare size={14} className="text-green-500" /> :
-                                                c.type === 'phone' ? <Phone size={14} className="text-blue-500" /> : <Mail size={14} className="text-indigo-400" />}
+                                                c.type === 'phone' ? <Phone size={14} className="text-blue-500" /> :
+                                                    c.type === 'email' ? <Mail size={14} className="text-indigo-400" /> :
+                                                        <ExternalLink size={14} className="text-cafh-cyan" />}
                                             <span className="font-medium truncate">{c.label}: {c.value}</span>
                                         </div>
                                     ))}
@@ -355,6 +357,7 @@ export const LocationsAdminView: React.FC = () => {
                                                 <option value="whatsapp">WhatsApp</option>
                                                 <option value="phone">Teléfono</option>
                                                 <option value="email">Email</option>
+                                                <option value="website">Sitio Web</option>
                                             </select>
                                             <input
                                                 placeholder="Etiqueta (ej: Secretaría)"

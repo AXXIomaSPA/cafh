@@ -219,6 +219,7 @@ export interface HeroConfig {
   };
 }
 
+
 export interface SearchItem {
   label: string;
   icon: string;
@@ -850,7 +851,7 @@ export interface ActivityEvent {
 
 /** Contacto estructurado para botones de acción rápida */
 export interface LocationContact {
-  type: 'whatsapp' | 'phone' | 'email';
+  type: 'whatsapp' | 'phone' | 'email' | 'website';
   value: string;
   label: string;
 }
