@@ -1,7 +1,44 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import * as Lucide from 'lucide-react';
-import { Play, ArrowRight, Heart, Users, BookOpen, MapPin, Mail, ChevronRight, Flower2, Sparkles, Wind, Sun, X, Loader2, Check, Calendar, Mic, FileText, User, Headphones, Activity, Clock, Lock, ArrowLeft, AlertCircle, ChevronLeft, ChevronDown, CheckCircle2 } from 'lucide-react';
+import {
+    // Navigation & UI
+    Play, ArrowRight, ArrowLeft, ArrowUp, ArrowDown, ChevronRight, ChevronLeft,
+    ChevronDown, ChevronUp, X, Menu, Search, Filter, Map, MapPin, Globe,
+    Globe2, Compass, Home, Settings, Settings2, Sliders, Layout, Layers, Grid,
+    Maximize2, Minimize2, MoreVertical, MoreHorizontal, GripVertical, ExternalLink,
+
+    // States & Feedback
+    Check, CheckCircle2, AlertCircle, AlertTriangle, Info, Bell, Loader2, Sparkles,
+    Star, Heart, ThumbsUp, HelpCircle, Activity, Clock, Lock, Shield,
+    BadgeCheck, ShieldAlert,
+
+    // Content & Media
+    BookOpen, Book, FileText, File, ImageIcon, PlaySquare, Video, Film, Headphones,
+    Mic, Music, Instagram, Youtube, Facebook, Twitter, Mail, Phone, PhoneCall,
+    MessageSquare, MessageCircle, Send, Share2, Hash, Database, Download,
+    Upload, UploadCloud,
+
+    // Thematic & Others
+    Flower2, Wind, Sun, Moon, Palette, Type, Calendar, User, Users, UserPlus,
+    UserMinus, Target, Percent, Anchor, Feather, Coffee, Package, Tag, Link2,
+    Plus, PlusSquare, Trash2, Edit, Save, Trash, Bold, Italic, Underline,
+    List, ListOrdered, AlignLeft, AlignCenter
+} from 'lucide-react';
+const LUCIDE_REGISTRY: Record<string, any> = {
+    Play, ArrowRight, ArrowLeft, ArrowUp, ArrowDown, ChevronRight, ChevronLeft,
+    ChevronDown, ChevronUp, X, Menu, Search, Filter, Map, MapPin, Globe,
+    Globe2, Compass, Home, Settings, Settings2, Sliders, Layout, Layers, Grid,
+    Maximize2, Minimize2, MoreVertical, MoreHorizontal, GripVertical, ExternalLink,
+    Check, CheckCircle2, AlertCircle, AlertTriangle, Info, Bell, Loader2, Sparkles,
+    Star, Heart, ThumbsUp, HelpCircle, Activity, Clock, Lock, Shield,
+    BadgeCheck, ShieldAlert, BookOpen, Book, FileText, File, ImageIcon, PlaySquare, Video, Film, Headphones,
+    Mic, Music, Instagram, Youtube, Facebook, Twitter, Mail, Phone, PhoneCall,
+    MessageSquare, MessageCircle, Send, Share2, Hash, Database, Download,
+    Upload, UploadCloud, Flower2, Wind, Sun, Moon, Palette, Type, Calendar, User, Users, UserPlus,
+    UserMinus, Target, Percent, Anchor, Feather, Coffee, Package, Tag, Link2,
+    Plus, PlusSquare, Trash2, Edit, Save, Trash, Bold, Italic, Underline,
+    List, ListOrdered, AlignLeft, AlignCenter
+};
 import { useNavigate } from 'react-router-dom';
 import { MOCK_WIZARD_STEPS, MOCK_EVENTS } from '../constants';
 import { db, safeSetItem, KEYS } from '../storage';
@@ -64,7 +101,7 @@ const DynamicResourcesGrid: React.FC<any> = ({ section, bgClass, paddingClass, c
                         <div className="relative w-full max-w-4xl bg-white rounded-[2rem] overflow-hidden shadow-2xl animate-fade-in-up" onClick={e => e.stopPropagation()}>
                             <div className="flex justify-between items-center p-6 border-b border-slate-100">
                                 <h3 className="text-xl font-bold text-slate-800">{selectedResource.title}</h3>
-                                <button onClick={() => setSelectedResource(null)} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full"><Lucide.X size={20} /></button>
+                                <button onClick={() => setSelectedResource(null)} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full"><X size={20} /></button>
                             </div>
                             <div className="p-6 bg-slate-50 min-h-[400px] flex flex-col items-center justify-center">
                                 {(selectedResource.type === 'video') ? (
@@ -72,7 +109,7 @@ const DynamicResourcesGrid: React.FC<any> = ({ section, bgClass, paddingClass, c
                                 ) : (selectedResource.type === 'audio') ? (
                                     <div className="bg-white p-8 rounded-2xl shadow-sm text-center w-full max-w-md">
                                         <div className="w-20 h-20 bg-cafh-indigo/10 text-cafh-indigo rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <Lucide.Play fill="currentColor" size={32} />
+                                            <Play fill="currentColor" size={32} />
                                         </div>
                                         <audio src={selectedResource.url} controls autoPlay className="w-full outline-none" />
                                     </div>
@@ -80,12 +117,12 @@ const DynamicResourcesGrid: React.FC<any> = ({ section, bgClass, paddingClass, c
                                     selectedResource.url && selectedResource.url !== '#' ? (
                                         <iframe src={selectedResource.url} className="w-full h-[60vh] rounded-xl border border-slate-200" title="Document Viewer" />
                                     ) : (
-                                        <div className="text-center text-slate-500"><Lucide.BookOpen size={48} className="mx-auto mb-4 opacity-50" /> <p>El documento no tiene un archivo asignado.</p></div>
+                                        <div className="text-center text-slate-500"><BookOpen size={48} className="mx-auto mb-4 opacity-50" /> <p>El documento no tiene un archivo asignado.</p></div>
                                     )
                                 ) : (
                                     <div className="text-center p-12 max-w-lg">
                                         <div className="w-20 h-20 bg-cafh-cyan/10 text-cafh-cyan rounded-[1.5rem] flex items-center justify-center mx-auto mb-6">
-                                            <Lucide.Feather size={32} />
+                                            <Feather size={32} />
                                         </div>
                                         <h4 className="text-2xl font-bold text-slate-800 mb-4">{selectedResource.title}</h4>
                                         <p className="text-slate-600">Al simular este artículo, registramos que lo leíste. En producción mostraría el contenido del post.</p>
@@ -112,7 +149,7 @@ const DynamicResourcesGrid: React.FC<any> = ({ section, bgClass, paddingClass, c
                     </div>
 
                     <div className="relative w-full md:w-80">
-                        <Lucide.Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
                             type="text"
                             placeholder="Buscar en la biblioteca..."
@@ -130,7 +167,7 @@ const DynamicResourcesGrid: React.FC<any> = ({ section, bgClass, paddingClass, c
                                         item.type === 'audio' ? 'bg-purple-50 text-purple-600' :
                                             'bg-red-50 text-red-600'
                                     }`}>
-                                    {item.type === 'Article' ? <Lucide.Feather size={24} /> : (item.type === 'Resource' || item.type === 'document') ? <Lucide.Download size={24} /> : item.type === 'audio' ? <Lucide.Play size={24} /> : <Lucide.Video size={24} />}
+                                    {item.type === 'Article' ? <Feather size={24} /> : (item.type === 'Resource' || item.type === 'document') ? <Download size={24} /> : item.type === 'audio' ? <Play size={24} /> : <Video size={24} />}
                                 </div>
                                 <span className="text-xs font-bold text-slate-400 uppercase bg-slate-50 px-2 py-1 rounded">{item.type}</span>
                             </div>
@@ -147,7 +184,7 @@ const DynamicResourcesGrid: React.FC<any> = ({ section, bgClass, paddingClass, c
 
                             <div className="pt-4 border-t border-slate-50 flex items-center justify-between text-sm text-slate-400">
                                 <span>{item.date}</span>
-                                <span className="flex items-center gap-1 group-hover:text-cafh-cyan transition-colors font-bold text-cafh-indigo">Abrir <Lucide.ArrowRight size={14} /></span>
+                                <span className="flex items-center gap-1 group-hover:text-cafh-cyan transition-colors font-bold text-cafh-indigo">Abrir <ArrowRight size={14} /></span>
                             </div>
                         </div>
                     ))}
@@ -381,8 +418,8 @@ const DynamicEventsCalendar: React.FC<any> = ({ section, bgClass, paddingClass, 
                                     </div>
                                 </div>
                                 <div className="space-y-2 text-sm text-slate-500">
-                                    <div className="flex items-center gap-2"><Lucide.Clock size={16} className="text-cafh-cyan" /> {event.time}</div>
-                                    <div className="flex items-center gap-2"><Lucide.MapPin size={16} className="text-cafh-cyan" /> {event.location}</div>
+                                    <div className="flex items-center gap-2"><Clock size={16} className="text-cafh-cyan" /> {event.time}</div>
+                                    <div className="flex items-center gap-2"><MapPin size={16} className="text-cafh-cyan" /> {event.location}</div>
                                 </div>
                                 {event.meetingUrl && (
                                     <a
@@ -391,7 +428,7 @@ const DynamicEventsCalendar: React.FC<any> = ({ section, bgClass, paddingClass, 
                                         rel="noopener noreferrer"
                                         className="mt-4 inline-flex items-center gap-2 text-green-600 font-bold text-sm hover:underline"
                                     >
-                                        <Lucide.Video size={16} /> Unirse Online
+                                        <Video size={16} /> Unirse Online
                                     </a>
                                 )}
                             </div>
@@ -403,7 +440,7 @@ const DynamicEventsCalendar: React.FC<any> = ({ section, bgClass, paddingClass, 
                     <div className="flex justify-between items-center mb-10">
                         <h2 className="text-3xl font-display font-bold text-slate-800">{content.listTitle || 'Calendario Completo'}</h2>
                         <div className="flex gap-2">
-                            <button className="p-2 rounded-full border border-slate-200 hover:bg-slate-50"><Lucide.Filter size={20} /></button>
+                            <button className="p-2 rounded-full border border-slate-200 hover:bg-slate-50"><Filter size={20} /></button>
                         </div>
                     </div>
 
@@ -418,11 +455,11 @@ const DynamicEventsCalendar: React.FC<any> = ({ section, bgClass, paddingClass, 
                                     <div>
                                         <h4 className="text-xl font-bold text-slate-800 mb-2 group-hover:text-cafh-indigo transition-colors flex items-center gap-2">
                                             {event.title}
-                                            {event.meetingUrl && <Lucide.Video size={16} className="text-green-500" />}
+                                            {event.meetingUrl && <Video size={16} className="text-green-500" />}
                                         </h4>
                                         <div className="flex flex-wrap gap-4 text-sm text-slate-500">
-                                            <span className="flex items-center gap-1"><Lucide.Clock size={14} /> {event.time}</span>
-                                            <span className="flex items-center gap-1"><Lucide.MapPin size={14} /> {event.location}</span>
+                                            <span className="flex items-center gap-1"><Clock size={14} /> {event.time}</span>
+                                            <span className="flex items-center gap-1"><MapPin size={14} /> {event.location}</span>
                                             <span className="bg-white border border-slate-200 px-2 rounded-full text-xs font-bold">{event.type}</span>
                                         </div>
                                     </div>
@@ -436,7 +473,7 @@ const DynamicEventsCalendar: React.FC<any> = ({ section, bgClass, paddingClass, 
                                                 rel="noopener noreferrer"
                                                 className="px-6 py-3 rounded-xl bg-green-500 text-white font-bold text-sm hover:bg-green-600 transition-all flex items-center gap-2"
                                             >
-                                                <Lucide.Video size={16} /> Unirse
+                                                <Video size={16} /> Unirse
                                             </a>
                                             <button
                                                 onClick={() => setRegModal({ isOpen: true, activity: event })}
@@ -494,7 +531,7 @@ const DynamicTimeline: React.FC<any> = ({ section, bgClass, paddingClass, contai
                     </div>
                     <div className="space-y-6">
                         <div className="flex items-center gap-3 text-cafh-indigo font-bold uppercase tracking-widest text-sm">
-                            <Lucide.Compass size={20} />
+                            <Compass size={20} />
                             <span>{content.badge}</span>
                         </div>
                         <h2 className="text-3xl md:text-5xl font-display font-bold text-slate-800">{content.title}</h2>
@@ -548,7 +585,7 @@ const DynamicMethodPillars: React.FC<any> = ({ section, bgClass, paddingClass, c
                                 <div className="absolute inset-0 bg-cafh-indigo/20 group-hover:bg-transparent transition-colors z-10"></div>
                                 <img src={pillar.image} alt={pillar.title} className="w-full h-80 object-cover group-hover:scale-105 transition-transform duration-700" />
                                 <div className="absolute bottom-6 left-6 z-20 bg-white/90 backdrop-blur px-6 py-3 rounded-full flex items-center gap-3">
-                                    {(Lucide as any)[pillar.icon] ? React.createElement((Lucide as any)[pillar.icon], { className: pillar.color }) : <Lucide.Star className={pillar.color} />}
+                                    {(LUCIDE_REGISTRY as any)[pillar.icon] ? React.createElement((LUCIDE_REGISTRY as any)[pillar.icon], { className: pillar.color }) : <Star className={pillar.color} />}
                                     <span className="font-bold text-slate-800">{pillar.title}</span>
                                 </div>
                             </div>
@@ -557,7 +594,7 @@ const DynamicMethodPillars: React.FC<any> = ({ section, bgClass, paddingClass, c
                             <ul className="space-y-3">
                                 {pillar.items?.map((item: string) => (
                                     <li key={item} className="flex items-center gap-3 text-slate-700 font-medium">
-                                        <div className="w-6 h-6 rounded-full bg-cafh-light flex items-center justify-center text-cafh-cyan"><Lucide.ChevronRight size={14} /></div>
+                                        <div className="w-6 h-6 rounded-full bg-cafh-light flex items-center justify-center text-cafh-cyan"><ChevronRight size={14} /></div>
                                         {item}
                                     </li>
                                 ))}
@@ -644,7 +681,7 @@ const VideoGridSection = ({ section, bgClass, paddingClass, containerClass, onVi
                                 <img src={`https://img.youtube.com/vi/${v.videoId}/maxresdefault.jpg`} alt={v.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                 <div className="absolute inset-0 bg-cafh-indigo/20 group-hover:bg-cafh-indigo/40 transition-colors flex items-center justify-center">
                                     <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center text-cafh-indigo shadow-xl scale-90 group-hover:scale-100 transition-transform">
-                                        <Lucide.Play size={24} fill="currentColor" />
+                                        <Play size={24} fill="currentColor" />
                                     </div>
                                 </div>
                             </div>
@@ -676,7 +713,7 @@ const SedeModal: React.FC<{
                         <p className="text-slate-500 text-sm">Contamos con {locations.length} puntos de encuentro en esta ciudad.</p>
                     </div>
                     <button onClick={onClose} className="p-3 bg-slate-100 text-slate-400 hover:text-slate-600 rounded-2xl transition-all">
-                        <Lucide.X size={24} />
+                        <X size={24} />
                     </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/30">
@@ -684,7 +721,7 @@ const SedeModal: React.FC<{
                         <div key={loc.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col">
                             <div className="flex items-center gap-3 mb-4">
                                 <div className="p-3 bg-cafh-indigo/10 text-cafh-indigo rounded-xl">
-                                    <Lucide.MapPin size={20} />
+                                    <MapPin size={20} />
                                 </div>
                                 <h4 className="font-bold text-slate-800">{loc.name}</h4>
                             </div>
@@ -706,10 +743,10 @@ const SedeModal: React.FC<{
                                                 }`}
                                         >
                                             <div className="flex items-center gap-2">
-                                                {isWA ? <Lucide.PhoneCall size={14} /> : isPhone ? <Lucide.Phone size={14} /> : <Lucide.Mail size={14} />}
+                                                {isWA ? <PhoneCall size={14} /> : isPhone ? <Phone size={14} /> : <Mail size={14} />}
                                                 {c.label}
                                             </div>
-                                            <Lucide.ArrowRight size={14} />
+                                            <ArrowRight size={14} />
                                         </a>
                                     );
                                 })}
@@ -769,7 +806,7 @@ const DynamicLocationsBlock: React.FC<any> = ({ section, bgClass, paddingClass, 
 
                 <div className="relative z-20 text-center px-6 max-w-4xl mx-auto space-y-8">
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-cafh-cyan/20 border border-cafh-cyan/30 rounded-full text-cafh-cyan text-xs font-black uppercase tracking-[0.2em] animate-fade-in">
-                        <Lucide.Globe size={14} className="animate-spin-slow" />
+                        <Globe size={14} className="animate-spin-slow" />
                         Presencia Mundial
                     </div>
                     <h1 className="text-5xl md:text-7xl font-display font-bold text-white leading-tight animate-fade-in-up">
@@ -802,7 +839,7 @@ const DynamicLocationsBlock: React.FC<any> = ({ section, bgClass, paddingClass, 
 
                 {/* Floating scroll trigger */}
                 <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 animate-bounce text-white/40">
-                    <Lucide.ChevronDown size={32} />
+                    <ChevronDown size={32} />
                 </div>
             </section>
 
@@ -814,7 +851,7 @@ const DynamicLocationsBlock: React.FC<any> = ({ section, bgClass, paddingClass, 
                     <div className="bg-white/80 backdrop-blur-xl p-6 md:p-10 rounded-[3rem] shadow-2xl border border-white/50 flex flex-col md:flex-row gap-8 mb-20 items-end">
                         <div className="flex-1 space-y-3 w-full">
                             <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 ml-1">
-                                <Lucide.Filter size={14} /> Continente
+                                <Filter size={14} /> Continente
                             </label>
                             <select
                                 value={continent}
@@ -826,7 +863,7 @@ const DynamicLocationsBlock: React.FC<any> = ({ section, bgClass, paddingClass, 
                         </div>
                         <div className="flex-1 space-y-3 w-full">
                             <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 ml-1">
-                                <Lucide.Map size={14} /> País
+                                <Map size={14} /> País
                             </label>
                             <select
                                 value={country}
@@ -838,7 +875,7 @@ const DynamicLocationsBlock: React.FC<any> = ({ section, bgClass, paddingClass, 
                         </div>
                         <div className="flex-1 space-y-3 w-full">
                             <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2 ml-1">
-                                <Lucide.MapPin size={14} /> Ciudad
+                                <MapPin size={14} /> Ciudad
                             </label>
                             <select
                                 value={city}
@@ -862,7 +899,7 @@ const DynamicLocationsBlock: React.FC<any> = ({ section, bgClass, paddingClass, 
                                     {/* Card Header */}
                                     <div className="relative z-10 flex justify-between items-start mb-8">
                                         <div className="p-4 bg-cafh-indigo/5 text-cafh-indigo rounded-2xl group-hover:bg-cafh-indigo group-hover:text-white transition-all duration-500">
-                                            <Lucide.MapPin size={28} />
+                                            <MapPin size={28} />
                                         </div>
                                         {hasMultiple && (
                                             <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100">
@@ -898,10 +935,10 @@ const DynamicLocationsBlock: React.FC<any> = ({ section, bgClass, paddingClass, 
                                                                     }`}
                                                             >
                                                                 <span className="flex items-center gap-2">
-                                                                    {isWA ? <Lucide.PhoneCall size={16} /> : isPhone ? <Lucide.Phone size={16} /> : <Lucide.Mail size={16} />}
+                                                                    {isWA ? <PhoneCall size={16} /> : isPhone ? <Phone size={16} /> : <Mail size={16} />}
                                                                     {c.label}
                                                                 </span>
-                                                                <Lucide.ChevronRight size={14} className="opacity-50" />
+                                                                <ChevronRight size={14} className="opacity-50" />
                                                             </a>
                                                         );
                                                     })}
@@ -914,7 +951,7 @@ const DynamicLocationsBlock: React.FC<any> = ({ section, bgClass, paddingClass, 
                                                     className="w-full py-4 bg-cafh-indigo/5 text-cafh-indigo rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-cafh-indigo hover:text-white transition-all group/btn"
                                                 >
                                                     Ver todas las sedes
-                                                    <Lucide.ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                                                    <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
                                                 </button>
                                             </div>
                                         )}
@@ -926,7 +963,7 @@ const DynamicLocationsBlock: React.FC<any> = ({ section, bgClass, paddingClass, 
                         {filtered.length === 0 && (
                             <div className="col-span-full py-20 text-center space-y-6">
                                 <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-300">
-                                    <Lucide.Search size={40} />
+                                    <Search size={40} />
                                 </div>
                                 <div>
                                     <h3 className="text-2xl font-bold text-slate-800">Sin resultados</h3>
@@ -959,6 +996,15 @@ const DynamicLocationsBlock: React.FC<any> = ({ section, bgClass, paddingClass, 
 // --- END DYNAMIC PREDEFINED BLOCKS ---
 
 // --- SHARED SECTION RENDERER ---
+const SafeIcon: React.FC<{ name: string; className?: string; size?: number; strokeWidth?: number; fallback?: any }> = ({ name, className, size = 20, strokeWidth, fallback = HelpCircle }) => {
+    const Icon = LUCIDE_REGISTRY[name];
+    if (Icon) {
+        return <Icon className={className} size={size} strokeWidth={strokeWidth} />;
+    }
+    const Fallback = fallback;
+    return <Fallback className={className} size={size} strokeWidth={strokeWidth} />;
+};
+
 export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section }) => {
     const navigate = useNavigate();
     const { type, content, settings } = section;
@@ -1049,11 +1095,10 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
                     <div className={`${containerClass} mx-auto px-6`}>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                             {content.items.map((item: any, i: number) => {
-                                const Icon = (Lucide as any)[item.icon] || Lucide.Activity;
                                 return (
                                     <div key={i} className="text-center space-y-3">
                                         <div className="w-16 h-16 bg-cafh-light rounded-2xl flex items-center justify-center text-cafh-indigo mx-auto shadow-sm">
-                                            <Icon size={32} strokeWidth={1.5} />
+                                            <SafeIcon name={item.icon} size={32} strokeWidth={1.5} fallback={Activity} />
                                         </div>
                                         <div className="text-4xl font-display font-bold text-slate-800">{item.value}</div>
                                         <div className="text-sm font-bold text-slate-400 uppercase tracking-widest">{item.label}</div>
@@ -1070,11 +1115,10 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
                     <div className={`${containerClass} mx-auto px-6`}>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             {content.items.map((item: any, i: number) => {
-                                const Icon = (Lucide as any)[item.icon] || Lucide.Star;
                                 return (
                                     <div key={i} className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
                                         <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-cafh-indigo mb-6 group-hover:scale-110 transition-transform">
-                                            <Icon size={28} strokeWidth={1.5} />
+                                            <SafeIcon name={item.icon} size={28} strokeWidth={1.5} fallback={Star} />
                                         </div>
                                         <h3 className="text-xl font-bold text-slate-800 mb-4">{item.title}</h3>
                                         <div
@@ -1126,11 +1170,10 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             {content.items.map((item: any, i: number) => {
-                                const Icon = (Lucide as any)[item.icon] || Lucide.Activity;
                                 return (
                                     <div key={i} className="bg-slate-50/50 p-8 rounded-[2rem] border border-slate-100 hover:bg-white hover:shadow-xl transition-all group">
                                         <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-cafh-indigo mb-6 shadow-sm group-hover:scale-110 transition-transform">
-                                            <Icon size={32} strokeWidth={1.5} />
+                                            <SafeIcon name={item.icon} size={32} strokeWidth={1.5} fallback={Activity} />
                                         </div>
                                         <h4 className="text-xl font-bold text-slate-800 mb-3">{item.label}</h4>
                                         <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
@@ -1193,7 +1236,7 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
                                         <summary className="flex items-center justify-between p-6 cursor-pointer hover:bg-white transition-colors duration-300">
                                             <h3 className="text-xl font-bold text-slate-700">{item.title}</h3>
                                             <span className="p-2 bg-white rounded-xl shadow-sm group-open:rotate-180 transition-all duration-300">
-                                                <Lucide.ChevronDown size={20} className="text-cafh-indigo" />
+                                                <ChevronDown size={20} className="text-cafh-indigo" />
                                             </span>
                                         </summary>
                                         <div className="px-6 pb-6 text-slate-600 leading-relaxed border-t border-slate-100 pt-6">
@@ -1361,7 +1404,7 @@ export const LoginView: React.FC = () => {
                 )}
                 {success && (
                     <div className="bg-emerald-50 text-emerald-600 p-4 rounded-xl mb-6 flex items-center gap-3 text-sm font-medium border border-emerald-100">
-                        <Lucide.CheckCircle2 size={18} />
+                        <CheckCircle2 size={18} />
                         {success}
                     </div>
                 )}
@@ -1389,7 +1432,7 @@ export const LoginView: React.FC = () => {
                             <div className="space-y-2 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
                                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Teléfono Móvil</label>
                                 <div className="relative">
-                                    <Lucide.Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                                     <input
                                         type="tel"
                                         value={phone}
@@ -2060,7 +2103,7 @@ const WizardModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                                             <div>
                                                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1.5">Teléfono Móvil</label>
                                                 <div className="relative">
-                                                    <Lucide.Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                                     <input
                                                         type="tel"
                                                         value={regPhone}
@@ -2409,7 +2452,6 @@ export const HomeView: React.FC = () => {
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
                                 {homeConfig.searchItems.map((item, idx) => {
-                                    const IconComponent = (Lucide as any)[item.icon] || Lucide.HelpCircle;
                                     return (
                                         <div
                                             key={idx}
@@ -2417,7 +2459,7 @@ export const HomeView: React.FC = () => {
                                             className="group bg-white/60 backdrop-blur-xl border border-white/40 rounded-3xl p-6 md:p-8 flex flex-col items-center justify-center text-center hover:bg-white/80 hover:-translate-y-1 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl shadow-cafh-indigo/5"
                                         >
                                             <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform duration-300">
-                                                <IconComponent size={28} className="text-cafh-indigo" strokeWidth={1.5} />
+                                                <SafeIcon name={item.icon} size={28} className="text-cafh-indigo" strokeWidth={1.5} fallback={HelpCircle} />
                                             </div>
                                             <span className="font-bold text-slate-700 text-sm md:text-base group-hover:text-cafh-indigo transition-colors">{item.label}</span>
                                         </div>
@@ -2434,7 +2476,6 @@ export const HomeView: React.FC = () => {
                         <div className="max-w-7xl mx-auto px-6">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                                 {homeConfig.threeColumns.sort((a, b) => a.order - b.order).map((col, idx) => {
-                                    const IconComponent = (Lucide as any)[col.icon] || Lucide.HelpCircle;
                                     return (
                                         <div key={idx} className={`space-y-4 ${col.alignment === 'center' ? 'text-center' :
                                             col.alignment === 'right' ? 'text-right' : 'text-left'
@@ -2443,7 +2484,7 @@ export const HomeView: React.FC = () => {
                                                 col.alignment === 'right' ? 'justify-end' : 'justify-start'
                                                 } mb-6`}>
                                                 <div className="w-16 h-16 bg-cafh-light rounded-2xl flex items-center justify-center text-cafh-indigo shadow-sm">
-                                                    <IconComponent size={32} strokeWidth={1.5} />
+                                                    <SafeIcon name={col.icon} size={32} strokeWidth={1.5} fallback={HelpCircle} />
                                                 </div>
                                             </div>
                                             <h3 className="font-display text-3xl text-cafh-indigo">{col.title}</h3>

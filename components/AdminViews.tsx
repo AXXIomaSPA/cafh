@@ -30,13 +30,27 @@ import {
 } from 'lucide-react';
 import * as Lucide from 'lucide-react';
 
+// Definitive Static Icons Dictionary (Only named imports to guarantee stability)
 const LUCIDE_ICONS: Record<string, any> = {
-    ...Lucide,
-    Calendar: CalendarIcon,
-    User: UserIcon,
-    Type: TypeIcon,
-    ImageIcon: ImageIcon,
-    CalendarIcon: CalendarIcon, // Backwards compat
+    LayoutDashboard, Users, MessageSquare, Zap, FileCode, HardDrive,
+    BarChart3, Map, Settings, Plus, Search, Filter, MoreVertical,
+    ChevronRight, ChevronLeft, Calendar: CalendarIcon, Mail, CheckCircle2, AlertCircle,
+    Clock, Trash2, Edit, Save, X, Eye, Download, Upload, Link,
+    UserPlus, UserMinus, Shield, ShieldAlert, BadgeCheck, Star,
+    TrendingUp, ArrowUpRight, ArrowDownRight, Activity, MousePointer2,
+    Globe, Phone, MapPin, Grid, Layers, ImageIcon, Video,
+    FileText, Type, List, CheckSquare, Maximize2, Minimize2, Trash,
+    ChevronDown, ChevronUp, ArrowUp, ArrowDown, HelpCircle, Palette,
+    Moon, Sun, Laptop, Smartphone, Monitor, Info, Bell, KeyRound,
+    User: UserIcon, MoreHorizontal, Send, RefreshCw, BarChart2, ExternalLink,
+    Film, Music, File, Instagram, Youtube, Layout, Image, Sparkles, ArrowLeft,
+    GripVertical, Compass, BookOpen, Hash, Play, MousePointer, Database,
+    UploadCloud, Target, Percent, Pause, Globe2, Lock, Tag, LogIn, AlertTriangle,
+    Sliders, Package, Link2, Facebook, Twitter, Heart, Cloud, Anchor, Feather,
+    Coffee, Book, Headphones, Mic, LogOut, Check, Minus, Settings2, Copy,
+    Table2, FolderOpen, Columns, Bold, Italic, Underline, ListOrdered,
+    AlignLeft, AlignCenter, TypeIcon, Eraser, Paperclip, MessageCircle,
+    PlusSquare, PlaySquare
 };
 
 const SectionSettingsModal: React.FC<{ settings: any; onChange: (s: any) => void }> = ({ settings, onChange }) => {
@@ -359,6 +373,7 @@ const AssetPickerModal: React.FC<{
                         <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-4">
                             {filteredIcons.map(name => {
                                 const Icon = LUCIDE_ICONS[name];
+                                if (!Icon) return null;
                                 return (
                                     <button
                                         key={name}
