@@ -192,6 +192,17 @@
   },
   "activities": [
     {
+      "id": "act_test_sync",
+      "title": "Test Sincronización Cloud - Exitosa",
+      "description": "Si ves este mensaje, la plataforma está sincronizando correctamente con GitHub Cloud.",
+      "category": "Sistema",
+      "tags": ["Prueba", "Sincronización"],
+      "startDate": "2026-03-11",
+      "modality": "Virtual",
+      "status": "Publicado",
+      "featuredInDashboard": true
+    },
+    {
       "id": "act_recovery_1",
       "title": "Taller de Meditación Discursiva (Sesión Sábado)",
       "description": "Sesión de práctica intensiva restaurada del 7 de marzo.",
