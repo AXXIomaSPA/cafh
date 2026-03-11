@@ -451,8 +451,12 @@ export const db = {
         initStorage(KEYS.JOURNEY_QUESTIONS, []);
         initStorage(KEYS.JOURNEY_PROFILES, []);
         initStorage(KEYS.LOCATIONS, MOCK_LOCATIONS);
+        // Aseguramos que la URL por defecto esté guardada
+        if (!localStorage.getItem(KEYS.REMOTE_SYNC_URL)) {
+            safeSetItem(KEYS.REMOTE_SYNC_URL, 'https://raw.githubusercontent.com/AXXIomaSPA/cafh/feature/unification-and-dashboard-refactor/external_db.json');
+        }
 
-        // Intento de Sincronización Remota (Opcional si hay URL configurada)
+        // Intento de Sincronización Remota
         db.system.syncRemote();
 
         console.log("Cafh Local Memory System: Initialized (Simulated 200MB Persistence)");
@@ -1905,7 +1909,9 @@ export const db = {
             if (token) headers['Authorization'] = `token ${token}`;
 
             try {
-                const response = await fetch(url, { headers });
+                // Agregar un timestamp para evitar que el navegador guarde la respuesta en caché
+                const fetchUrl = url.includes('?') ? `${url}&t=${Date.now()}` : `${url}?t=${Date.now()}`;
+                const response = await fetch(fetchUrl, { headers, cache: 'no-store' });
                 if (!response.ok) {
                     if (response.status === 404) throw new Error('Archivo no encontrado. Verifica la URL.');
                     if (response.status === 401 || response.status === 403) throw new Error('Acceso denegado. Se requiere Token de GitHub.');
@@ -1963,6 +1969,13 @@ export const db = {
                 }
 
                 localStorage.setItem(KEYS.LAST_SYNC, new Date().toISOString());
+                console.log(`[SYNC] Sincronización remota exitosa. ${changesDetected} cambios aplicados. Refrescando si es necesario...`);
+                
+                // Disparar un evento para que la interfaz sepa que hubo una sincronización
+                if (changesDetected > 0) {
+                    window.dispatchEvent(new CustomEvent('cafh_data_synced'));
+                }
+
                 return { status: 'success', changes: changesDetected };
             } catch (err: any) {
                 return { status: 'error', message: err.message || 'Error desconocido' };

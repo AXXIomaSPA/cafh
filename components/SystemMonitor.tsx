@@ -6,6 +6,7 @@ export const SystemMonitor: React.FC = () => {
     const [usage, setUsage] = useState(db.system.getStorageUsage());
     const [isInitializing, setIsInitializing] = useState(true);
     const [isVisible, setIsVisible] = useState(false);
+    const [syncStatus, setSyncStatus] = useState<string | null>(null);
 
     useEffect(() => {
         // Initial load simulation
@@ -25,17 +26,30 @@ export const SystemMonitor: React.FC = () => {
         // Fade in
         setTimeout(() => setIsVisible(true), 500);
 
+        // Listen for remote sync events
+        const handleSync = (e: any) => {
+            setSyncStatus('¡Sincronizado!');
+            // Pequeño delay para que el usuario alcance a ver que se actualizó 
+            // y luego recarga la ventana suavemente para que todo el React Tree tome los datos nuevos.
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        };
+
+        window.addEventListener('cafh_data_synced', handleSync);
+
         return () => {
             clearTimeout(timer);
             clearInterval(interval);
+            window.removeEventListener('cafh_data_synced', handleSync);
         };
     }, []);
 
     if (!isVisible) return null;
 
     return (
-        <div className="fixed bottom-6 right-6 z-[9999] pointer-events-none select-none flex flex-col items-end gap-3 font-sans">
-            <div className="bg-emerald-500/10 backdrop-blur-xl border border-emerald-500/20 rounded-[1.5rem] p-4 shadow-[0_10px_40px_rgba(16,185,129,0.15)] flex items-center gap-4 animate-in slide-in-from-right-10 duration-700 pointer-events-auto group hover:bg-emerald-500/20 transition-all">
+        <div className="fixed bottom-6 left-6 z-[9999] pointer-events-none select-none flex flex-col items-start gap-3 font-sans group">
+            <div className="bg-emerald-500/10 backdrop-blur-xl border border-emerald-500/20 rounded-[1.5rem] p-4 shadow-[0_10px_40px_rgba(16,185,129,0.15)] flex items-center gap-4 animate-in slide-in-from-left-10 duration-700 pointer-events-auto hover:bg-emerald-500/20 transition-all">
                 <div className="relative">
                     <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
                         {isInitializing ? (
@@ -76,8 +90,13 @@ export const SystemMonitor: React.FC = () => {
             </div>
 
             {/* Disclaimer for persistence */}
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-[9px] text-white/50 border border-white/5">
-                Monitor de integridad de datos CAFH v1.0
+            <div className="bg-black/80 backdrop-blur-md px-3 py-2 rounded-lg text-xs font-bold text-emerald-400 border border-emerald-500/20 shadow-lg mb-2 flex items-center gap-2">
+                Datos Demo Web Cargados (En revisión)
+                {syncStatus && (
+                    <span className="bg-emerald-500 text-black px-2 py-0.5 rounded-full text-[10px] animate-pulse">
+                        {syncStatus}
+                    </span>
+                )}
             </div>
         </div>
     );
