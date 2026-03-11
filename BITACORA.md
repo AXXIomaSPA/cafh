@@ -19,6 +19,8 @@ Hacer que el bloque de "Sedes Cafh" (Locations) sea un componente modular dispon
     - Checkbox de **Reproducción Automática** (Autoplay) para el carrusel.
     - Banner informativo aclarando que los datos se sincronizan automáticamente con el **Gestor de Sedes** global.
 - **UI de Listado**: Se actualizó el listado de secciones en el editor para mostrar el icono correcto y el nombre descriptivo ("Sedes Globales") para este tipo de bloque.
+- **Acceso Directo a Página**: Se integró un botón de "Ver Página" en la barra de herramientas del editor de páginas internas. Este enlace es dinámico (`window.location.origin`), lo que garantiza su funcionamiento tras la migración a Cpanel/Node.js, permitiendo la revisión permanente del contenido en vivo.
+- **Corrección de Enlaces (HashRouter)**: Se ajustaron todos los enlaces de previsualización en el Admin (Editor de Página, Listado de Páginas y Enlaces de Sistema) para ser compatibles con el `HashRouter` actual (`#/p/slug`). Esto soluciona el problema de los enlaces que no funcionaban desde el panel de administración.
 
 #### 2. Public Frontend (`PublicViews.tsx`)
 - **Renderizado Dinámico**: Se actualizó el `SectionRenderer` para manejar el caso `'Locations'`, llamando al componente `DynamicLocationsBlock`.

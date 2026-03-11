@@ -6569,8 +6569,10 @@ const PagesManager: React.FC = () => {
                                     <p className="text-sm font-bold text-slate-700">{p.label}</p>
                                     <p className="text-[10px] text-slate-400 font-mono">{p.path}</p>
                                 </div>
-                                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <a href={p.path} target="_blank" rel="noreferrer" className="p-1.5 text-slate-400 hover:text-cafh-indigo"><ExternalLink size={14} /></a>
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                                    <a href={`#${p.path}`} target="_blank" rel="noreferrer" className="p-1.5 text-slate-400 hover:text-cafh-indigo" title="Ver en vivo">
+                                        <ExternalLink size={14} />
+                                    </a>
                                 </div>
                             </div>
                         ))}
@@ -6596,6 +6598,15 @@ const PagesManager: React.FC = () => {
                         <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                             <span className="text-xs text-slate-400">{page.sections.length} secciones</span>
                             <div className="flex gap-2">
+                                <a
+                                    href={`#/p/${page.slug}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-2 text-slate-400 hover:text-cafh-cyan hover:bg-cafh-cyan/5 rounded-lg transition-all"
+                                    title="Ver en vivo"
+                                >
+                                    <Eye size={18} />
+                                </a>
                                 <button
                                     onClick={() => setEditingPage(page)}
                                     className="p-2 text-slate-400 hover:text-cafh-indigo hover:bg-cafh-indigo/5 rounded-lg transition-all"
@@ -6751,16 +6762,32 @@ const PageEditor: React.FC<{ page: CustomPage; onSave: (page: CustomPage) => voi
                     <div>
                         <div className="flex items-center gap-3">
                             <h3 className="text-lg font-bold text-slate-800">{localPage.id ? 'Editar Página' : 'Nueva Página'}</h3>
-                            <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-lg border border-slate-200 group relative cursor-pointer" onClick={() => {
-                                navigator.clipboard.writeText(`/${localPage.slug}`);
-                                // Optional toast
-                            }}>
-                                <Globe2 size={12} className="text-slate-400" />
-                                <span className="text-[10px] font-mono font-bold text-slate-500 uppercase">/{localPage.slug || 'sin-ruta'}</span>
-                                <Copy size={10} className="text-slate-300 opacity-0 group-hover:opacity-100 transition-all" />
-                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap">
-                                    Clic para copiar ruta
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-lg border border-slate-200 group relative cursor-pointer" onClick={() => {
+                                    navigator.clipboard.writeText(`/${localPage.slug}`);
+                                }}>
+                                    <Globe2 size={12} className="text-slate-400" />
+                                    <span className="text-[10px] font-mono font-bold text-slate-500 uppercase">/{localPage.slug || 'sin-ruta'}</span>
+                                    <Copy size={10} className="text-slate-300 opacity-0 group-hover:opacity-100 transition-all" />
+                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap">
+                                        Clic para copiar ruta
+                                    </div>
                                 </div>
+
+                                {localPage.slug && (
+                                    <a
+                                        href={`#/p/${localPage.slug}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-1.5 px-3 py-1 bg-cafh-cyan/10 border border-cafh-cyan/20 rounded-lg text-cafh-indigo hover:bg-cafh-cyan/20 transition-all group relative"
+                                    >
+                                        <ExternalLink size={12} className="text-cafh-indigo" />
+                                        <span className="text-[10px] font-bold uppercase tracking-wider">Ver Página</span>
+                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap">
+                                            Abrir en pestaña nueva (Online)
+                                        </div>
+                                    </a>
+                                )}
                             </div>
                         </div>
                         <p className="text-xs text-slate-500">Configura la estructura y contenido de tu página.</p>
