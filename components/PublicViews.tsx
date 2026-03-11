@@ -1350,7 +1350,6 @@ export const SectionRenderer: React.FC<{ section: PageSection }> = ({ section })
         case 'EventsCalendar': return <DynamicEventsCalendar section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
         case 'Timeline': return <DynamicTimeline section={section} bgClass="bg-slate-900" paddingClass={paddingClass} containerClass={containerClass} />;
         case 'MethodPillars': return <DynamicMethodPillars section={section} bgClass={bgClass} paddingClass={paddingClass} containerClass={containerClass} />;
-        case 'Locations': return <DynamicLocationsBlock section={section} />;
         default: return null;
     }
 };

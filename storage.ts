@@ -1903,43 +1903,40 @@ export const db = {
             const url = localStorage.getItem(KEYS.REMOTE_SYNC_URL);
             if (!url) return { status: 'no_url' };
 
-            // Intento de obtener token si el repositorio es privado
             const token = localStorage.getItem('cafh_github_token');
             const headers: any = {};
             if (token) headers['Authorization'] = `token ${token}`;
 
             try {
-                // Agregar un timestamp para evitar que el navegador guarde la respuesta en caché
                 const fetchUrl = url.includes('?') ? `${url}&t=${Date.now()}` : `${url}?t=${Date.now()}`;
                 const response = await fetch(fetchUrl, { headers, cache: 'no-store' });
-                if (!response.ok) {
-                    if (response.status === 404) throw new Error('Archivo no encontrado. Verifica la URL.');
-                    if (response.status === 401 || response.status === 403) throw new Error('Acceso denegado. Se requiere Token de GitHub.');
-                    throw new Error(`Error ${response.status}: Fallo en la descarga.`);
-                }
+                if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+                
                 const remote = await response.json();
-
                 let changesDetected = 0;
-                const syncKeys = [
+
+                // 1. Array-based Synchronization
+                const syncArrayKeys = [
+                    { key: KEYS.ACTIVITY_EVENTS, remoteKey: 'events' }, // Prioritize 'events' from JSON
                     { key: KEYS.ACTIVITY_EVENTS, remoteKey: 'activities' },
                     { key: KEYS.CONTENT, remoteKey: 'content' },
                     { key: KEYS.BLOG, remoteKey: 'blog' },
                     { key: KEYS.USERS, remoteKey: 'users' },
-                    { key: KEYS.MEDIA, remoteKey: 'media' }
+                    { key: KEYS.MEDIA, remoteKey: 'media' },
+                    { key: KEYS.CUSTOM_PAGES, remoteKey: 'pages' },
+                    { key: KEYS.CONTACTS, remoteKey: 'contacts' }
                 ];
 
-                syncKeys.forEach(({ key, remoteKey }) => {
-                    const rData = remote[remoteKey] || remote[key];
+                syncArrayKeys.forEach(({ key, remoteKey }) => {
+                    const rData = remote[remoteKey];
                     if (rData && Array.isArray(rData)) {
                         const local = JSON.parse(localStorage.getItem(key) || '[]');
                         let result = [...local];
 
                         if (mode === 'master') {
-                            // MODO MASTER: El archivo externo manda. Borra local si no está en remoto (para esa categoría)
                             result = rData;
                             changesDetected += rData.length;
                         } else {
-                            // MODO MERGE (Default): Mezcla inteligente. Si existe actualiza, si no añade. No borra local.
                             rData.forEach((ra: any) => {
                                 const idx = result.findIndex(la => la.id === ra.id);
                                 if (idx >= 0) {
@@ -1957,27 +1954,36 @@ export const db = {
                     }
                 });
 
+                // 2. Object-based Synchronization (Home Config and others)
+                // We check if 'sections.home' exists in remote
+                const remoteHome = remote.sections?.home || remote.home_config;
+                if (remoteHome && typeof remoteHome === 'object') {
+                    const localHome = JSON.parse(localStorage.getItem(KEYS.HOME_CONFIG) || '{}');
+                    if (JSON.stringify(localHome) !== JSON.stringify(remoteHome)) {
+                        safeSetItem(KEYS.HOME_CONFIG, remoteHome);
+                        changesDetected++;
+                    }
+                }
+
                 if (changesDetected > 0) {
                     db.system.logChange({
+                        userId: 'system',
                         section: 'Sistema > Sincronización',
                         entityType: 'System',
                         entityId: 'RemoteSync',
                         action: 'Sync',
-                        details: `Sincronización remota (${mode}): ${changesDetected} registros procesados.`,
+                        details: `Sincronización remota (${mode}): ${changesDetected} cambios aplicados.`,
                         changes: { url, mode, count: changesDetected }
                     });
-                }
-
-                localStorage.setItem(KEYS.LAST_SYNC, new Date().toISOString());
-                console.log(`[SYNC] Sincronización remota exitosa. ${changesDetected} cambios aplicados. Refrescando si es necesario...`);
-                
-                // Disparar un evento para que la interfaz sepa que hubo una sincronización
-                if (changesDetected > 0) {
+                    
+                    localStorage.setItem(KEYS.LAST_SYNC, new Date().toISOString());
                     window.dispatchEvent(new CustomEvent('cafh_data_synced'));
                 }
 
+                console.log(`[SYNC] Sincronización remota completada. Cambios: ${changesDetected}`);
                 return { status: 'success', changes: changesDetected };
             } catch (err: any) {
+                console.error('[SYNC] Fallo en sincronización:', err);
                 return { status: 'error', message: err.message || 'Error desconocido' };
             }
         }
